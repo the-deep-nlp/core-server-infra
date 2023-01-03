@@ -37,6 +37,11 @@ module "nlp_server" {
   # ecs role
   ecs_task_execution_role = var.ecs_task_execution_role
   ecs_task_role           = var.ecs_task_role
+  # nlp database
+  rds_instance_endpoint = module.nlp_database.rds_instance_endpoint
+  # redis endpoint
+  redis_endpoint = module.redis.redis_endpoint
+  redis_host = module.redis.redis_host
 }
 
 module "nlp_database" {
@@ -46,5 +51,24 @@ module "nlp_database" {
 
   # vpc
   vpc_id           = module.nlp_server.aws_vpc_id
-  database_subnets = module.nlp_server.database_subnets
+  database_subnets = module.nlp_server.public_subnets
+}
+
+module "redis" {
+  source = "./modules/redis"
+
+  environment = var.environment
+
+  # redis
+  redis_cluster_name    = var.redis_cluster_name
+  redis_node_type       = var.redis_node_type
+  redis_num_cache_nodes = var.redis_num_cache_nodes
+  redis_port            = var.redis_port
+
+  # vpc
+  vpc_id          = module.nlp_server.aws_vpc_id
+  private_subnets = module.nlp_server.private_subnets
+
+  # sec grp
+  ecs_sec_grp_id = module.nlp_server.ecs_sec_grp_id
 }

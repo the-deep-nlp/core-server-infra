@@ -16,3 +16,9 @@ variable "fargate_memory" {}
 # ecs role
 variable "ecs_task_execution_role" {}
 variable "ecs_task_role" {}
+
+# redis
+variable "redis_cluster_name" {}
+variable "redis_node_type" {}
+variable "redis_num_cache_nodes" {}
+variable "redis_port" {}
