@@ -12,6 +12,32 @@ data "template_file" "config" {
     fargate_memory = var.fargate_memory
     aws_region     = var.aws_region
     environment    = var.environment
+
+    # Django
+    django_secret_key = data.aws_ssm_parameter.django_secret_key.arn
+    debug = "False"
+    allowed_host = "*"
+    # Redis
+    redis_host = var.redis_host #data.aws_ssm_parameter.celery_redis_url.arn
+    celery_broker_url = var.redis_endpoint
+    celery_result_backend = var.redis_endpoint
+    # NLP Database
+    nlp_db_name = data.aws_ssm_parameter.db_name.arn
+    nlp_db_username = data.aws_ssm_parameter.db_username.arn
+    nlp_db_password = data.aws_ssm_parameter.db_password.arn
+    nlp_db_port = data.aws_ssm_parameter.db_port.arn
+    nlp_db_host = var.rds_instance_endpoint
+    # DEEP Database
+    deep_db_name = data.aws_ssm_parameter.deep_db_name.arn
+    deep_db_username = data.aws_ssm_parameter.deep_db_username.arn
+    deep_db_password = data.aws_ssm_parameter.deep_db_password.arn
+    deep_db_port = data.aws_ssm_parameter.deep_db_port.arn
+    deep_db_host = data.aws_ssm_parameter.deep_db_host.arn
+    # Cron
+    cron_deep_fetch_minute = var.cron_deep_fetch_minute
+    cron_deep_fetch_hour = var.cron_deep_fetch_hour
+    cron_create_indices_minute = var.cron_create_indices_minute
+    cron_create_indices_hour = var.cron_create_indices_hour
   }
 }
 
@@ -37,7 +63,7 @@ resource "aws_ecs_service" "service" {
     security_groups  = [
         aws_security_group.ecs_sg.id
     ]
-    subnets          = module.vpc.private_subnets
+    subnets          = aws_subnet.private.*.id
     assign_public_ip = true
   }
 
