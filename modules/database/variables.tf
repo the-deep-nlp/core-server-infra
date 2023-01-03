@@ -33,7 +33,7 @@ variable retention_period {
 }
 
 variable instance_type {
-    default = "db.r6g.large"
+    default = "db.t3.medium"
 }
 
 
