@@ -1,10 +1,10 @@
 resource "aws_db_subnet_group" "rds" {
-  name       = "${var.unique_name}-rds-${var.environment}"
+  name       = "${var.unique_name}-rds-subnet-grp-${var.environment}"
   subnet_ids = [for subnet in var.database_subnets : subnet]
 }
 
 resource "aws_rds_cluster" "nlp_db" {
-  cluster_identifier_prefix = var.unique_name
+  cluster_identifier        = "${var.unique_name}-${var.environment}"
   engine                    = "aurora-postgresql"
   engine_version            = "14.5"
   port                      = var.db_port
@@ -20,7 +20,7 @@ resource "aws_rds_cluster" "nlp_db" {
 }
 
 resource "aws_rds_cluster_instance" "cluster_instances" {
-  identifier         = "aurora-cluster-${var.environment}"
+  identifier         = "aurora-cluster-instance-${var.environment}"
   cluster_identifier = aws_rds_cluster.nlp_db.id
   instance_class     = var.instance_type
   engine             = aws_rds_cluster.nlp_db.engine
