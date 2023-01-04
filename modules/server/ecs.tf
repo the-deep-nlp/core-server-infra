@@ -16,7 +16,7 @@ data "template_file" "config" {
     # Django
     django_secret_key = data.aws_ssm_parameter.django_secret_key.arn
     debug = "False"
-    allowed_host = "*"
+    allowed_hosts = "*"
     # Redis
     redis_host = var.redis_host #data.aws_ssm_parameter.celery_redis_url.arn
     celery_broker_url = var.redis_endpoint

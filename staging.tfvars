@@ -4,11 +4,12 @@ aws_profile = "nlp_tf"
 
 # vpc
 cidr_block = "172.20.0.0/16"
+availability_zones = ["us-east-1a", "us-east-1b"]
 
 # ecs
 app_image      = "961104659532.dkr.ecr.us-east-1.amazonaws.com/nlp-server:latest"
 app_port       = 8000
-fargate_cpu    = "512"
+fargate_cpu    = "256"
 fargate_memory = "1024"
 
 # ecs role

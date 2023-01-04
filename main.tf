@@ -29,6 +29,7 @@ module "nlp_server" {
   aws_region  = var.aws_region
   # vpc
   cidr_block = var.cidr_block
+  availability_zones = var.availability_zones
   # ecs
   app_image      = var.app_image
   app_port       = var.app_port
@@ -52,6 +53,7 @@ module "nlp_database" {
   # vpc
   vpc_id           = module.nlp_server.aws_vpc_id
   database_subnets = module.nlp_server.public_subnets
+  availability_zones = var.availability_zones
 }
 
 module "redis" {

@@ -13,7 +13,7 @@ resource "aws_alb_target_group" "tg" {
   vpc_id      = aws_vpc.vpc.id
 
   health_check {
-    port                = 80
+    port                = var.app_port
     healthy_threshold   = 2
     unhealthy_threshold = 3
     timeout             = 30

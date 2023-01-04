@@ -24,7 +24,7 @@
       ],
       "command": [
         "-c",
-        "/code/scripts/run_prod.sh"
+        "/code/scripts/run_prod_ecs.sh"
       ],
       "environment": [
         {
@@ -32,8 +32,8 @@
           "value": "${debug}"
         },
         {
-          "name": "ALLOWED_HOST",
-          "value": "${allowed_host}"
+          "name": "ALLOWED_HOSTS",
+          "value": "${allowed_hosts}"
         },
         {
           "name": "REDIS_HOST",

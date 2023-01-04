@@ -6,6 +6,7 @@ variable "aws_profile" {
 
 # vpc
 variable "cidr_block" {}
+variable "availability_zones" {}
 
 # ecs
 variable "app_image" {}
