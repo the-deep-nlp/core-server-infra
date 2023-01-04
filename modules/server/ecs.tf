@@ -63,7 +63,7 @@ resource "aws_ecs_service" "service" {
     security_groups  = [
         aws_security_group.ecs_sg.id
     ]
-    subnets          = aws_subnet.private.*.id
+    subnets          = var.private_subnets
     assign_public_ip = true
   }
 

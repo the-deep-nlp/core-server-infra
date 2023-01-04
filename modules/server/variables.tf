@@ -2,13 +2,9 @@ variable environment {}
 variable aws_region {}
 
 # vpc
-variable az_count {
-    default = 2
-}
-variable availability_zones {
-    default = ["us-east-1a", "us-east-1b"]
-}
-variable cidr_block {}
+variable vpc_id {}
+variable public_subnets {}
+variable private_subnets {}
 
 # ecs
 variable app_image {}

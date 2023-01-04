@@ -22,14 +22,34 @@ provider "aws" {
   #shared_credentials_files = ["~/.aws/credentials"]
 }
 
+module "nlp_vpc" {
+  source = "./modules/vpc"
+
+  environment = var.environment
+  aws_region = var.aws_region
+  
+  # vpc
+  cidr_block = var.cidr_block
+  availability_zones = var.availability_zones
+}
+
+module "nlp_database" {
+  source = "./modules/database"
+
+  environment = var.environment
+
+  # vpc
+  vpc_id           = module.nlp_vpc.aws_vpc_id
+  database_subnets = module.nlp_vpc.public_subnets
+  availability_zones = var.availability_zones
+}
+
 module "nlp_server" {
   source = "./modules/server"
 
   environment = var.environment
   aws_region  = var.aws_region
-  # vpc
-  cidr_block = var.cidr_block
-  availability_zones = var.availability_zones
+  
   # ecs
   app_image      = var.app_image
   app_port       = var.app_port
@@ -43,17 +63,10 @@ module "nlp_server" {
   # redis endpoint
   redis_endpoint = module.redis.redis_endpoint
   redis_host = module.redis.redis_host
-}
-
-module "nlp_database" {
-  source = "./modules/database"
-
-  environment = var.environment
-
   # vpc
-  vpc_id           = module.nlp_server.aws_vpc_id
-  database_subnets = module.nlp_server.public_subnets
-  availability_zones = var.availability_zones
+  vpc_id = module.nlp_vpc.aws_vpc_id
+  private_subnets = module.nlp_vpc.private_subnets
+  public_subnets = module.nlp_vpc.public_subnets
 }
 
 module "redis" {
@@ -68,8 +81,8 @@ module "redis" {
   redis_port            = var.redis_port
 
   # vpc
-  vpc_id          = module.nlp_server.aws_vpc_id
-  private_subnets = module.nlp_server.private_subnets
+  vpc_id          = module.nlp_vpc.aws_vpc_id
+  private_subnets = module.nlp_vpc.private_subnets
 
   # sec grp
   ecs_sec_grp_id = module.nlp_server.ecs_sec_grp_id

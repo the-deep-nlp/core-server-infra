@@ -1,7 +1,7 @@
 
 resource "aws_alb" "alb" {
   name           = "nlp-server-lb-${var.environment}"
-  subnets        =  aws_subnet.public.*.id
+  subnets        =  var.public_subnets
   security_groups = [aws_security_group.alb_sg.id]
 }
 
@@ -10,7 +10,7 @@ resource "aws_alb_target_group" "tg" {
   port        = 80
   protocol    = "HTTP"
   target_type = "ip"
-  vpc_id      = aws_vpc.vpc.id
+  vpc_id      = var.vpc_id
 
   health_check {
     port                = var.app_port
