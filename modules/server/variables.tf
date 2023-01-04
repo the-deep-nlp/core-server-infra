@@ -38,7 +38,7 @@ variable redis_host {}
 
 # cron
 variable cron_deep_fetch_minute {
-    default = "*/5"
+    default = 0
 }
 variable cron_deep_fetch_hour {
     default = "*"
