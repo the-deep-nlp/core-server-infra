@@ -40,3 +40,4 @@ variable instance_type {
 # vpc
 variable vpc_id {}
 variable database_subnets {}
+variable availability_zones {}

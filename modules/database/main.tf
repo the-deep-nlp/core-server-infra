@@ -10,7 +10,7 @@ resource "aws_rds_cluster" "nlp_db" {
   port                      = var.db_port
   db_subnet_group_name      = aws_db_subnet_group.rds.name
   vpc_security_group_ids    = [aws_security_group.rds.id]
-  availability_zones        = ["us-east-1a", "us-east-1b"] #slice(data.aws_availability_zones.available.names, 0, 1)
+  availability_zones        = var.availability_zones
   database_name             = data.aws_ssm_parameter.db_name.value
   master_username           = data.aws_ssm_parameter.db_username.value
   master_password           = data.aws_ssm_parameter.db_password.value
