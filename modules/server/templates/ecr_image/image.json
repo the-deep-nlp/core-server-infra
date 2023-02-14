@@ -1,0 +1,114 @@
+[
+    {
+      "name": "backend-server-${environment}",
+      "image": "${app_image}",
+      "cpu": ${fargate_cpu},
+      "memory": ${fargate_memory},
+      "networkMode": "awsvpc",
+      "logConfiguration": {
+          "logDriver": "awslogs",
+          "options": {
+            "awslogs-group": "/ecs/nlp-server-${environment}",
+            "awslogs-region": "${aws_region}",
+            "awslogs-stream-prefix": "ecs"
+          }
+      },
+      "portMappings": [
+        {
+          "containerPort": ${app_port},
+          "hostPort": ${app_port}
+        }
+      ],
+      "entryPoint": [
+        "bash"
+      ],
+      "command": [
+        "-c",
+        "/code/scripts/run_prod_ecs.sh"
+      ],
+      "environment": [
+        {
+          "name": "DEBUG",
+          "value": "${debug}"
+        },
+        {
+          "name": "ALLOWED_HOSTS",
+          "value": "${allowed_hosts}"
+        },
+        {
+          "name": "REDIS_HOST",
+          "value": "${redis_host}"
+        },
+        {
+          "name": "CELERY_BROKER_URL",
+          "value": "${celery_broker_url}"
+        },
+        {
+          "name": "CELERY_RESULT_BACKEND",
+          "value": "${celery_result_backend}"
+        },
+        {
+          "name": "POSTGRES_HOSTNAME",
+          "value": "${nlp_db_host}"
+        },
+        {
+          "name": "CRON_DEEP_FETCH_MINUTE",
+          "value": "${cron_deep_fetch_minute}"
+        },
+        {
+          "name": "CRON_DEEP_FETCH_HOUR",
+          "value": "${cron_deep_fetch_hour}"
+        },
+        {
+          "name": "CRON_CREATE_INDICES_MINUTE",
+          "value": "${cron_create_indices_minute}"
+        },
+        {
+          "name": "CRON_CREATE_INDICES_HOUR",
+          "value": "${cron_create_indices_hour}"
+        }
+      ],
+      "secrets": [
+        {
+          "name": "POSTGRES_DB",
+          "valueFrom": "${nlp_db_name}"
+        },
+        {
+          "name": "POSTGRES_USER",
+          "valueFrom": "${nlp_db_username}"
+        },
+        {
+          "name": "POSTGRES_PASSWORD",
+          "valueFrom": "${nlp_db_password}"
+        },
+        {
+          "name": "POSTGRES_PORT",
+          "valueFrom": "${nlp_db_port}"
+        },
+        {
+          "name": "DEEP_DB_NAME",
+          "valueFrom": "${deep_db_name}"
+        },
+        {
+          "name": "DEEP_DB_USER",
+          "valueFrom": "${deep_db_username}"
+        },
+        {
+          "name": "DEEP_DB_PASSWORD",
+          "valueFrom": "${deep_db_password}"
+        },
+        {
+          "name": "DEEP_DB_PORT",
+          "valueFrom": "${deep_db_port}"
+        },
+        {
+          "name": "DEEP_DB_HOST",
+          "valueFrom": "${deep_db_host}"
+        },
+        {
+          "name": "DJANGO_SECRET_KEY",
+          "valueFrom": "${django_secret_key}"
+        }
+      ]
+    }
+]
