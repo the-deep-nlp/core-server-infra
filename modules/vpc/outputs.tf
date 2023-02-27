@@ -9,3 +9,7 @@ output "public_subnets" {
 output "private_subnets" {
   value = aws_subnet.private.*.id
 }
+
+output "availability_zone_count" {
+  value = var.az_count
+}
