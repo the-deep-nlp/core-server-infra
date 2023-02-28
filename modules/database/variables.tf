@@ -41,3 +41,9 @@ variable instance_type {
 variable vpc_id {}
 variable database_subnets {}
 variable availability_zones {}
+
+# secrets
+variable ssm_db_name_value {}
+variable ssm_db_username_value {}
+variable ssm_db_password_value {}
+variable ssm_db_port_value {}

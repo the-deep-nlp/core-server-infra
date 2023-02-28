@@ -11,9 +11,9 @@ resource "aws_rds_cluster" "nlp_db" {
   db_subnet_group_name      = aws_db_subnet_group.rds.name
   vpc_security_group_ids    = [aws_security_group.rds.id]
   availability_zones        = var.availability_zones
-  database_name             = data.aws_ssm_parameter.db_name.value
-  master_username           = data.aws_ssm_parameter.db_username.value
-  master_password           = data.aws_ssm_parameter.db_password.value
+  database_name             = var.ssm_db_name_value #data.aws_ssm_parameter.db_name.value
+  master_username           = var.ssm_db_username_value #data.aws_ssm_parameter.db_username.value
+  master_password           = var.ssm_db_password_value #data.aws_ssm_parameter.db_password.value
   skip_final_snapshot       = var.database_skip_final_snapshot
   final_snapshot_identifier = var.unique_name
   backup_retention_period   = var.retention_period
