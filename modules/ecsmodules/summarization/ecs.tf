@@ -55,7 +55,31 @@ resource "aws_ecs_task_definition" "task-def" {
           }
       ],
       "name": "${var.ecs_container_name}-${var.environment}",
-      "image": "${local.app_image_url}"
+      "image": "${local.app_image_url}",
+      "environment": [
+        {
+          "name": "DB_HOST",
+          "value": "${var.rds_instance_endpoint}"
+        }
+      ],
+      "secrets": [
+        {
+          "name": "DB_NAME",
+          "valueFrom": "${var.ssm_db_name_arn}"
+        },
+        {
+          "name": "DB_USER",
+          "valueFrom": "${var.ssm_db_username_arn}"
+        },
+        {
+          "name": "DB_PWD",
+          "valueFrom": "${var.ssm_db_password_arn}"
+        },
+        {
+          "name": "DB_PORT",
+          "valueFrom": "${var.ssm_db_port_arn}"
+        }
+      ]
   }
 ]
 DEFINITION

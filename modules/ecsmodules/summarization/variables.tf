@@ -43,3 +43,10 @@ variable ecs_container_name {
 }
 
 variable efs_volume_id {}
+
+# db
+variable rds_instance_endpoint {}
+variable ssm_db_name_arn {}
+variable ssm_db_username_arn {}
+variable ssm_db_password_arn {}
+variable ssm_db_port_arn {}

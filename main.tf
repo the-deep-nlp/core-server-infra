@@ -44,7 +44,7 @@ module "nlp_database" {
   availability_zones = var.availability_zones
 
   # secrets
-  ssm_db_name_value = module.secrets.ssm_db_username_value
+  ssm_db_name_value = module.secrets.ssm_db_name_value
   ssm_db_username_value = module.secrets.ssm_db_username_value
   ssm_db_password_value = module.secrets.ssm_db_password_value
   ssm_db_port_value = module.secrets.ssm_db_port_value
@@ -76,7 +76,7 @@ module "nlp_server" {
 
   # secrets
   ssm_django_secret_key_arn = module.secrets.ssm_django_secret_key_arn
-  ssm_db_name_arn = module.secrets.ssm_db_username_arn
+  ssm_db_name_arn = module.secrets.ssm_db_name_arn
   ssm_db_username_arn = module.secrets.ssm_db_username_arn
   ssm_db_password_arn = module.secrets.ssm_db_password_arn
   ssm_db_port_arn = module.secrets.ssm_db_port_arn
@@ -197,6 +197,13 @@ module "summarization" {
 
   # ecr
   app_image_name = var.summarization_app_image_name
+
+  # secrets
+  rds_instance_endpoint = module.nlp_database.rds_instance_endpoint
+  ssm_db_name_arn = module.secrets.ssm_db_name_arn
+  ssm_db_username_arn = module.secrets.ssm_db_username_arn
+  ssm_db_password_arn = module.secrets.ssm_db_password_arn
+  ssm_db_port_arn = module.secrets.ssm_db_port_arn
 }
 
 module "efilesystem" {
