@@ -48,7 +48,9 @@ resource "aws_iam_role_policy" "ecs-role-policy" {
                     "ssm:GetParameters",
                     "ecr:*",
                     "kms:Decrypt",
-                    "secretsmanager:GetSecretValue"
+                    "secretsmanager:GetSecretValue",
+                    "ecs:RunTask",
+                    "iam:PassRole"
                 ],
                 "Resource": "*"
             }

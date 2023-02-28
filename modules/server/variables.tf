@@ -15,13 +15,30 @@ variable app_count {
     default = 1
 }
 
+variable ecs_cluster_name {
+    default = "nlp-server-cluster"
+}
+
+variable ecs_task_definition_name {
+    default = "nlp-server-task"
+}
+
+variable ecs_service_name {
+    default = "nlp-server-service"
+}
+
+variable ecs_container_name {
+    default = "nlp-server-container"
+}
+
+
 # ecs role
 variable ecs_task_execution_role {}
 variable ecs_task_role {}
 
 # alb
 variable health_check_path {
-    default = "/admin/"
+    default = "/"
 }
 
 # route 53
@@ -30,11 +47,11 @@ variable domain_name {
 }
 
 # database
-variable rds_instance_endpoint {}
+variable rds_instance_endpoint {default="test"}
 
 # redis
-variable redis_endpoint {}
-variable redis_host {}
+variable redis_endpoint {default="test"}
+variable redis_host {default="test"}
 
 # cron
 variable cron_deep_fetch_minute {
@@ -49,3 +66,23 @@ variable cron_create_indices_minute {
 variable cron_create_indices_hour {
     default = "*"
 }
+
+# topicmodel
+variable topicmodel_ecs_task_defn_arn {}
+variable topicmodel_ecs_container_name {}
+
+# Summarization
+variable summarization_ecs_task_defn_arn {}
+variable summarization_ecs_container_name {}
+
+# secrets
+variable ssm_django_secret_key_arn {}
+variable ssm_db_name_arn {}
+variable ssm_db_username_arn {}
+variable ssm_db_password_arn {}
+variable ssm_db_port_arn {}
+variable ssm_deep_db_name_arn {}
+variable ssm_deep_db_username_arn {}
+variable ssm_deep_db_password_arn {}
+variable ssm_deep_db_port_arn {}
+variable ssm_deep_db_host_arn {}
