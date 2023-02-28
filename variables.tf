@@ -23,3 +23,9 @@ variable "redis_cluster_name" {}
 variable "redis_node_type" {}
 variable "redis_num_cache_nodes" {}
 variable "redis_port" {}
+
+# ecr
+variable "ngrams_ecr_image_url" {}
+
+# summarization ecs
+variable summarization_app_image_name {}
