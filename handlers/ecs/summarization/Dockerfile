@@ -11,6 +11,7 @@ COPY . /code/
 
 RUN pip install huggingface-hub
 RUN pip install psycopg2-binary
+RUN pip install boto3
 RUN pip install git+https://github.com/ranjan-stha/reports_generator
 
 CMD [ "python", "./app.py" ]

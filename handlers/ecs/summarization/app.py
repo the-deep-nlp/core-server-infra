@@ -1,8 +1,12 @@
 import os
+import io
 import json
 import logging
 import psycopg2
+import boto3
 from enum import Enum
+from botocore.client import Config
+from botocore.exceptions import ClientError
 from huggingface_hub import snapshot_download
 from reports_generator import ReportsGenerator
 
@@ -52,6 +56,8 @@ class ReportsGeneratorHandler:
         self.entries = test_entry #os.environ.get("ENTRIES", [])
         self.callback_url = os.environ.get("CALLBACK_URL", None)
         self.unique_id = os.environ.get("UNIQUE_ID", 123)
+        self.aws_region = os.environ.get("AWS_REGION", "us-east-1")
+        self.signed_url_expiry_secs = os.environ.get("SIGNED_URL_EXPIRY_SECS", 600)
 
         # db
         self.db_config = {
@@ -98,8 +104,45 @@ class ReportsGeneratorHandler:
                 return {}
         return model_info
 
-    def summary_store_s3(self):
-        pass
+    def generate_presigned_url(self, bucket_name, key):
+        try:
+            s3_client = boto3.client(
+                "s3",
+                region_name=self.aws_region,
+                config=Config(
+                    signature_version="s3v4",
+                    s3={"addressing_style": "path"}
+                )
+            )
+            url = s3_client.generate_presigned_url(
+                ClientMethod="get_object",
+                Params={
+                    "Bucket": bucket_name,
+                    "Key": key
+                },
+                ExpiresIn=self.signed_url_expiry_secs
+            )
+            print(f"The url is {url}")
+        except ClientError as e:
+            return None
+        return url
+
+    def summary_store_s3(self, summary, bucket_name="test-ecs-parser11", key="summary.txt"):
+        try:
+            session = boto3.Session()
+            s3_resource = session.resource("s3")
+            bucket = s3_resource.Bucket(bucket_name)
+            summary_bytes = bytes(summary, "utf-8")
+            summary_bytes_obj = io.BytesIO(summary_bytes)
+            bucket.upload_fileobj(summary_bytes_obj, key)
+            url = self.generate_presigned_url(bucket_name, key)
+            # s3_path = f"s3://{bucket_name}/{key}"
+            # logging.info(f"The summary is uploaded to the S3 bucket {s3_path}")
+            return url
+        except ClientError as e:
+            logging.error(str(e))
+            return None
+
 
     def status_update_db(self, sql_statement):
         db = Database(**self.db_config)
@@ -129,6 +172,7 @@ class ReportsGeneratorHandler:
             self.status_update_db(
                 sql_statement=f""" UPDATE {self.db_table_name} SET status='{ReportStatus.SUCCESS.value}' WHERE unique_id='{self.unique_id}' """
             )
+            self.summary_store_s3(summary=summary)
             return summary
         else:
             self.status_update_db(
