@@ -2,14 +2,14 @@ import os
 import json
 import logging
 import psycopg2
-from huggingface_hub import snapshot_download
 from enum import Enum
+from huggingface_hub import snapshot_download
 from reports_generator import ReportsGenerator
 
 logging.getLogger().setLevel(logging.INFO)
 
 class ReportStatus(Enum):
-    INITIATE = 1
+    INITIATED = 1
     SUCCESS = 2
     FAILED = 3
 
@@ -22,19 +22,26 @@ class Database:
         password: str,
         port: int=5432,
     ):
+        self.endpoint = endpoint
+        self.database = database
+        self.username = username
+        self.password = password
+        self.port = port
+    
+    def __call__(self):
         try:
             conn = psycopg2.connect(
-                host=endpoint,
-                port=port,
-                database=database,
-                user=username,
-                password=password
+                host=self.endpoint,
+                port=self.port,
+                database=self.database,
+                user=self.username,
+                password=self.password
             )
             cur = conn.cursor()
-            return cur
+            return conn, cur
         except Exception as e:
             logging.error(f"Database connection failed {e}")
-            return None
+            return None, None
 
 
 class ReportsGeneratorHandler:
@@ -44,8 +51,22 @@ class ReportsGeneratorHandler:
         '''
         self.entries = test_entry #os.environ.get("ENTRIES", [])
         self.callback_url = os.environ.get("CALLBACK_URL", None)
-        self.unique_id = os.environ.get("UNIQUE_ID", 0)
-        self.database_url = os.environ.get("DATABASE_URL", None)
+        self.unique_id = os.environ.get("UNIQUE_ID", 123)
+
+        # db
+        self.db_config = {
+            "endpoint": os.environ.get("DB_HOST"),
+            "database": os.environ.get("DB_NAME"),
+            "username": os.environ.get("DB_USER"),
+            "password": os.environ.get("DB_PWD"),
+            "port": os.environ.get("DB_PORT")
+        }
+
+        self.db_table_name = os.environ.get("DB_TBL_NAME", "test")
+
+        self.status_update_db(
+            sql_statement=f""" INSERT INTO {self.db_table_name} (status, unique_id) VALUES ({ReportStatus.INITIATED.value},{self.unique_id}) """
+        )
     
     def download_models(
             self,
@@ -80,8 +101,20 @@ class ReportsGeneratorHandler:
     def summary_store_s3(self):
         pass
 
-    def status_update_db(self):
-        pass
+    def status_update_db(self, sql_statement):
+        db = Database(**self.db_config)
+        db_conn, db_cursor = db()
+        if db_cursor:
+            try:
+                db_cursor.execute(sql_statement)
+                logging.info(f"Db updated. Number of rows affected: {db_cursor.rowcount}")
+                db_conn.commit()
+                db_cursor.close()
+            except (Exception, psycopg2.DatabaseError) as error:
+                logging.error(error)
+            finally:
+                if db_conn is not None:
+                    db_conn.close()
 
     
     def __call__(self, model_info):
@@ -93,8 +126,14 @@ class ReportsGeneratorHandler:
                 device="cpu"
             )
             summary = self.repgen(self.entries)
+            self.status_update_db(
+                sql_statement=f""" UPDATE {self.db_table_name} SET status='{ReportStatus.SUCCESS.value}' WHERE unique_id='{self.unique_id}' """
+            )
             return summary
         else:
+            self.status_update_db(
+                sql_statement=f""" UPDATE {self.db_table_name} SET status='{ReportStatus.FAILED.value}' WHERE unique_id='{self.unique_id}' """
+            )
             return "Summarization models could not be loaded."
 
 
@@ -102,5 +141,3 @@ reports_generator_handler = ReportsGeneratorHandler()
 model_info = reports_generator_handler.download_models()
 result = reports_generator_handler(model_info=model_info)
 logging.info(f"Result generated: {result}")
-#summarized_texts = reports_generator_handler()
-
