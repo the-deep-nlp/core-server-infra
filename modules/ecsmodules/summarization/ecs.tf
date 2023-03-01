@@ -17,7 +17,7 @@ data "aws_caller_identity" "current_user" {}
 locals {
   app_image_url = "${data.aws_caller_identity.current_user.account_id}.dkr.ecr.${var.aws_region}.amazonaws.com/${var.app_image_name}:latest"
 }
-#961104659532.dkr.ecr.us-east-1.amazonaws.com/nlp-server:latest
+
 resource "aws_ecs_task_definition" "task-def" {
   family                   = "${var.ecs_task_definition_name}-${var.environment}"
   execution_role_arn       = var.iam_task_execution_role_arn
