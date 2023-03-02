@@ -37,22 +37,21 @@ resource "aws_iam_role_policy" "ecs-role-policy" {
             {
                 "Effect": "Allow",
                 "Action": [
-                    "ssmmessages:CreateControlChannel",
-                    "ssmmessages:CreateDataChannel",
-                    "ssmmessages:OpenControlChannel",
-                    "ssmmessages:OpenDataChannel",
-                    "s3:*",
+                    "s3:ListBucket",
+                    "s3:*Object",
                     "rds:*",
                     "elasticache:*",
                     "rds-db:connect",
                     "ssm:GetParameters",
-                    "ecr:*",
-                    "kms:Decrypt",
-                    "secretsmanager:GetSecretValue",
+                    "ecr:Get*",
+                    "ecr:List*",
                     "ecs:RunTask",
                     "iam:PassRole"
                 ],
-                "Resource": "*"
+                "Resource": [
+                  "*",
+                  "arn:aws:s3:::test-ecs-parser11/*"
+                ]
             }
         ]
     }
@@ -69,9 +68,8 @@ resource "aws_iam_role_policy" "param_store" {
       {
         "Action": [
           "ssm:GetParameters",
-          "kms:Decrypt",
-          "secretsmanager:GetSecretValue",
-          "ecr:*"
+          "ecr:Get*",
+          "ecr:List*"
         ],
         "Effect": "Allow",
         "Resource": "*"
