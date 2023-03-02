@@ -26,13 +26,6 @@ resource "aws_ecs_task_definition" "task-def" {
             "awslogs-stream-prefix": "ecs"
           }
       },
-      "portMappings": [
-          {
-              "hostPort": 80,
-              "containerPort": 80,
-              "protocol": "tcp"
-          }
-      ],
       "essential": true,
       "mountPoints": [
           {
