@@ -1,17 +1,3 @@
-# data "template_file" "config" {
-#   template = file("./modules/ecsmodules/topicmodeling/templates/ecr_image/image.json")
-
-#   vars = {
-#     app_image      = var.app_image #"${data.aws_ssm_parameter.ecr_backend_image_url.value}:latest"
-#     app_port       = var.app_port
-#     fargate_cpu    = var.fargate_cpu
-#     fargate_memory = var.fargate_memory
-#     aws_region     = var.aws_region
-#     environment    = var.environment
-#     container_name = var.ecs_container_name
-#   }
-# }
-
 data "aws_caller_identity" "current_user" {}
 
 locals {
