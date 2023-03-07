@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "summarizer"
+version = "0.1.0"
+description = ""
+authors = ["dev <dev@togglecorp.com>"]
+
+[tool.poetry.dependencies]
+python = ">=3.8"
+boto3 = "*"
+huggingface-hub = "*"
+psycopg2-binary = "*"
+reports_generator = { git = "https://github.com/ranjan-stha/reports_generator", rev = "c88d622f13075535b78484044f3e442261e2a115", branch = "main" }
+
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
