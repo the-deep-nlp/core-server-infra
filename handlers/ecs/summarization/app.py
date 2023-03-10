@@ -52,16 +52,19 @@ class Database:
 
 class ReportsGeneratorHandler:
     def __init__(self):
-        test_entry = '''
-        “Since the start of the full-scale war we, along with our humanitarian partners in Ukraine, have made every effort to ramp up operations to provide life-saving support to those who need it most,” UN Spokesperson Stéphane Dujarric told journalists in New York. Last year, thousands of convoys delivered vital supplies to people in all regions of the country, he said, and humanitarians reached nearly 16 million with aid, including water, medicines, heating appliances, and other supplies, as well as support for home repairs. Some six million people received cash assistance totalling $1.2 billion – the largest such programme in history, he added. As the war enters a second year, the UN and partners are calling for nearly $4 billion to support more than 11 million people. The appeal is just over 14 per cent funded, Mr. Dujarric said.  **Young lives lost ** UN agencies have been taking stock of the death, destruction, devastation, and displacement that have occurred in Ukraine over the past 12 months. Nearly 500 children have been killed and almost 1,000 injured, UN humanitarians said on Friday in Geneva. In addition to that terrible human toll, the UN Children’s Fund (UNICEF) said that more than 800 health facilities had been damaged or destroyed by shelling. Education under fire The fighting has also disrupted access to education, and thousands of pre-schools and secondary schools have been damaged. In total, 7.8 million children have been impacted and more than five million have no access to schooling in Ukraine at all, UNICEF warned. Toxic legacy looms. The war will have a toxic legacy for generations to come, the UN Environment Programme (UNEP) said earlier in the week, reporting on a preliminary monitoring of the conflict conducted last year together with partners. While UNEP will verify the full range and severity, the agency noted that “thousands of possible incidents of air, water, and land pollution and the degradation of ecosystems, including risks to neighbouring countries, have already been identified.” UNEP is supporting the Ukrainian Government on remote environmental impact monitoring and is preparing to undertake field-level impact assessments – expected to be a colossal task, due to the scale and geographical spread of reported incidents. “The mapping and initial screening of environmental hazards only serves to confirm that war is quite literally toxic,” said UNEP Executive Director Inger Andersen. “Ukraine will then need huge international support to assess, mitigate, and remediate the damage across the country, and alleviate risks to the wider region,” she added.  Air and waters polluted. The data showed that the conflict has resulted in damage across many regions of the country, with incidents at nuclear power plants and facilities; energy infrastructure, including oil storage tankers, oil refineries, and drilling platforms; and other locations as well as distribution pipelines, mines, industrial sites, and agro-processing facilities.  The result has been multiple incidents of air pollution and potentially serious contamination of ground and surface waters, UNEP said.  Significant damage has also occurred to such water infrastructure as pumping stations, purification plants, and sewage facilities. Clean-up challenges  UNEP added that hazardous substances have also been released from explosions in agro-industrial storage facilities, including fertilizer and nitric acid plants. Damage also extends to urban areas, where the clean-up of destroyed housing could lead to debris being mixed with hazardous chemicals, particularly asbestos. Furthermore, satellite imagery has also revealed a significant increase of fires in various nature reserves, protected areas, and forests. Additionally, pollution from weapons use, and the large volumes of military waste, also creates a major clean-up challenge, the UN agency said. Averting nuclear disaster. The conflict has also marked the first time in history that a war is being fought amid the facilities of a major nuclear power programme. The International Atomic Energy Agency (IAEA) issued a report this week highlighting its activities to reduce the likelihood of a nuclear accident during the fighting. IAEA has been working to implement a nuclear safety and security protection zone at the Zaporizhzhya Nuclear Power Plant, the largest in Europe, which has been occupied by Russian forces since the early weeks of the war. The plant has repeatedly come under fire, sparking fears of a nuclear disaster.
-        '''
-        self.entries = test_entry #os.environ.get("ENTRIES", [])
+        self.entries_url = os.environ.get("ENTRIES_URL", None)
         self.client_id = os.environ.get("CLIENT_ID", None)
         self.callback_url = os.environ.get("CALLBACK_URL", None)
-        self.summarization_id = os.environ.get("SUMMARIZATION_ID", 123)
+        self.summarization_id = os.environ.get("SUMMARIZATION_ID", None)
         self.aws_region = os.environ.get("AWS_REGION", "us-east-1")
         self.signed_url_expiry_secs = os.environ.get("SIGNED_URL_EXPIRY_SECS", 86400) # 1 day
-        self.bucket_name = os.environ.get("S3_BUCKET_NAME", "test")
+        self.bucket_name = os.environ.get("S3_BUCKET_NAME", None)
+        
+        self.entries = self._download_prepare_entries()
+
+        self.headers = {
+            "Content-Type": "application/json"
+        }
 
         # db
         self.db_config = {
@@ -78,6 +81,27 @@ class ReportsGeneratorHandler:
             self.status_update_db(
                 sql_statement=f""" INSERT INTO {self.db_table_name} (status, unique_id, s3_link) VALUES ({ReportStatus.INITIATED.value},{self.summarization_id},'') """
             )
+    
+    def _download_prepare_entries(self):
+        """
+        The json format (*.json) in the link file should be
+        [
+            {
+                "entry_id": int,
+                "excerpt": str
+            }
+        ]
+        """
+        if self.entries_url:
+            logging.info(f"The request url is {self.entries_url}")
+            try:
+                response = requests.get(self.entries_url)
+                entries_data = json.loads(response.text)
+                return [x["excerpt"] for x in entries_data]
+            except Exception as e:
+                logging.error(f"Error occurred: {str(e)}")
+        return None
+
     
     def download_models(
             self,
@@ -128,7 +152,6 @@ class ReportsGeneratorHandler:
                 },
                 ExpiresIn=self.signed_url_expiry_secs
             )
-            print(f"The url is {url}")
         except ClientError as e:
             logging.error(f"Error while generating presigned url {e}")
             return None
@@ -164,13 +187,10 @@ class ReportsGeneratorHandler:
                     db_conn.close()
     
     def send_request_on_callback(self, presigned_url):
-        headers = {
-            'Content-Type': 'application/json'
-        }
         try:
             response = requests.post(
                 self.callback_url,
-                headers=headers,
+                headers=self.headers,
                 data=json.dumps({
                     "client_id": self.client_id,
                     "summary_s3_url": presigned_url
@@ -212,15 +232,13 @@ class ReportsGeneratorHandler:
                 self.status_update_db(
                     sql_statement=f""" UPDATE {self.db_table_name} SET status='{ReportStatus.FAILED.value}' WHERE unique_id='{self.summarization_id}' """
                 )
-            return summary
         else:
             self.status_update_db(
                 sql_statement=f""" UPDATE {self.db_table_name} SET status='{ReportStatus.FAILED.value}' WHERE unique_id='{self.summarization_id}' """
             )
-            return "Summarization models could not be loaded."
+            logging.warning("Summarization models could not be loaded.")
 
 
 reports_generator_handler = ReportsGeneratorHandler()
 model_info = reports_generator_handler.download_models()
-result = reports_generator_handler(model_info=model_info)
-logging.info(f"Result generated: {result}")
+reports_generator_handler(model_info=model_info)

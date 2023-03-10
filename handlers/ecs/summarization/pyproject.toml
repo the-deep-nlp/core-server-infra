@@ -9,7 +9,7 @@ python = ">=3.8"
 boto3 = "*"
 huggingface-hub = "*"
 psycopg2-binary = "*"
-reports_generator = { git = "https://github.com/ranjan-stha/reports_generator", rev = "c88d622f13075535b78484044f3e442261e2a115", branch = "main" }
+reports_generator = { git = "https://github.com/the-deep/reports_generator", rev = "b89aa74", branch = "main" }
 
 
 [tool.poetry.dev-dependencies]
