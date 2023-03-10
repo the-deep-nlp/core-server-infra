@@ -218,7 +218,7 @@ class ReportsGeneratorHandler:
             presigned_url = self.summary_store_s3(
                 summary=summary,
                 bucket_name=self.bucket_name,
-                key=f"{self.summarization_id}/{date_today}/summary.txt"
+                key=f"summarization/{date_today}/{self.summarization_id}/summary.txt"
             )
 
             if self.callback_url:
