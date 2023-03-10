@@ -118,14 +118,14 @@ module "secrets" {
   source = "./modules/secrets"
 }
 
-module "ngrams" {
-  source = "./modules/lambda/ngrams"
+# module "ngrams" {
+#   source = "./modules/lambda/ngrams"
 
-  environment = var.environment
+#   environment = var.environment
 
-  # ecr
-  ngrams_ecr_image_url = var.ngrams_ecr_image_url
-}
+#   # ecr
+#   ngrams_ecr_image_url = var.ngrams_ecr_image_url
+# }
 
 module "topicmodel" {
   source = "./modules/ecsmodules/topicmodeling"
@@ -149,27 +149,37 @@ module "topicmodel" {
   iam_ecs_task_execution_policy_arn = module.nlp_server.iam_ecs_task_execution_policy_arn
 }
 
-# module "ngramsmodel" {
-#   source = "./modules/ecsmodules/ngrams"
+module "ngrams" {
+  source = "./modules/ecsmodules/ngrams"
 
-#   environment = var.environment
-#   aws_region  = var.aws_region
+  environment = var.environment
+  aws_region  = var.aws_region
 
-#   # ecs
-#   ecs_cluster_id = module.nlp_server.ecs_cluster_id
+  # ecs
+  ecs_cluster_id = module.nlp_server.ecs_cluster_id
 
-#   # security grp
-#   ecs_security_group_id = module.nlp_server.ecs_security_group_id
+  # security grp
+  ecs_security_group_id = module.nlp_server.ecs_security_group_id
 
-#   # vpc
-#   vpc_id = module.nlp_vpc.aws_vpc_id
-#   private_subnets = module.nlp_vpc.private_subnets
-#   public_subnets = module.nlp_vpc.public_subnets
+  # vpc
+  vpc_id = module.nlp_vpc.aws_vpc_id
+  private_subnets = module.nlp_vpc.private_subnets
+  public_subnets = module.nlp_vpc.public_subnets
 
-#   iam_task_execution_role_arn = module.nlp_server.iam_task_execution_role_arn
-#   iam_ecs_task_arn = module.nlp_server.iam_ecs_task_arn
-#   iam_ecs_task_execution_policy_arn = module.nlp_server.iam_ecs_task_execution_policy_arn
-# }
+  iam_task_execution_role_arn = module.nlp_server.iam_task_execution_role_arn
+  iam_ecs_task_arn = module.nlp_server.iam_ecs_task_arn
+  iam_ecs_task_execution_policy_arn = module.nlp_server.iam_ecs_task_execution_policy_arn
+
+  # ecr
+  app_image_name = var.ngrams_app_image_name
+
+  # secrets
+  rds_instance_endpoint = module.nlp_database.rds_instance_endpoint
+  ssm_db_name_arn = module.secrets.ssm_db_name_arn
+  ssm_db_username_arn = module.secrets.ssm_db_username_arn
+  ssm_db_password_arn = module.secrets.ssm_db_password_arn
+  ssm_db_port_arn = module.secrets.ssm_db_port_arn
+}
 
 module "summarization" {
   source = "./modules/ecsmodules/summarization"

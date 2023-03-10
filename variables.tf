@@ -29,3 +29,6 @@ variable "ngrams_ecr_image_url" {}
 
 # summarization ecs
 variable summarization_app_image_name {}
+
+# ngrams ecs
+variable ngrams_app_image_name {}
