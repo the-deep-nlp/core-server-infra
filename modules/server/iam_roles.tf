@@ -46,7 +46,8 @@ resource "aws_iam_role_policy" "ecs-role-policy" {
                     "ecr:Get*",
                     "ecr:List*",
                     "ecs:RunTask",
-                    "iam:PassRole"
+                    "iam:PassRole",
+                    "sagemaker:InvokeEndpoint"
                 ],
                 "Resource": [
                   "*",

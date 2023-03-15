@@ -1,16 +1,22 @@
-data "template_file" "config" {
-  template = file("./modules/ecsmodules/topicmodeling/templates/ecr_image/image.json")
+data "aws_caller_identity" "current_user" {}
 
-  vars = {
-    app_image      = var.app_image #"${data.aws_ssm_parameter.ecr_backend_image_url.value}:latest"
-    app_port       = var.app_port
-    fargate_cpu    = var.fargate_cpu
-    fargate_memory = var.fargate_memory
-    aws_region     = var.aws_region
-    environment    = var.environment
-    container_name = var.ecs_container_name
-  }
+locals {
+  app_image_url = "${data.aws_caller_identity.current_user.account_id}.dkr.ecr.${var.aws_region}.amazonaws.com/${var.app_image_name}:latest"
 }
+
+# data "template_file" "config" {
+#   template = file("./modules/ecsmodules/topicmodeling/templates/ecr_image/image.json")
+
+#   vars = {
+#     app_image      = var.app_image_name #"${data.aws_ssm_parameter.ecr_backend_image_url.value}:latest"
+#     app_port       = var.app_port
+#     fargate_cpu    = var.fargate_cpu
+#     fargate_memory = var.fargate_memory
+#     aws_region     = var.aws_region
+#     environment    = var.environment
+#     container_name = var.ecs_container_name
+#   }
+# }
 
 resource "aws_ecs_task_definition" "task-def" {
   family                   = "${var.ecs_task_definition_name}-${var.environment}"
@@ -20,14 +26,57 @@ resource "aws_ecs_task_definition" "task-def" {
   requires_compatibilities = ["FARGATE"]
   cpu                      = var.fargate_cpu
   memory                   = var.fargate_memory
-  container_definitions    = data.template_file.config.rendered
+  container_definitions = <<DEFINITION
+[
+  {
+      "memory": ${var.fargate_memory},
+      "cpu": ${var.fargate_cpu},
+      "networkMode": "awsvpc",
+      "logConfiguration": {
+          "logDriver": "awslogs",
+          "options": {
+            "awslogs-group": "/ecs/ngrams-task-${var.environment}",
+            "awslogs-region": "${var.aws_region}",
+            "awslogs-stream-prefix": "ecs"
+          }
+      },
+      "essential": true,
+      "name": "${var.ecs_container_name}-${var.environment}",
+      "image": "${local.app_image_url}",
+      "environment": [
+        {
+          "name": "DB_HOST",
+          "value": "${var.rds_instance_endpoint}"
+        }
+      ],
+      "secrets": [
+        {
+          "name": "DB_NAME",
+          "valueFrom": "${var.ssm_db_name_arn}"
+        },
+        {
+          "name": "DB_USER",
+          "valueFrom": "${var.ssm_db_username_arn}"
+        },
+        {
+          "name": "DB_PWD",
+          "valueFrom": "${var.ssm_db_password_arn}"
+        },
+        {
+          "name": "DB_PORT",
+          "valueFrom": "${var.ssm_db_port_arn}"
+        }
+      ]
+  }
+]
+DEFINITION
 }
 
 resource "aws_ecs_service" "service" {
   name            = "${var.ecs_service_name}-${var.environment}"
   cluster         = var.ecs_cluster_id
   task_definition = aws_ecs_task_definition.task-def.arn
-  desired_count   = var.app_count
+  desired_count   = 0
   launch_type     = "FARGATE"
 
   network_configuration {

@@ -29,3 +29,5 @@ ngrams_ecr_image_url = "961104659532.dkr.ecr.us-east-1.amazonaws.com/lambda-ngra
 summarization_app_image_name = "summarization_model"
 # ecs ngrams
 ngrams_app_image_name = "ngrams_model"
+# ecs topicmodel
+topicmodel_app_image_name = "topicmodeling_model"

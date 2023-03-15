@@ -61,12 +61,20 @@
           "value": "${cron_create_indices_hour}"
         },
         {
+          "name": "TOPICMODEL_ECS_CLUSTER_ID",
+          "value": "${topicmodel_ecs_cluster_id}"
+        },
+        {
           "name": "TOPICMODEL_ECS_TASK_DEFN_ARN",
           "value": "${topicmodel_ecs_task_defn_arn}"
         },
         {
           "name": "TOPICMODEL_ECS_CONTAINER_NAME",
           "value": "${topicmodel_ecs_container_name}"
+        },
+        {
+          "name": "TOPICMODEL_VPC_PRIVATE_SUBNET",
+          "value": "${topicmodel_vpc_private_subnet}"
         },
         {
           "name": "ECS_CLUSTER_NAME",

@@ -2,17 +2,15 @@ variable environment {}
 variable aws_region {}
 
 variable ecs_cluster_id {}
-variable app_image {
-    default = "nginx"
-}
+variable app_image_name {}
 variable app_port {
     default = "8000"
 }
 variable fargate_cpu {
-    default = "256"
+    default = "512"
 }
 variable fargate_memory {
-    default = "512"
+    default = "4096"
 }
 
 variable app_count {
@@ -43,3 +41,10 @@ variable ecs_service_name {
 variable ecs_container_name {
     default = "topicmodel-container"
 }
+
+# db
+variable rds_instance_endpoint {}
+variable ssm_db_name_arn {}
+variable ssm_db_username_arn {}
+variable ssm_db_password_arn {}
+variable ssm_db_port_arn {}

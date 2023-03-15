@@ -147,6 +147,16 @@ module "topicmodel" {
   iam_task_execution_role_arn = module.nlp_server.iam_task_execution_role_arn
   iam_ecs_task_arn = module.nlp_server.iam_ecs_task_arn
   iam_ecs_task_execution_policy_arn = module.nlp_server.iam_ecs_task_execution_policy_arn
+
+  # ecr
+  app_image_name = var.topicmodel_app_image_name
+
+  # secrets
+  rds_instance_endpoint = module.nlp_database.rds_instance_endpoint
+  ssm_db_name_arn = module.secrets.ssm_db_name_arn
+  ssm_db_username_arn = module.secrets.ssm_db_username_arn
+  ssm_db_password_arn = module.secrets.ssm_db_password_arn
+  ssm_db_port_arn = module.secrets.ssm_db_port_arn
 }
 
 module "ngrams" {

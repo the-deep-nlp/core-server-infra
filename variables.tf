@@ -32,3 +32,6 @@ variable summarization_app_image_name {}
 
 # ngrams ecs
 variable ngrams_app_image_name {}
+
+# topicmodel ecs
+variable topicmodel_app_image_name {}
