@@ -67,6 +67,14 @@ class NGramsGeneratorHandler:
         self.enable_stemming = os.environ.get("ENABLE_STEMMING", False)
         self.enable_case_sensitive = os.environ.get("ENABLE_CASE_SENSITIVE", True)
         self.max_ngrams_tokens = os.environ.get("MAX_NGRAMS_TOKENS", 10)
+
+        self.generate_unigrams = True if self.generate_unigrams == "True" else False
+        self.generate_bigrams = True if self.generate_bigrams == "True" else False
+        self.generate_trigrams = True if self.generate_trigrams == "True" else False
+        self.enable_stopwords = True if self.enable_stopwords == "True" else False
+        self.enable_stemming = True if self.enable_stemming == "True" else False
+        self.enable_case_sensitive = True if self.enable_case_sensitive == "True" else False
+        self.max_ngrams_tokens = int(self.max_ngrams_tokens)
         
         # db table
         self.db_table_name = os.environ.get("DB_TBL_NAME", "test")
@@ -194,9 +202,10 @@ class NGramsGeneratorHandler:
             enable_case_sensitive=self.enable_case_sensitive
         )
         ng_output = ng(self.entries)
+    
         date_today = str(datetime.now().date())
-        presigned_url = self.summary_store_s3(
-            ngrams_summary_store_s3=ng_output,
+        presigned_url = self.ngrams_summary_store_s3(
+            ngrams_summary=json.dumps(ng_output),
             bucket_name=self.bucket_name,
             key=f"ngrams/{date_today}/{self.ngrams_id}/ngrams.json"
         )

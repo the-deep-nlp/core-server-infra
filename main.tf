@@ -93,6 +93,10 @@ module "nlp_server" {
   # Summarization
   summarization_ecs_task_defn_arn = module.summarization.s_ecs_task_defn_arn
   summarization_ecs_container_name = module.summarization.s_ecs_container_name
+
+  # NGrams
+  ngrams_ecs_task_defn_arn = module.ngrams.ngrams_ecs_task_defn_arn
+  ngrams_container_name = module.ngrams.ngrams_container_name
 }
 
 # module "redis" {

@@ -75,6 +75,10 @@ variable topicmodel_ecs_container_name {}
 variable summarization_ecs_task_defn_arn {}
 variable summarization_ecs_container_name {}
 
+# NGrams
+variable ngrams_ecs_task_defn_arn {}
+variable ngrams_container_name {}
+
 # secrets
 variable ssm_django_secret_key_arn {}
 variable ssm_db_name_arn {}

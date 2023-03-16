@@ -95,6 +95,22 @@
         {
           "name": "SUMMARIZATION_VPC_PRIVATE_SUBNET",
           "value": "${summarization_vpc_private_subnet}"
+        },
+        {
+          "name": "NGRAMS_ECS_CLUSTER_ID",
+          "value": "${ngrams_ecs_cluster_id}"
+        },
+        {
+          "name": "NGRAMS_ECS_TASK_DEFN_ARN",
+          "value": "${ngrams_ecs_task_defn_arn}"
+        },
+        {
+          "name": "NGRAMS_ECS_CONTAINER_NAME",
+          "value": "${ngrams_ecs_container_name}"
+        },
+        {
+          "name": "NGRAMS_VPC_PRIVATE_SUBNET",
+          "value": "${ngrams_vpc_private_subnet}"
         }
       ],
       "secrets": [
