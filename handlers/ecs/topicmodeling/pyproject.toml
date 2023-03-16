@@ -9,7 +9,7 @@ python = ">=3.8"
 pillow = "==9.0.0"
 boto3 = "*"
 psycopg2-binary = "*"
-topic_generator = { git = "https://github.com/ranjan-stha/topic-generator", rev = "4ab83c2c176e6cf2134288746523e54e5101fcc2", branch = "main" }
+topic_generator = { git = "https://github.com/the-deep-nlp/topic-generator", rev = "22e6d74", branch = "main" }
 
 
 [tool.poetry.dev-dependencies]
