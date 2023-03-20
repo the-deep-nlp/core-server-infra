@@ -160,7 +160,7 @@ class NGramsGeneratorHandler:
             return None
     
     def ngrams_summary_store_local(self, ngrams_summary):
-        filepath = "/tmp/test.json"
+        filepath = f"/tmp/ngrams/{self.client_id}"
         with open(filepath, "w") as f:
             f.write(ngrams_summary)
 
