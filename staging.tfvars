@@ -31,3 +31,6 @@ summarization_app_image_name = "summarization_model"
 ngrams_app_image_name = "ngrams_model"
 # ecs topicmodel
 topicmodel_app_image_name = "topicmodeling_model"
+
+# db table 
+db_table_name = "event_status_tracker"

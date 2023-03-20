@@ -39,6 +39,10 @@ resource "aws_ecs_task_definition" "task-def" {
         {
           "name": "DB_HOST",
           "value": "${var.rds_instance_endpoint}"
+        },
+        {
+          "name": "DB_TABLE_NAME",
+          "value": "${var.db_table_name}"
         }
       ],
       "secrets": [

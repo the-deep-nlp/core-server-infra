@@ -161,6 +161,9 @@ module "topicmodel" {
   ssm_db_username_arn = module.secrets.ssm_db_username_arn
   ssm_db_password_arn = module.secrets.ssm_db_password_arn
   ssm_db_port_arn = module.secrets.ssm_db_port_arn
+
+  # db table
+  db_table_name = var.db_table_name
 }
 
 module "ngrams" {
@@ -193,6 +196,9 @@ module "ngrams" {
   ssm_db_username_arn = module.secrets.ssm_db_username_arn
   ssm_db_password_arn = module.secrets.ssm_db_password_arn
   ssm_db_port_arn = module.secrets.ssm_db_port_arn
+
+  # db table
+  db_table_name = var.db_table_name
 }
 
 module "summarization" {
@@ -228,6 +234,9 @@ module "summarization" {
   ssm_db_username_arn = module.secrets.ssm_db_username_arn
   ssm_db_password_arn = module.secrets.ssm_db_password_arn
   ssm_db_port_arn = module.secrets.ssm_db_port_arn
+
+  # db table
+  db_table_name = var.db_table_name
 }
 
 module "efilesystem" {

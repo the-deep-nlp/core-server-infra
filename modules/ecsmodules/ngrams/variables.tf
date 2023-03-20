@@ -48,3 +48,6 @@ variable ssm_db_name_arn {}
 variable ssm_db_username_arn {}
 variable ssm_db_password_arn {}
 variable ssm_db_port_arn {}
+
+# db table
+variable db_table_name {}

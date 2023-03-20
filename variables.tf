@@ -35,3 +35,6 @@ variable ngrams_app_image_name {}
 
 # topicmodel ecs
 variable topicmodel_app_image_name {}
+
+# db table
+variable db_table_name {}

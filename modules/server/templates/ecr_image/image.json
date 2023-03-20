@@ -21,6 +21,10 @@
       ],
       "environment": [
         {
+          "name": "ENVIRONMENT",
+          "value": "${environment}"
+        },
+        {
           "name": "DEBUG",
           "value": "${debug}"
         },
