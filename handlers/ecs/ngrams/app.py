@@ -51,6 +51,7 @@ class Database:
 
 class NGramsGeneratorHandler:
     def __init__(self):
+        action_type = "ngrams"
         self.entries_url = os.environ.get("ENTRIES_URL", None)
         self.client_id = os.environ.get("CLIENT_ID", None)
         self.callback_url = os.environ.get("CALLBACK_URL", None)
@@ -58,6 +59,7 @@ class NGramsGeneratorHandler:
         self.aws_region = os.environ.get("AWS_REGION", "us-east-1")
         self.signed_url_expiry_secs = os.environ.get("SIGNED_URL_EXPIRY_SECS", 86400) # 1 day
         self.bucket_name = os.environ.get("S3_BUCKET_NAME", None)
+        self.mock = os.environ.get("NGRAMS_MOCK", False)
 
         # N-Grams config
         self.generate_unigrams = os.environ.get("GENERATE_UNIGRAMS", False)
@@ -75,9 +77,10 @@ class NGramsGeneratorHandler:
         self.enable_stemming = True if self.enable_stemming == "True" else False
         self.enable_case_sensitive = True if self.enable_case_sensitive == "True" else False
         self.max_ngrams_tokens = int(self.max_ngrams_tokens)
+        self.mock = True if self.mock == "True" else False
         
         # db table
-        self.db_table_name = os.environ.get("DB_TBL_NAME", "test")
+        self.db_table_name = os.environ.get("DB_TABLE_NAME", None)
 
         self.entries = self._download_prepare_entries()
 
@@ -94,9 +97,9 @@ class NGramsGeneratorHandler:
             "port": os.environ.get("DB_PORT")
         }
 
-        if not self.callback_url:
+        if not self.callback_url and self.db_table_name:
             self.status_update_db(
-                sql_statement=f""" INSERT INTO {self.db_table_name} (status, unique_id, s3_link) VALUES ({NGramsStatus.INITIATED.value},{self.ngrams_id},'') """
+                sql_statement=f""" INSERT INTO {self.db_table_name} (status, unique_id, s3_link, type) VALUES ({NGramsStatus.INITIATED.value},{self.ngrams_id},'',{action_type}) """
             )
     
     def _download_prepare_entries(self):
@@ -155,6 +158,13 @@ class NGramsGeneratorHandler:
         except ClientError as e:
             logging.error(str(e))
             return None
+    
+    def ngrams_summary_store_local(self, ngrams_summary):
+        filepath = "/tmp/test.json"
+        with open(filepath, "w") as f:
+            f.write(ngrams_summary)
+
+        return filepath
 
 
     def status_update_db(self, sql_statement):
@@ -179,13 +189,13 @@ class NGramsGeneratorHandler:
                 headers=self.headers,
                 data=json.dumps({
                     "client_id": self.client_id,
-                    "ngrams_s3_url": presigned_url
+                    "presigned_s3_url": presigned_url
                 }),
                 timeout=30
             )
         except requests.exceptions.RequestException as e:
             raise Exception(f"Exception occurred while sending request - {e}")
-        if response.status == 200:
+        if response.status_code == 200:
             logging.info("Successfully sent the request on callback url")
         else:
             logging.error("Error while sending the request on callback url")
@@ -204,23 +214,31 @@ class NGramsGeneratorHandler:
         ng_output = ng(self.entries)
     
         date_today = str(datetime.now().date())
-        presigned_url = self.ngrams_summary_store_s3(
-            ngrams_summary=json.dumps(ng_output),
-            bucket_name=self.bucket_name,
-            key=f"ngrams/{date_today}/{self.ngrams_id}/ngrams.json"
-        )
+        if not self.mock:
+            presigned_url = self.ngrams_summary_store_s3(
+                ngrams_summary=json.dumps(ng_output),
+                bucket_name=self.bucket_name,
+                key=f"ngrams/{date_today}/{self.ngrams_id}/ngrams.json"
+            )
+        else:
+            presigned_url = self.ngrams_summary_store_local(
+                ngrams_summary=json.dumps(ng_output)
+            )
 
         if self.callback_url:
-            self.send_request_on_callback(presigned_url)
-        elif presigned_url: # update for presigned url
+            self.send_request_on_callback(presigned_url=presigned_url)
+        elif presigned_url and self.db_table_name: # update for presigned url
             self.status_update_db(
                 sql_statement=f""" UPDATE {self.db_table_name} SET status='{NGramsStatus.SUCCESS.value}', s3_link='{presigned_url}' WHERE unique_id='{self.ngrams_id}' """
             )
-        else:
+        elif self.db_table_name:
             # Presigned url generation failed
             self.status_update_db(
                 sql_statement=f""" UPDATE {self.db_table_name} SET status='{NGramsStatus.FAILED.value}' WHERE unique_id='{self.ngrams_id}' """
             )
+        else:
+            logging.error("Callback url and presigned s3 url are not available.")
 
-ngrams_generator_handler = NGramsGeneratorHandler()
-ngrams_generator_handler()
+if __name__ == "__main__":
+    ngrams_generator_handler = NGramsGeneratorHandler()
+    ngrams_generator_handler()

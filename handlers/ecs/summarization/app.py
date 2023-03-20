@@ -52,10 +52,11 @@ class Database:
 
 class ReportsGeneratorHandler:
     def __init__(self):
-        self.entries_url = os.environ.get("ENTRIES_URL", None)
-        self.client_id = os.environ.get("CLIENT_ID", None)
-        self.callback_url = os.environ.get("CALLBACK_URL", None)
-        self.summarization_id = os.environ.get("SUMMARIZATION_ID", None)
+        action_type = "summarization"
+        self.entries_url = os.environ.get("ENTRIES_URL") or None
+        self.client_id = os.environ.get("CLIENT_ID") or None
+        self.callback_url = os.environ.get("CALLBACK_URL") or None
+        self.summarization_id = os.environ.get("SUMMARIZATION_ID",) or None
         self.aws_region = os.environ.get("AWS_REGION", "us-east-1")
         self.signed_url_expiry_secs = os.environ.get("SIGNED_URL_EXPIRY_SECS", 86400) # 1 day
         self.bucket_name = os.environ.get("S3_BUCKET_NAME", None)
@@ -75,11 +76,11 @@ class ReportsGeneratorHandler:
             "port": os.environ.get("DB_PORT")
         }
 
-        self.db_table_name = os.environ.get("DB_TBL_NAME", "test")
+        self.db_table_name = os.environ.get("DB_TABLE_NAME", None)
 
         if not self.callback_url:
             self.status_update_db(
-                sql_statement=f""" INSERT INTO {self.db_table_name} (status, unique_id, s3_link) VALUES ({ReportStatus.INITIATED.value},{self.summarization_id},'') """
+                sql_statement=f""" INSERT INTO {self.db_table_name} (status, unique_id, s3_link, type) VALUES ({ReportStatus.INITIATED.value},{self.summarization_id},'', {action_type}) """
             )
     
     def _download_prepare_entries(self):
@@ -193,13 +194,13 @@ class ReportsGeneratorHandler:
                 headers=self.headers,
                 data=json.dumps({
                     "client_id": self.client_id,
-                    "summary_s3_url": presigned_url
+                    "presigned_s3_url": presigned_url
                 }),
                 timeout=30
             )
         except requests.exceptions.RequestException as e:
             raise Exception(f"Exception occurred while sending request - {e}")
-        if response.status == 200:
+        if response.status_code == 200:
             logging.info("Successfully sent the request on callback url")
         else:
             logging.error("Error while sending the request on callback url")

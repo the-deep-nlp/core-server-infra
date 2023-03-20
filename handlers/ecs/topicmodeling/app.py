@@ -54,6 +54,7 @@ class Database:
 
 class TopicModelGeneratorHandler:
     def __init__(self):
+        action_type = "topicmodel"
         self.entries_url = os.environ.get("ENTRIES_URL", None)
         self.client_id = os.environ.get("CLIENT_ID", None)
         self.callback_url = os.environ.get("CALLBACK_URL", None)
@@ -81,11 +82,11 @@ class TopicModelGeneratorHandler:
             "port": os.environ.get("DB_PORT")
         }
 
-        self.db_table_name = os.environ.get("DB_TBL_NAME", "test")
+        self.db_table_name = os.environ.get("DB_TABLE_NAME", None)
 
         if not self.callback_url:
             self.status_update_db(
-                sql_statement=f""" INSERT INTO {self.db_table_name} (status, unique_id, s3_link) VALUES ({ReportStatus.INITIATED.value},{self.topicmodel_id},'') """
+                sql_statement=f""" INSERT INTO {self.db_table_name} (status, unique_id, s3_link, type) VALUES ({ReportStatus.INITIATED.value},{self.topicmodel_id},'', {action_type}) """
             )
     
     def _download_prepare_entries(self):
@@ -208,13 +209,13 @@ class TopicModelGeneratorHandler:
                 headers=self.headers,
                 data=json.dumps({
                     "client_id": self.client_id,
-                    "topicmodel_s3_url": presigned_url
+                    "presigned_s3_url": presigned_url
                 }),
                 timeout=30
             )
         except requests.exceptions.RequestException as e:
             raise Exception(f"Exception occurred while sending request - {e}")
-        if response.status == 200:
+        if response.status_code == 200:
             logging.info("Successfully sent the request on callback url")
         else:
             logging.error("Error while sending the request on callback url")
