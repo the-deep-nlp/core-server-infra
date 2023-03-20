@@ -61,7 +61,7 @@ def homepage():
         "status": "Welcome to analysis module mock server"
     })
 
-@app.route('/mock/ngrams')
+@app.route('/mock/ngrams', methods=["POST", "GET"])
 def ngramsmodel():
     body = request.get_json()
     
@@ -87,7 +87,7 @@ def ngramsmodel():
     }), 200
 
 
-@app.route("/mock/summarization")
+@app.route("/mock/summarization", methods=["POST", "GET"])
 def summarizationmodel():
     body = request.get_json()
     request_body = body if isinstance(body, dict) else json.loads(body)
@@ -118,7 +118,7 @@ def summarizationmodel():
     }), 200
 
 
-@app.route("/mock/topicmodeling")
+@app.route("/mock/topicmodeling", methods=["POST", "GET"])
 def topicmodelingmodel():
     clusters = 5
 
