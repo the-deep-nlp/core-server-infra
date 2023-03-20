@@ -36,7 +36,7 @@ def send_callback_url_request(callback_url, client_id, filepath):
             callback_url,
             data=json.dumps({
                 "client_id": client_id,
-                "s3_url": filepath
+                "presigned_s3_url": filepath
             })
         )
         if response_callback_url.status_code == 200:
