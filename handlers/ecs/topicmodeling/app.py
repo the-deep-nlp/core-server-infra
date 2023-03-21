@@ -104,7 +104,9 @@ class TopicModelGeneratorHandler:
             try:
                 response = requests.get(self.entries_url)
                 entries_data = json.loads(response.text)
-                return pd.DataFrame(entries_data)
+                df = pd.DataFrame(entries_data)
+                df.rename({"excerpt":"excerpts"}, axis=1, inplace=True)
+                return df
             except Exception as e:
                 logging.error(f"Error occurred: {str(e)}")
         return None
