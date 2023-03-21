@@ -7,10 +7,10 @@ variable app_port {
     default = "80"
 }
 variable fargate_cpu {
-    default = "1024"
+    default = "2048"
 }
 variable fargate_memory {
-    default = "8192"
+    default = "16384"
 }
 
 variable app_count {
