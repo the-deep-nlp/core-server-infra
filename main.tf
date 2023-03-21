@@ -67,8 +67,8 @@ module "nlp_server" {
   # nlp database
   rds_instance_endpoint = module.nlp_database.rds_instance_endpoint
   # redis endpoint
-  # redis_endpoint = module.redis.redis_endpoint
-  # redis_host = module.redis.redis_host
+  redis_endpoint = module.redis.redis_endpoint
+  redis_host = module.redis.redis_host
   # vpc
   vpc_id = module.nlp_vpc.aws_vpc_id
   private_subnets = module.nlp_vpc.private_subnets
@@ -99,37 +99,28 @@ module "nlp_server" {
   ngrams_container_name = module.ngrams.ngrams_container_name
 }
 
-# module "redis" {
-#   source = "./modules/redis"
+module "redis" {
+  source = "./modules/redis"
 
-#   environment = var.environment
+  environment = var.environment
 
-#   # redis
-#   redis_cluster_name    = var.redis_cluster_name
-#   redis_node_type       = var.redis_node_type
-#   redis_num_cache_nodes = var.redis_num_cache_nodes
-#   redis_port            = var.redis_port
+  # redis
+  redis_cluster_name    = var.redis_cluster_name
+  redis_node_type       = var.redis_node_type
+  redis_num_cache_nodes = var.redis_num_cache_nodes
+  redis_port            = var.redis_port
 
-#   # vpc
-#   vpc_id          = module.nlp_vpc.aws_vpc_id
-#   private_subnets = module.nlp_vpc.private_subnets
+  # vpc
+  vpc_id          = module.nlp_vpc.aws_vpc_id
+  private_subnets = module.nlp_vpc.private_subnets
 
-#   # sec grp
-#   ecs_sec_grp_id = module.nlp_server.ecs_sec_grp_id
-# }
+  # sec grp
+  ecs_sec_grp_id = module.nlp_server.ecs_sec_grp_id
+}
 
 module "secrets" {
   source = "./modules/secrets"
 }
-
-# module "ngrams" {
-#   source = "./modules/lambda/ngrams"
-
-#   environment = var.environment
-
-#   # ecr
-#   ngrams_ecr_image_url = var.ngrams_ecr_image_url
-# }
 
 module "topicmodel" {
   source = "./modules/ecsmodules/topicmodeling"
