@@ -86,7 +86,7 @@ class TopicModelGeneratorHandler:
 
         if not self.callback_url:
             self.status_update_db(
-                sql_statement=f""" INSERT INTO {self.db_table_name} (status, unique_id, s3_link, type) VALUES ({ReportStatus.INITIATED.value},{self.topicmodel_id},'', {action_type}) """
+                sql_statement=f""" INSERT INTO {self.db_table_name} (status, unique_id, result_s3_link, type) VALUES ({ReportStatus.INITIATED.value},{self.topicmodel_id},'', {action_type}) """
             )
     
     def _download_prepare_entries(self):
@@ -243,7 +243,7 @@ class TopicModelGeneratorHandler:
                 self.send_request_on_callback(presigned_url)
             elif presigned_url: # update for presigned url
                 self.status_update_db(
-                    sql_statement=f""" UPDATE {self.db_table_name} SET status='{ReportStatus.SUCCESS.value}', s3_link='{presigned_url}' WHERE unique_id='{self.topicmodel_id}' """
+                    sql_statement=f""" UPDATE {self.db_table_name} SET status='{ReportStatus.SUCCESS.value}', result_s3_link='{presigned_url}' WHERE unique_id='{self.topicmodel_id}' """
                 )
             else:
                 # Presigned url generation failed

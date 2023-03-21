@@ -99,7 +99,7 @@ class NGramsGeneratorHandler:
 
         if not self.callback_url and self.db_table_name:
             self.status_update_db(
-                sql_statement=f""" INSERT INTO {self.db_table_name} (status, unique_id, s3_link, type) VALUES ({NGramsStatus.INITIATED.value},{self.ngrams_id},'',{action_type}) """
+                sql_statement=f""" INSERT INTO {self.db_table_name} (status, unique_id, result_s3_link, type) VALUES ({NGramsStatus.INITIATED.value},{self.ngrams_id},'',{action_type}) """
             )
     
     def _download_prepare_entries(self):
@@ -229,7 +229,7 @@ class NGramsGeneratorHandler:
             self.send_request_on_callback(presigned_url=presigned_url)
         elif presigned_url and self.db_table_name: # update for presigned url
             self.status_update_db(
-                sql_statement=f""" UPDATE {self.db_table_name} SET status='{NGramsStatus.SUCCESS.value}', s3_link='{presigned_url}' WHERE unique_id='{self.ngrams_id}' """
+                sql_statement=f""" UPDATE {self.db_table_name} SET status='{NGramsStatus.SUCCESS.value}', result_s3_link='{presigned_url}' WHERE unique_id='{self.ngrams_id}' """
             )
         elif self.db_table_name:
             # Presigned url generation failed
