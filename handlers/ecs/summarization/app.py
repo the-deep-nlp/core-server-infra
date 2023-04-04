@@ -22,6 +22,7 @@ class ReportStatus(Enum):
     INITIATED = 1
     SUCCESS = 2
     FAILED = 3
+    INPUT_URL_PROCESS_FAILED = 4
 
 class Database:
     """
@@ -104,8 +105,9 @@ class ReportsGeneratorHandler:
             logging.info("The request url is %s", self.entries_url)
             try:
                 response = requests.get(self.entries_url, timeout=30)
-                entries_data = json.loads(response.text)
-                return [x["excerpt"] for x in entries_data]
+                if response.status_code == 200:
+                    entries_data = json.loads(response.text)
+                    return [x["excerpt"] for x in entries_data]
             except Exception as exc:
                 logging.error("Error occurred: %s", str(exc))
         return None
@@ -207,7 +209,7 @@ class ReportsGeneratorHandler:
                 if db_conn is not None:
                     db_conn.close()
 
-    def send_request_on_callback(self, presigned_url):
+    def send_request_on_callback(self, presigned_url, status):
         """
         Sends the results in a callback url
         """
@@ -217,7 +219,8 @@ class ReportsGeneratorHandler:
                 headers=self.headers,
                 data=json.dumps({
                     "client_id": self.client_id,
-                    "presigned_s3_url": presigned_url
+                    "presigned_s3_url": presigned_url,
+                    "status": status
                 }),
                 timeout=30
             )
@@ -228,8 +231,30 @@ class ReportsGeneratorHandler:
         else:
             logging.error("Error while sending the request on callback url")
 
+    def dispatch_results(self, status, presigned_url=None):
+        """
+        Dispatch results to callback url or write to database
+        """
+        if self.callback_url:
+            self.send_request_on_callback(presigned_url=presigned_url, status=status)
+        elif presigned_url and self.db_table_name: # update for presigned url
+            self.status_update_db(
+                sql_statement=f""" UPDATE {self.db_table_name} SET status='{status}', result_s3_link='{presigned_url}' WHERE unique_id='{self.summarization_id}' """
+            )
+        elif self.db_table_name:
+            # Presigned url generation failed
+            self.status_update_db(
+                sql_statement=f""" UPDATE {self.db_table_name} SET status='{status}' WHERE unique_id='{self.summarization_id}' """
+            )
+        else:
+            logging.error("Callback url and presigned s3 url are not available.")
+
 
     def __call__(self, model_info):
+        if not self.entries:
+            self.dispatch_results(status=ReportStatus.INPUT_URL_PROCESS_FAILED.value)
+            return
+
         if ("summarization_model_path" and 
             "summarization_embedding_model_path" in model_info):
             repgenerator = ReportsGenerator(
@@ -245,17 +270,10 @@ class ReportsGeneratorHandler:
                 key=f"summarization/{date_today}/{self.summarization_id}/summary.txt"
             )
 
-            if self.callback_url:
-                self.send_request_on_callback(presigned_url)
-            elif presigned_url: # update for presigned url
-                self.status_update_db(
-                    sql_statement=f""" UPDATE {self.db_table_name} SET status='{ReportStatus.SUCCESS.value}', result_s3_link='{presigned_url}' WHERE unique_id='{self.summarization_id}' """
-                )
+            if presigned_url:
+                self.dispatch_results(status=ReportStatus.SUCCESS.value, presigned_url=presigned_url)
             else:
-                # Presigned url generation failed
-                self.status_update_db(
-                    sql_statement=f""" UPDATE {self.db_table_name} SET status='{ReportStatus.FAILED.value}' WHERE unique_id='{self.summarization_id}' """
-                )
+                self.dispatch_results(status=ReportStatus.FAILED.value)
         else:
             self.status_update_db(
                 sql_statement=f""" UPDATE {self.db_table_name} SET status='{ReportStatus.FAILED.value}' WHERE unique_id='{self.summarization_id}' """
