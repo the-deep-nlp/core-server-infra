@@ -1,13 +1,13 @@
 [[package]]
 name = "boto3"
-version = "1.26.88"
+version = "1.26.105"
 description = "The AWS SDK for Python"
 category = "main"
 optional = false
 python-versions = ">= 3.7"
 
 [package.dependencies]
-botocore = ">=1.29.88,<1.30.0"
+botocore = ">=1.29.105,<1.30.0"
 jmespath = ">=0.7.1,<2.0.0"
 s3transfer = ">=0.6.0,<0.7.0"
 
@@ -16,7 +16,7 @@ crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 
 [[package]]
 name = "botocore"
-version = "1.29.88"
+version = "1.29.105"
 description = "Low-level, data-driven core of boto 3."
 category = "main"
 optional = false
@@ -59,19 +59,19 @@ python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,!=3.6.*,>=2.7
 
 [[package]]
 name = "filelock"
-version = "3.9.0"
+version = "3.10.7"
 description = "A platform independent file lock."
 category = "main"
 optional = false
 python-versions = ">=3.7"
 
 [package.extras]
-docs = ["furo (>=2022.12.7)", "sphinx-autodoc-typehints (>=1.19.5)", "sphinx (>=5.3)"]
-testing = ["covdefaults (>=2.2.2)", "coverage (>=7.0.1)", "pytest-cov (>=4)", "pytest-timeout (>=2.1)", "pytest (>=7.2)"]
+docs = ["furo (>=2022.12.7)", "sphinx-autodoc-typehints (>=1.22,!=1.23.4)", "sphinx (>=6.1.3)"]
+testing = ["covdefaults (>=2.3)", "coverage (>=7.2.2)", "diff-cover (>=7.5)", "pytest-cov (>=4)", "pytest-mock (>=3.10)", "pytest-timeout (>=2.1)", "pytest (>=7.2.2)"]
 
 [[package]]
 name = "huggingface-hub"
-version = "0.13.1"
+version = "0.13.3"
 description = "Client library to download and publish models, datasets and other repos on the huggingface.co hub"
 category = "main"
 optional = false
@@ -152,6 +152,47 @@ optional = false
 python-versions = ">=3.7"
 
 [[package]]
+name = "pandas"
+version = "2.0.0"
+description = "Powerful data structures for data analysis, time series, and statistics"
+category = "main"
+optional = false
+python-versions = ">=3.8"
+
+[package.dependencies]
+numpy = [
+    {version = ">=1.20.3", markers = "python_version < \"3.10\""},
+    {version = ">=1.21.0", markers = "python_version >= \"3.10\""},
+    {version = ">=1.23.2", markers = "python_version >= \"3.11\""},
+]
+python-dateutil = ">=2.8.2"
+pytz = ">=2020.1"
+tzdata = ">=2022.1"
+
+[package.extras]
+all = ["beautifulsoup4 (>=4.9.3)", "bottleneck (>=1.3.2)", "brotlipy (>=0.7.0)", "fastparquet (>=0.6.3)", "fsspec (>=2021.07.0)", "gcsfs (>=2021.07.0)", "html5lib (>=1.1)", "hypothesis (>=6.34.2)", "jinja2 (>=3.0.0)", "lxml (>=4.6.3)", "matplotlib (>=3.6.1)", "numba (>=0.53.1)", "numexpr (>=2.7.3)", "odfpy (>=1.4.1)", "openpyxl (>=3.0.7)", "pandas-gbq (>=0.15.0)", "psycopg2 (>=2.8.6)", "pyarrow (>=7.0.0)", "pymysql (>=1.0.2)", "PyQt5 (>=5.15.1)", "pyreadstat (>=1.1.2)", "pytest (>=7.0.0)", "pytest-xdist (>=2.2.0)", "pytest-asyncio (>=0.17.0)", "python-snappy (>=0.6.0)", "pyxlsb (>=1.0.8)", "qtpy (>=2.2.0)", "scipy (>=1.7.1)", "s3fs (>=2021.08.0)", "SQLAlchemy (>=1.4.16)", "tables (>=3.6.1)", "tabulate (>=0.8.9)", "xarray (>=0.21.0)", "xlrd (>=2.0.1)", "xlsxwriter (>=1.4.3)", "zstandard (>=0.15.2)"]
+aws = ["s3fs (>=2021.08.0)"]
+clipboard = ["PyQt5 (>=5.15.1)", "qtpy (>=2.2.0)"]
+compression = ["brotlipy (>=0.7.0)", "python-snappy (>=0.6.0)", "zstandard (>=0.15.2)"]
+computation = ["scipy (>=1.7.1)", "xarray (>=0.21.0)"]
+excel = ["odfpy (>=1.4.1)", "openpyxl (>=3.0.7)", "pyxlsb (>=1.0.8)", "xlrd (>=2.0.1)", "xlsxwriter (>=1.4.3)"]
+feather = ["pyarrow (>=7.0.0)"]
+fss = ["fsspec (>=2021.07.0)"]
+gcp = ["gcsfs (>=2021.07.0)", "pandas-gbq (>=0.15.0)"]
+hdf5 = ["tables (>=3.6.1)"]
+html = ["beautifulsoup4 (>=4.9.3)", "html5lib (>=1.1)", "lxml (>=4.6.3)"]
+mysql = ["SQLAlchemy (>=1.4.16)", "pymysql (>=1.0.2)"]
+output_formatting = ["jinja2 (>=3.0.0)", "tabulate (>=0.8.9)"]
+parquet = ["pyarrow (>=7.0.0)"]
+performance = ["bottleneck (>=1.3.2)", "numba (>=0.53.1)", "numexpr (>=2.7.1)"]
+plot = ["matplotlib (>=3.6.1)"]
+postgresql = ["SQLAlchemy (>=1.4.16)", "psycopg2 (>=2.8.6)"]
+spss = ["pyreadstat (>=1.1.2)"]
+sql-other = ["SQLAlchemy (>=1.4.16)"]
+test = ["hypothesis (>=6.34.2)", "pytest (>=7.0.0)", "pytest-xdist (>=2.2.0)", "pytest-asyncio (>=0.17.0)"]
+xml = ["lxml (>=4.6.3)"]
+
+[[package]]
 name = "protobuf"
 version = "3.19.5"
 description = "Protocol Buffers"
@@ -161,7 +202,7 @@ python-versions = ">=3.5"
 
 [[package]]
 name = "psycopg2-binary"
-version = "2.9.5"
+version = "2.9.6"
 description = "psycopg2 - Python-PostgreSQL Database Adapter"
 category = "main"
 optional = false
@@ -179,6 +220,14 @@ python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,>=2.7"
 six = ">=1.5"
 
 [[package]]
+name = "pytz"
+version = "2023.3"
+description = "World timezone definitions, modern and historical"
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "pyyaml"
 version = "6.0"
 description = "YAML parser and emitter for Python"
@@ -188,34 +237,11 @@ python-versions = ">=3.6"
 
 [[package]]
 name = "regex"
-version = "2022.10.31"
+version = "2023.3.23"
 description = "Alternative regular expression module, to replace re."
 category = "main"
 optional = false
-python-versions = ">=3.6"
-
-[[package]]
-name = "reports_generator"
-version = "0.2"
-description = ""
-category = "main"
-optional = false
-python-versions = "*"
-develop = false
-
-[package.dependencies]
-networkx = ">=2.0"
-protobuf = "3.19.5"
-scikit-learn = ">=0.24.2"
-sentencepiece = "*"
-torch = {url = "http://download.pytorch.org/whl/cpu/torch-1.9.1%2Bcpu-cp38-cp38-linux_x86_64.whl"}
-transformers = ">=4.9.2"
-
-[package.source]
-type = "git"
-url = "https://github.com/the-deep/reports_generator"
-reference = "main"
-resolved_reference = "b89aa74cf67484b391ef747771c6455238aa057c"
+python-versions = ">=3.8"
 
 [[package]]
 name = "requests"
@@ -302,6 +328,31 @@ optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*"
 
 [[package]]
+name = "the_deep_reports_generator"
+version = "0.1"
+description = ""
+category = "main"
+optional = false
+python-versions = "*"
+develop = false
+
+[package.dependencies]
+boto3 = ">=1.17.76"
+networkx = ">=2.0"
+pandas = ">=1.2.4"
+protobuf = "3.19.5"
+scikit-learn = ">=0.24.2"
+sentencepiece = "*"
+torch = {url = "http://download.pytorch.org/whl/cpu/torch-1.9.1%2Bcpu-cp38-cp38-linux_x86_64.whl"}
+transformers = ">=4.9.2"
+
+[package.source]
+type = "git"
+url = "https://github.com/the-deep-nlp/the-deep-reports-generator"
+reference = "main"
+resolved_reference = "fbe6f515728b29ff278b4f4a2e6b6bad2e8366b7"
+
+[[package]]
 name = "threadpoolctl"
 version = "3.1.0"
 description = "threadpoolctl"
@@ -356,7 +407,7 @@ telegram = ["requests"]
 
 [[package]]
 name = "transformers"
-version = "4.26.1"
+version = "4.27.4"
 description = "State-of-the-art Machine Learning for JAX, PyTorch and TensorFlow"
 category = "main"
 optional = false
@@ -375,15 +426,15 @@ tqdm = ">=4.27"
 
 [package.extras]
 accelerate = ["accelerate (>=0.10.0)"]
-all = ["tensorflow (>=2.4,<2.12)", "onnxconverter-common", "tf2onnx", "tensorflow-text", "keras-nlp (>=0.3.1)", "torch (>=1.7,!=1.12.0)", "jax (>=0.2.8,!=0.3.2,<=0.3.6)", "jaxlib (>=0.1.65,<=0.3.6)", "flax (>=0.4.1)", "optax (>=0.0.8)", "sentencepiece (>=0.1.91,!=0.1.92)", "protobuf (<=3.20.2)", "tokenizers (>=0.11.1,!=0.11.3,<0.14)", "torchaudio", "librosa", "pyctcdecode (>=0.4.0)", "phonemizer", "kenlm", "pillow", "optuna", "ray", "sigopt", "timm", "codecarbon (==1.2.0)", "accelerate (>=0.10.0)", "decord (==0.6.0)"]
+all = ["tensorflow (>=2.4,<2.12)", "onnxconverter-common", "tf2onnx", "tensorflow-text", "keras-nlp (>=0.3.1)", "torch (>=1.7,!=1.12.0)", "jax (>=0.2.8,!=0.3.2,<=0.3.6)", "jaxlib (>=0.1.65,<=0.3.6)", "flax (>=0.4.1)", "optax (>=0.0.8)", "sentencepiece (>=0.1.91,!=0.1.92)", "protobuf (<=3.20.2)", "tokenizers (>=0.11.1,!=0.11.3,<0.14)", "torchaudio", "librosa", "pyctcdecode (>=0.4.0)", "phonemizer", "kenlm", "pillow", "optuna", "ray", "sigopt", "timm", "torchvision", "codecarbon (==1.2.0)", "accelerate (>=0.10.0)", "decord (==0.6.0)", "av (==9.2.0)"]
 audio = ["librosa", "pyctcdecode (>=0.4.0)", "phonemizer", "kenlm"]
 codecarbon = ["codecarbon (==1.2.0)"]
 deepspeed = ["deepspeed (>=0.6.5)", "accelerate (>=0.10.0)"]
-deepspeed-testing = ["deepspeed (>=0.6.5)", "accelerate (>=0.10.0)", "pytest", "pytest-xdist", "timeout-decorator", "parameterized", "psutil", "datasets (!=2.5.0)", "dill (<0.3.5)", "evaluate (>=0.2.0)", "pytest-timeout", "black (==22.3)", "sacrebleu (>=1.4.12,<2.0.0)", "rouge-score (!=0.0.7,!=0.0.8,!=0.1,!=0.1.1)", "nltk", "GitPython (<3.1.19)", "hf-doc-builder (>=0.3.0)", "protobuf (<=3.20.2)", "sacremoses", "rjieba", "safetensors (>=0.2.1)", "beautifulsoup4", "faiss-cpu", "cookiecutter (==1.7.3)", "optuna", "sentencepiece (>=0.1.91,!=0.1.92)"]
-dev = ["tensorflow (>=2.4,<2.12)", "onnxconverter-common", "tf2onnx", "tensorflow-text", "keras-nlp (>=0.3.1)", "torch (>=1.7,!=1.12.0)", "jax (>=0.2.8,!=0.3.2,<=0.3.6)", "jaxlib (>=0.1.65,<=0.3.6)", "flax (>=0.4.1)", "optax (>=0.0.8)", "sentencepiece (>=0.1.91,!=0.1.92)", "protobuf (<=3.20.2)", "tokenizers (>=0.11.1,!=0.11.3,<0.14)", "torchaudio", "librosa", "pyctcdecode (>=0.4.0)", "phonemizer", "kenlm", "pillow", "optuna", "ray", "sigopt", "timm", "codecarbon (==1.2.0)", "accelerate (>=0.10.0)", "decord (==0.6.0)", "pytest", "pytest-xdist", "timeout-decorator", "parameterized", "psutil", "datasets (!=2.5.0)", "dill (<0.3.5)", "evaluate (>=0.2.0)", "pytest-timeout", "black (==22.3)", "sacrebleu (>=1.4.12,<2.0.0)", "rouge-score (!=0.0.7,!=0.0.8,!=0.1,!=0.1.1)", "nltk", "GitPython (<3.1.19)", "hf-doc-builder (>=0.3.0)", "sacremoses", "rjieba", "safetensors (>=0.2.1)", "beautifulsoup4", "faiss-cpu", "cookiecutter (==1.7.3)", "isort (>=5.5.4)", "flake8 (>=3.8.3)", "fugashi (>=1.0)", "ipadic (>=1.0.0,<2.0)", "unidic-lite (>=1.0.7)", "unidic (>=1.0.2)", "sudachipy (>=0.6.6)", "sudachidict-core (>=20220729)", "rhoknp (>=1.1.0)", "hf-doc-builder", "scikit-learn"]
-dev-tensorflow = ["pytest", "pytest-xdist", "timeout-decorator", "parameterized", "psutil", "datasets (!=2.5.0)", "dill (<0.3.5)", "evaluate (>=0.2.0)", "pytest-timeout", "black (==22.3)", "sacrebleu (>=1.4.12,<2.0.0)", "rouge-score (!=0.0.7,!=0.0.8,!=0.1,!=0.1.1)", "nltk", "GitPython (<3.1.19)", "hf-doc-builder (>=0.3.0)", "protobuf (<=3.20.2)", "sacremoses", "rjieba", "safetensors (>=0.2.1)", "beautifulsoup4", "faiss-cpu", "cookiecutter (==1.7.3)", "tensorflow (>=2.4,<2.12)", "onnxconverter-common", "tf2onnx", "tensorflow-text", "keras-nlp (>=0.3.1)", "sentencepiece (>=0.1.91,!=0.1.92)", "tokenizers (>=0.11.1,!=0.11.3,<0.14)", "pillow", "isort (>=5.5.4)", "flake8 (>=3.8.3)", "hf-doc-builder", "scikit-learn", "onnxruntime (>=1.4.0)", "onnxruntime-tools (>=1.4.2)", "librosa", "pyctcdecode (>=0.4.0)", "phonemizer", "kenlm"]
-dev-torch = ["pytest", "pytest-xdist", "timeout-decorator", "parameterized", "psutil", "datasets (!=2.5.0)", "dill (<0.3.5)", "evaluate (>=0.2.0)", "pytest-timeout", "black (==22.3)", "sacrebleu (>=1.4.12,<2.0.0)", "rouge-score (!=0.0.7,!=0.0.8,!=0.1,!=0.1.1)", "nltk", "GitPython (<3.1.19)", "hf-doc-builder (>=0.3.0)", "protobuf (<=3.20.2)", "sacremoses", "rjieba", "safetensors (>=0.2.1)", "beautifulsoup4", "faiss-cpu", "cookiecutter (==1.7.3)", "torch (>=1.7,!=1.12.0)", "sentencepiece (>=0.1.91,!=0.1.92)", "tokenizers (>=0.11.1,!=0.11.3,<0.14)", "torchaudio", "librosa", "pyctcdecode (>=0.4.0)", "phonemizer", "kenlm", "pillow", "optuna", "ray", "sigopt", "timm", "codecarbon (==1.2.0)", "isort (>=5.5.4)", "flake8 (>=3.8.3)", "fugashi (>=1.0)", "ipadic (>=1.0.0,<2.0)", "unidic-lite (>=1.0.7)", "unidic (>=1.0.2)", "sudachipy (>=0.6.6)", "sudachidict-core (>=20220729)", "rhoknp (>=1.1.0)", "hf-doc-builder", "scikit-learn", "onnxruntime (>=1.4.0)", "onnxruntime-tools (>=1.4.2)"]
-docs = ["tensorflow (>=2.4,<2.12)", "onnxconverter-common", "tf2onnx", "tensorflow-text", "keras-nlp (>=0.3.1)", "torch (>=1.7,!=1.12.0)", "jax (>=0.2.8,!=0.3.2,<=0.3.6)", "jaxlib (>=0.1.65,<=0.3.6)", "flax (>=0.4.1)", "optax (>=0.0.8)", "sentencepiece (>=0.1.91,!=0.1.92)", "protobuf (<=3.20.2)", "tokenizers (>=0.11.1,!=0.11.3,<0.14)", "torchaudio", "librosa", "pyctcdecode (>=0.4.0)", "phonemizer", "kenlm", "pillow", "optuna", "ray", "sigopt", "timm", "codecarbon (==1.2.0)", "accelerate (>=0.10.0)", "decord (==0.6.0)", "hf-doc-builder"]
+deepspeed-testing = ["deepspeed (>=0.6.5)", "accelerate (>=0.10.0)", "pytest", "pytest-xdist", "timeout-decorator", "parameterized", "psutil", "datasets (!=2.5.0)", "dill (<0.3.5)", "evaluate (>=0.2.0)", "pytest-timeout", "black (>=23.1,<24.0)", "sacrebleu (>=1.4.12,<2.0.0)", "rouge-score (!=0.0.7,!=0.0.8,!=0.1,!=0.1.1)", "nltk", "GitPython (<3.1.19)", "hf-doc-builder (>=0.3.0)", "protobuf (<=3.20.2)", "sacremoses", "rjieba", "safetensors (>=0.2.1)", "beautifulsoup4", "faiss-cpu", "cookiecutter (==1.7.3)", "optuna", "sentencepiece (>=0.1.91,!=0.1.92)"]
+dev = ["tensorflow (>=2.4,<2.12)", "onnxconverter-common", "tf2onnx", "tensorflow-text", "keras-nlp (>=0.3.1)", "torch (>=1.7,!=1.12.0)", "jax (>=0.2.8,!=0.3.2,<=0.3.6)", "jaxlib (>=0.1.65,<=0.3.6)", "flax (>=0.4.1)", "optax (>=0.0.8)", "sentencepiece (>=0.1.91,!=0.1.92)", "protobuf (<=3.20.2)", "tokenizers (>=0.11.1,!=0.11.3,<0.14)", "torchaudio", "librosa", "pyctcdecode (>=0.4.0)", "phonemizer", "kenlm", "pillow", "optuna", "ray", "sigopt", "timm", "torchvision", "codecarbon (==1.2.0)", "accelerate (>=0.10.0)", "decord (==0.6.0)", "av (==9.2.0)", "pytest", "pytest-xdist", "timeout-decorator", "parameterized", "psutil", "datasets (!=2.5.0)", "dill (<0.3.5)", "evaluate (>=0.2.0)", "pytest-timeout", "black (>=23.1,<24.0)", "sacrebleu (>=1.4.12,<2.0.0)", "rouge-score (!=0.0.7,!=0.0.8,!=0.1,!=0.1.1)", "nltk", "GitPython (<3.1.19)", "hf-doc-builder (>=0.3.0)", "sacremoses", "rjieba", "safetensors (>=0.2.1)", "beautifulsoup4", "faiss-cpu", "cookiecutter (==1.7.3)", "isort (>=5.5.4)", "ruff (>=0.0.241)", "fugashi (>=1.0)", "ipadic (>=1.0.0,<2.0)", "unidic-lite (>=1.0.7)", "unidic (>=1.0.2)", "sudachipy (>=0.6.6)", "sudachidict-core (>=20220729)", "rhoknp (>=1.1.0)", "hf-doc-builder", "scikit-learn"]
+dev-tensorflow = ["pytest", "pytest-xdist", "timeout-decorator", "parameterized", "psutil", "datasets (!=2.5.0)", "dill (<0.3.5)", "evaluate (>=0.2.0)", "pytest-timeout", "black (>=23.1,<24.0)", "sacrebleu (>=1.4.12,<2.0.0)", "rouge-score (!=0.0.7,!=0.0.8,!=0.1,!=0.1.1)", "nltk", "GitPython (<3.1.19)", "hf-doc-builder (>=0.3.0)", "protobuf (<=3.20.2)", "sacremoses", "rjieba", "safetensors (>=0.2.1)", "beautifulsoup4", "faiss-cpu", "cookiecutter (==1.7.3)", "tensorflow (>=2.4,<2.12)", "onnxconverter-common", "tf2onnx", "tensorflow-text", "keras-nlp (>=0.3.1)", "sentencepiece (>=0.1.91,!=0.1.92)", "tokenizers (>=0.11.1,!=0.11.3,<0.14)", "pillow", "isort (>=5.5.4)", "ruff (>=0.0.241)", "hf-doc-builder", "scikit-learn", "onnxruntime (>=1.4.0)", "onnxruntime-tools (>=1.4.2)", "librosa", "pyctcdecode (>=0.4.0)", "phonemizer", "kenlm"]
+dev-torch = ["pytest", "pytest-xdist", "timeout-decorator", "parameterized", "psutil", "datasets (!=2.5.0)", "dill (<0.3.5)", "evaluate (>=0.2.0)", "pytest-timeout", "black (>=23.1,<24.0)", "sacrebleu (>=1.4.12,<2.0.0)", "rouge-score (!=0.0.7,!=0.0.8,!=0.1,!=0.1.1)", "nltk", "GitPython (<3.1.19)", "hf-doc-builder (>=0.3.0)", "protobuf (<=3.20.2)", "sacremoses", "rjieba", "safetensors (>=0.2.1)", "beautifulsoup4", "faiss-cpu", "cookiecutter (==1.7.3)", "torch (>=1.7,!=1.12.0)", "sentencepiece (>=0.1.91,!=0.1.92)", "tokenizers (>=0.11.1,!=0.11.3,<0.14)", "torchaudio", "librosa", "pyctcdecode (>=0.4.0)", "phonemizer", "kenlm", "pillow", "optuna", "ray", "sigopt", "timm", "torchvision", "codecarbon (==1.2.0)", "isort (>=5.5.4)", "ruff (>=0.0.241)", "fugashi (>=1.0)", "ipadic (>=1.0.0,<2.0)", "unidic-lite (>=1.0.7)", "unidic (>=1.0.2)", "sudachipy (>=0.6.6)", "sudachidict-core (>=20220729)", "rhoknp (>=1.1.0)", "hf-doc-builder", "scikit-learn", "onnxruntime (>=1.4.0)", "onnxruntime-tools (>=1.4.2)"]
+docs = ["tensorflow (>=2.4,<2.12)", "onnxconverter-common", "tf2onnx", "tensorflow-text", "keras-nlp (>=0.3.1)", "torch (>=1.7,!=1.12.0)", "jax (>=0.2.8,!=0.3.2,<=0.3.6)", "jaxlib (>=0.1.65,<=0.3.6)", "flax (>=0.4.1)", "optax (>=0.0.8)", "sentencepiece (>=0.1.91,!=0.1.92)", "protobuf (<=3.20.2)", "tokenizers (>=0.11.1,!=0.11.3,<0.14)", "torchaudio", "librosa", "pyctcdecode (>=0.4.0)", "phonemizer", "kenlm", "pillow", "optuna", "ray", "sigopt", "timm", "torchvision", "codecarbon (==1.2.0)", "accelerate (>=0.10.0)", "decord (==0.6.0)", "av (==9.2.0)", "hf-doc-builder"]
 docs_specific = ["hf-doc-builder"]
 fairscale = ["fairscale (>0.3)"]
 flax = ["jax (>=0.2.8,!=0.3.2,<=0.3.6)", "jaxlib (>=0.1.65,<=0.3.6)", "flax (>=0.4.1)", "optax (>=0.0.8)"]
@@ -396,7 +447,7 @@ natten = ["natten (>=0.14.4)"]
 onnx = ["onnxconverter-common", "tf2onnx", "onnxruntime (>=1.4.0)", "onnxruntime-tools (>=1.4.2)"]
 onnxruntime = ["onnxruntime (>=1.4.0)", "onnxruntime-tools (>=1.4.2)"]
 optuna = ["optuna"]
-quality = ["black (==22.3)", "datasets (!=2.5.0)", "isort (>=5.5.4)", "flake8 (>=3.8.3)", "GitPython (<3.1.19)", "hf-doc-builder (>=0.3.0)"]
+quality = ["black (>=23.1,<24.0)", "datasets (!=2.5.0)", "isort (>=5.5.4)", "ruff (>=0.0.241)", "GitPython (<3.1.19)", "hf-doc-builder (>=0.3.0)"]
 ray = ["ray"]
 retrieval = ["faiss-cpu", "datasets (!=2.5.0)"]
 sagemaker = ["sagemaker (>=2.31.0)"]
@@ -405,7 +456,7 @@ serving = ["pydantic", "uvicorn", "fastapi", "starlette"]
 sigopt = ["sigopt"]
 sklearn = ["scikit-learn"]
 speech = ["torchaudio", "librosa", "pyctcdecode (>=0.4.0)", "phonemizer", "kenlm"]
-testing = ["pytest", "pytest-xdist", "timeout-decorator", "parameterized", "psutil", "datasets (!=2.5.0)", "dill (<0.3.5)", "evaluate (>=0.2.0)", "pytest-timeout", "black (==22.3)", "sacrebleu (>=1.4.12,<2.0.0)", "rouge-score (!=0.0.7,!=0.0.8,!=0.1,!=0.1.1)", "nltk", "GitPython (<3.1.19)", "hf-doc-builder (>=0.3.0)", "protobuf (<=3.20.2)", "sacremoses", "rjieba", "safetensors (>=0.2.1)", "beautifulsoup4", "faiss-cpu", "cookiecutter (==1.7.3)"]
+testing = ["pytest", "pytest-xdist", "timeout-decorator", "parameterized", "psutil", "datasets (!=2.5.0)", "dill (<0.3.5)", "evaluate (>=0.2.0)", "pytest-timeout", "black (>=23.1,<24.0)", "sacrebleu (>=1.4.12,<2.0.0)", "rouge-score (!=0.0.7,!=0.0.8,!=0.1,!=0.1.1)", "nltk", "GitPython (<3.1.19)", "hf-doc-builder (>=0.3.0)", "protobuf (<=3.20.2)", "sacremoses", "rjieba", "safetensors (>=0.2.1)", "beautifulsoup4", "faiss-cpu", "cookiecutter (==1.7.3)"]
 tf = ["tensorflow (>=2.4,<2.12)", "onnxconverter-common", "tf2onnx", "tensorflow-text", "keras-nlp (>=0.3.1)"]
 tf-cpu = ["tensorflow-cpu (>=2.4,<2.12)", "onnxconverter-common", "tf2onnx", "tensorflow-text", "keras-nlp (>=0.3.1)"]
 tf-speech = ["librosa", "pyctcdecode (>=0.4.0)", "phonemizer", "kenlm"]
@@ -413,8 +464,9 @@ timm = ["timm"]
 tokenizers = ["tokenizers (>=0.11.1,!=0.11.3,<0.14)"]
 torch = ["torch (>=1.7,!=1.12.0)"]
 torch-speech = ["torchaudio", "librosa", "pyctcdecode (>=0.4.0)", "phonemizer", "kenlm"]
+torch-vision = ["torchvision", "pillow"]
 torchhub = ["filelock", "huggingface-hub (>=0.11.0,<1.0)", "importlib-metadata", "numpy (>=1.17)", "packaging (>=20.0)", "protobuf (<=3.20.2)", "regex (!=2019.12.17)", "requests", "sentencepiece (>=0.1.91,!=0.1.92)", "torch (>=1.7,!=1.12.0)", "tokenizers (>=0.11.1,!=0.11.3,<0.14)", "tqdm (>=4.27)"]
-video = ["decord (==0.6.0)"]
+video = ["decord (==0.6.0)", "av (==9.2.0)"]
 vision = ["pillow"]
 
 [[package]]
@@ -426,8 +478,16 @@ optional = false
 python-versions = ">=3.7"
 
 [[package]]
+name = "tzdata"
+version = "2023.3"
+description = "Provider of IANA time zone data"
+category = "main"
+optional = false
+python-versions = ">=2"
+
+[[package]]
 name = "urllib3"
-version = "1.26.14"
+version = "1.26.15"
 description = "HTTP library with thread-safe connection pooling, file post, and more."
 category = "main"
 optional = false
@@ -441,7 +501,7 @@ socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8"
-content-hash = "19b8294deba842a96cbbc719894776dc6b58f50f7ae513b9e14c22784b5dc209"
+content-hash = "1864be97cbcbe9014ddec51e8ba6e167836155923f4d0a41f2093d1f271d947a"
 
 [metadata.files]
 boto3 = []
@@ -460,9 +520,11 @@ joblib = []
 networkx = []
 numpy = []
 packaging = []
+pandas = []
 protobuf = []
 psycopg2-binary = []
 python-dateutil = []
+pytz = []
 pyyaml = [
     {file = "PyYAML-6.0-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:d4db7c7aef085872ef65a8fd7d6d09a14ae91f691dec3e87ee5ee0539d516f53"},
     {file = "PyYAML-6.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:9df7ed3b3d2e0ecfe09e14741b857df43adb5a3ddadc919a2d94fbdf78fea53c"},
@@ -499,7 +561,6 @@ pyyaml = [
     {file = "PyYAML-6.0.tar.gz", hash = "sha256:68fb519c14306fec9720a2a5b45bc9f0c8d1b9c72adf45c37baedfcd949c35a2"},
 ]
 regex = []
-reports_generator = []
 requests = [
     {file = "requests-2.27.1-py2.py3-none-any.whl", hash = "sha256:f22fa1e554c9ddfd16e6e41ac79759e17be9e492b3587efa038054674760e72d"},
     {file = "requests-2.27.1.tar.gz", hash = "sha256:68d7c56fd5a8999887728ef304a6d12edc7be74f1cfa47714fc8b414525c9a61"},
@@ -512,10 +573,12 @@ six = [
     {file = "six-1.16.0-py2.py3-none-any.whl", hash = "sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254"},
     {file = "six-1.16.0.tar.gz", hash = "sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926"},
 ]
+the_deep_reports_generator = []
 threadpoolctl = []
 tokenizers = []
 torch = []
 tqdm = []
 transformers = []
 typing-extensions = []
+tzdata = []
 urllib3 = []

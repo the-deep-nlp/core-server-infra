@@ -5,6 +5,7 @@ import logging
 import psycopg2
 import requests
 import boto3
+from pathlib import Path
 from datetime import datetime
 from enum import Enum
 from botocore.client import Config
@@ -15,11 +16,17 @@ from reports_generator import ReportsGenerator
 logging.getLogger().setLevel(logging.INFO)
 
 class ReportStatus(Enum):
+    """
+    List of categories to indicate the status of task
+    """
     INITIATED = 1
     SUCCESS = 2
     FAILED = 3
 
 class Database:
+    """
+    Class to handle database connections
+    """
     def __init__(
         self,
         endpoint: str,
@@ -33,7 +40,7 @@ class Database:
         self.username = username
         self.password = password
         self.port = port
-    
+
     def __call__(self):
         try:
             conn = psycopg2.connect(
@@ -45,8 +52,8 @@ class Database:
             )
             cur = conn.cursor()
             return conn, cur
-        except Exception as e:
-            logging.error(f"Database connection failed {e}")
+        except Exception as exc:
+            logging.error("Database connection failed %s", exc)
             return None, None
 
 
@@ -82,7 +89,7 @@ class ReportsGeneratorHandler:
             self.status_update_db(
                 sql_statement=f""" INSERT INTO {self.db_table_name} (status, unique_id, result_s3_link, type) VALUES ({ReportStatus.INITIATED.value},{self.summarization_id},'', {action_type}) """
             )
-    
+
     def _download_prepare_entries(self):
         """
         The json format (*.json) in the link file should be
@@ -94,47 +101,54 @@ class ReportsGeneratorHandler:
         ]
         """
         if self.entries_url:
-            logging.info(f"The request url is {self.entries_url}")
+            logging.info("The request url is %s", self.entries_url)
             try:
-                response = requests.get(self.entries_url)
+                response = requests.get(self.entries_url, timeout=30)
                 entries_data = json.loads(response.text)
                 return [x["excerpt"] for x in entries_data]
-            except Exception as e:
-                logging.error(f"Error occurred: {str(e)}")
+            except Exception as exc:
+                logging.error("Error occurred: %s", str(exc))
         return None
 
-    
+
     def download_models(
             self,
             summ_model: str="csebuetnlp/mT5_multilingual_XLSum",
             sent_embedding_model: str="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
     ):
+        """
+        Downloads the models and store them in the EFS
+        """
         model_info = {}
-        if not any(os.listdir("/models")):
+        models_path = Path("/models")
+        models_info_path = models_path / "model_info.json"
+        if not any(os.listdir(models_path)):
             summarization_model_local_path = snapshot_download(
                 repo_id=summ_model,
-                cache_dir="/models"
+                cache_dir=models_path
             )
             summarization_embedding_model_local_path = snapshot_download(
                 repo_id=sent_embedding_model,
-                cache_dir="/models"
+                cache_dir=models_path
             )
             model_info = {
                 "summarization_model_path": summarization_model_local_path,
                 "summarization_embedding_model_path": summarization_embedding_model_local_path
             }
-            with open("/models/model_info.json", "w", encoding="utf-8") as f:
-                json.dump(model_info, f)
+            with open(models_info_path, "w", encoding="utf-8") as models_info_f:
+                json.dump(model_info, models_info_f)
         else:
-            model_info_path = "/models/model_info.json"
-            if os.path.exists(model_info_path):
-                with open(model_info_path, "r") as f:
-                    model_info = json.load(f)
+            if os.path.exists(models_info_path):
+                with open(models_info_path, "r", encoding="utf-8") as models_info_f:
+                    model_info = json.load(models_info_f)
             else:
                 return {}
         return model_info
 
     def generate_presigned_url(self, bucket_name, key):
+        """
+        Generates a presigned url of the file stored in s3
+        """
         # Note that the bucket and service(e.g. summarization) should run on the same aws region
         try:
             s3_client = boto3.client(
@@ -153,32 +167,38 @@ class ReportsGeneratorHandler:
                 },
                 ExpiresIn=self.signed_url_expiry_secs
             )
-        except ClientError as e:
-            logging.error(f"Error while generating presigned url {e}")
+        except ClientError as cexc:
+            logging.error("Error while generating presigned url %s", cexc)
             return None
         return url
 
     def summary_store_s3(self, summary, bucket_name="test-ecs-parser11", key="summary.txt"):
+        """
+        Stores the summary in s3
+        """
         try:
             session = boto3.Session()
             s3_resource = session.resource("s3")
             bucket = s3_resource.Bucket(bucket_name)
             summary_bytes = bytes(summary, "utf-8")
             summary_bytes_obj = io.BytesIO(summary_bytes)
-            bucket.upload_fileobj(summary_bytes_obj, key)
+            bucket.upload_fileobj(summary_bytes_obj, key, ExtraArgs={"ContentType": "text/plain; charset=utf-8"})
             return self.generate_presigned_url(bucket_name, key)
-        except ClientError as e:
-            logging.error(str(e))
+        except ClientError as cexp:
+            logging.error(str(cexp))
             return None
 
 
     def status_update_db(self, sql_statement):
+        """
+        Updates the status in the database
+        """
         db = Database(**self.db_config)
         db_conn, db_cursor = db()
         if db_cursor:
             try:
                 db_cursor.execute(sql_statement)
-                logging.info(f"Db updated. Number of rows affected: {db_cursor.rowcount}")
+                logging.info("Db updated. Number of rows affected: %s", db_cursor.rowcount)
                 db_conn.commit()
                 db_cursor.close()
             except (Exception, psycopg2.DatabaseError) as error:
@@ -186,8 +206,11 @@ class ReportsGeneratorHandler:
             finally:
                 if db_conn is not None:
                     db_conn.close()
-    
+
     def send_request_on_callback(self, presigned_url):
+        """
+        Sends the results in a callback url
+        """
         try:
             response = requests.post(
                 self.callback_url,
@@ -198,23 +221,23 @@ class ReportsGeneratorHandler:
                 }),
                 timeout=30
             )
-        except requests.exceptions.RequestException as e:
-            raise Exception(f"Exception occurred while sending request - {e}")
+        except requests.exceptions.RequestException as rexc:
+            raise Exception(f"Exception occurred while sending request - {rexc}")
         if response.status_code == 200:
             logging.info("Successfully sent the request on callback url")
         else:
             logging.error("Error while sending the request on callback url")
 
-    
+
     def __call__(self, model_info):
         if ("summarization_model_path" and 
             "summarization_embedding_model_path" in model_info):
-            self.repgen = ReportsGenerator(
+            repgenerator = ReportsGenerator(
                 summarization_model_name=model_info["summarization_model_path"],
                 sentence_embedding_model_name=model_info["summarization_embedding_model_path"],
                 device="cpu"
             )
-            summary = self.repgen(self.entries)
+            summary = repgenerator(self.entries)
             date_today = str(datetime.now().date())
             presigned_url = self.summary_store_s3(
                 summary=summary,
