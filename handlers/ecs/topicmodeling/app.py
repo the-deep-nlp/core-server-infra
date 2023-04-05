@@ -17,11 +17,18 @@ from topic_generator import TopicGenerator
 logging.getLogger().setLevel(logging.INFO)
 
 class ReportStatus(Enum):
+    """
+    List of categories to indicate the status of task
+    """
     INITIATED = 1
     SUCCESS = 2
     FAILED = 3
+    INPUT_URL_PROCESS_FAILED = 4
 
 class Database:
+    """
+    Class to handle database connections
+    """
     def __init__(
         self,
         endpoint: str,
@@ -35,7 +42,7 @@ class Database:
         self.username = username
         self.password = password
         self.port = port
-    
+
     def __call__(self):
         try:
             conn = psycopg2.connect(
@@ -47,8 +54,8 @@ class Database:
             )
             cur = conn.cursor()
             return conn, cur
-        except Exception as e:
-            logging.error(f"Database connection failed {e}")
+        except Exception as exc:
+            logging.error("Database connection failed %s", exc)
             return None, None
 
 
@@ -65,9 +72,6 @@ class TopicModelGeneratorHandler:
 
         self.max_cluster_num = os.environ.get("MAX_CLUSTER_NUM", 5)
         self.cluster_size = os.environ.get("CLUSTER_SIZE")
-        
-        self.entries_df = self._download_prepare_entries()
-        self.embeddings = self._get_embeddings(self.entries_df.excerpts)
 
         self.headers = {
             "Content-Type": "application/json"
@@ -88,7 +92,13 @@ class TopicModelGeneratorHandler:
             self.status_update_db(
                 sql_statement=f""" INSERT INTO {self.db_table_name} (status, unique_id, result_s3_link, type) VALUES ({ReportStatus.INITIATED.value},{self.topicmodel_id},'', {action_type}) """
             )
-    
+
+        self.entries_df = self._download_prepare_entries()
+        if self.entries_df.empty:
+            self.embeddings = np.array([])
+        else:
+            self.embeddings = self._get_embeddings(self.entries_df.excerpts)
+
     def _download_prepare_entries(self):
         """
         The json format (*.json) in the link file should be
@@ -100,16 +110,17 @@ class TopicModelGeneratorHandler:
         ]
         """
         if self.entries_url:
-            logging.info(f"The request url is {self.entries_url}")
+            logging.info("The request url is %s", self.entries_url)
             try:
-                response = requests.get(self.entries_url)
-                entries_data = json.loads(response.text)
-                df = pd.DataFrame(entries_data)
-                df.rename({"excerpt":"excerpts"}, axis=1, inplace=True)
-                return df
-            except Exception as e:
-                logging.error(f"Error occurred: {str(e)}")
-        return None
+                response = requests.get(self.entries_url, timeout=30)
+                if response.status_code == 200:
+                    entries_data = json.loads(response.text)
+                    df = pd.DataFrame(entries_data)
+                    df.rename({"excerpt":"excerpts"}, axis=1, inplace=True)
+                    return df
+            except Exception as exc:
+                logging.error("Error occurred: %s", str(exc))
+        return pd.DataFrame([], columns=["excerpts", "entry_id"])
 
     def _get_embeddings(
         self,
@@ -120,14 +131,17 @@ class TopicModelGeneratorHandler:
         return_type: str = "default_analyis",
         embeddings_return_type: str = "array",
         batch_size: int = 5
-    ):  
+    ):
+        """
+        Calculates the embeddings of the entries
+        """
         total = []
-        
+
         client = boto3.client("sagemaker-runtime", region_name=self.aws_region)
-        
+
         for i in range(0, len(excerpts), batch_size):
             batch = excerpts[i:i+batch_size]
-            
+
             req = {
                 "excerpt": batch,
                 "output_backbone_embeddings": True,
@@ -138,20 +152,22 @@ class TopicModelGeneratorHandler:
                 "return_type": return_type,
                 "embeddings_return_type": embeddings_return_type
             }
-            
-            
+
             response = client.invoke_endpoint(
                 EndpointName=model_name,
                 Body=pd.DataFrame(req).to_json(orient="split"),
                 ContentType="application/json; format=pandas-split",
             )
-            
+
             output = literal_eval(response["Body"].read().decode("ascii"))
             total.append(output["output_backbone"])
-        
+
         return np.vstack([x for b in total for x in  b])
 
     def generate_presigned_url(self, bucket_name, key):
+        """
+        Generates a presigned url of the file stored in s3
+        """
         # Note that the bucket and service(e.g. summarization) should run on the same aws region
         try:
             s3_client = boto3.client(
@@ -170,32 +186,42 @@ class TopicModelGeneratorHandler:
                 },
                 ExpiresIn=self.signed_url_expiry_secs
             )
-        except ClientError as e:
-            logging.error(f"Error while generating presigned url {e}")
+        except ClientError as cexc:
+            logging.error("Error while generating presigned url %s", cexc)
             return None
         return url
 
-    def topicmodel_summary(self, summary, bucket_name="test-ecs-parser11", key="summary.txt"):
+    def topicmodel_summary(self, tm_summary, bucket_name="test-ecs-parser11", key="topicmodel.json"):
+        """
+        Stores the topic model clusters in s3
+        """
         try:
             session = boto3.Session()
             s3_resource = session.resource("s3")
             bucket = s3_resource.Bucket(bucket_name)
-            summary_bytes = bytes(summary, "utf-8")
-            summary_bytes_obj = io.BytesIO(summary_bytes)
-            bucket.upload_fileobj(summary_bytes_obj, key)
+            tm_summary_bytes = bytes(tm_summary, "utf-8")
+            tm_summary_bytes_obj = io.BytesIO(tm_summary_bytes)
+            bucket.upload_fileobj(
+                tm_summary_bytes_obj,
+                key,
+                ExtraArgs={"ContentType": "application/json"}
+            )
             return self.generate_presigned_url(bucket_name, key)
-        except ClientError as e:
-            logging.error(str(e))
+        except ClientError as cexc:
+            logging.error(str(cexc))
             return None
 
 
     def status_update_db(self, sql_statement):
+        """
+        Updates the status in the database
+        """
         db = Database(**self.db_config)
         db_conn, db_cursor = db()
         if db_cursor:
             try:
                 db_cursor.execute(sql_statement)
-                logging.info(f"Db updated. Number of rows affected: {db_cursor.rowcount}")
+                logging.info("Db updated. Number of rows affected: %s", db_cursor.rowcount)
                 db_conn.commit()
                 db_cursor.close()
             except (Exception, psycopg2.DatabaseError) as error:
@@ -203,28 +229,53 @@ class TopicModelGeneratorHandler:
             finally:
                 if db_conn is not None:
                     db_conn.close()
-    
-    def send_request_on_callback(self, presigned_url):
+
+    def send_request_on_callback(self, presigned_url, status):
+        """
+        Sends the results in a callback url
+        """
         try:
             response = requests.post(
                 self.callback_url,
                 headers=self.headers,
                 data=json.dumps({
                     "client_id": self.client_id,
-                    "presigned_s3_url": presigned_url
+                    "presigned_s3_url": presigned_url,
+                    "status": status
                 }),
                 timeout=30
             )
-        except requests.exceptions.RequestException as e:
-            raise Exception(f"Exception occurred while sending request - {e}")
+        except requests.exceptions.RequestException as rexc:
+            raise Exception(f"Exception occurred while sending request - {rexc}")
         if response.status_code == 200:
             logging.info("Successfully sent the request on callback url")
         else:
             logging.error("Error while sending the request on callback url")
 
-    
+    def dispatch_results(self, status, presigned_url=None):
+        """
+        Dispatch results to callback url or write to database
+        """
+        if self.callback_url:
+            self.send_request_on_callback(presigned_url=presigned_url, status=status)
+        elif presigned_url and self.db_table_name: # update for presigned url
+            self.status_update_db(
+                sql_statement=f""" UPDATE {self.db_table_name} SET status='{status}', result_s3_link='{presigned_url}' WHERE unique_id='{self.topicmodel_id}' """
+            )
+        elif self.db_table_name:
+            # Presigned url generation failed
+            self.status_update_db(
+                sql_statement=f""" UPDATE {self.db_table_name} SET status='{status}' WHERE unique_id='{self.topicmodel_id}' """
+            )
+        else:
+            logging.error("Callback url and presigned s3 url are not available.")
+
     def __call__(self):
-        if not self.entries_df.empty and self.embeddings.any():
+        if self.entries_df.empty:
+            self.dispatch_results(status=ReportStatus.INPUT_URL_PROCESS_FAILED.value)
+            return
+
+        if self.embeddings.any():
             topicmodel_summary = TopicGenerator(
                 self.entries_df.excerpts,
                 self.embeddings
@@ -233,28 +284,21 @@ class TopicModelGeneratorHandler:
             topicmodel_df = topicmodel_summary.topics_df
             topicmodel_merged_df = pd.merge(topicmodel_df, self.entries_df, how="left", on=["excerpts"])
             topicmodel_op_dict = topicmodel_merged_df.groupby("topics")["entry_id"].apply(list).to_dict()
-            logging.info(topicmodel_op_dict)
+
             date_today = str(datetime.now().date())
             presigned_url = self.topicmodel_summary(
-                summary=json.dumps(topicmodel_op_dict),
+                tm_summary=json.dumps(topicmodel_op_dict),
                 bucket_name=self.bucket_name,
                 key=f"topicmodel/{date_today}/{self.topicmodel_id}/topicmodel.json"
             )
 
-            if self.callback_url:
-                self.send_request_on_callback(presigned_url)
-            elif presigned_url: # update for presigned url
-                self.status_update_db(
-                    sql_statement=f""" UPDATE {self.db_table_name} SET status='{ReportStatus.SUCCESS.value}', result_s3_link='{presigned_url}' WHERE unique_id='{self.topicmodel_id}' """
-                )
+            if presigned_url:
+                self.dispatch_results(status=ReportStatus.SUCCESS.value, presigned_url=presigned_url)
             else:
-                # Presigned url generation failed
-                self.status_update_db(
-                    sql_statement=f""" UPDATE {self.db_table_name} SET status='{ReportStatus.FAILED.value}' WHERE unique_id='{self.topicmodel_id}' """
-                )
+                self.dispatch_results(status=ReportStatus.FAILED.value)
         else:
-            logging.error("Some errors occurred.")
-
+            logging.error("Some errors occurred. Could not generate embeddings of the excerpts")
+            self.dispatch_results(status=ReportStatus.FAILED.value)
 
 topicmodel_generator_handler = TopicModelGeneratorHandler()
 topicmodel_generator_handler()
