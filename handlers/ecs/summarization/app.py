@@ -68,7 +68,7 @@ class ReportsGeneratorHandler:
         self.aws_region = os.environ.get("AWS_REGION", "us-east-1")
         self.signed_url_expiry_secs = os.environ.get("SIGNED_URL_EXPIRY_SECS", 86400) # 1 day
         self.bucket_name = os.environ.get("S3_BUCKET_NAME", None)
-        
+
         self.entries = self._download_prepare_entries()
 
         self.headers = {
@@ -184,7 +184,11 @@ class ReportsGeneratorHandler:
             bucket = s3_resource.Bucket(bucket_name)
             summary_bytes = bytes(summary, "utf-8")
             summary_bytes_obj = io.BytesIO(summary_bytes)
-            bucket.upload_fileobj(summary_bytes_obj, key, ExtraArgs={"ContentType": "text/plain; charset=utf-8"})
+            bucket.upload_fileobj(
+                summary_bytes_obj,
+                key,
+                ExtraArgs={"ContentType": "text/plain; charset=utf-8"}
+            )
             return self.generate_presigned_url(bucket_name, key)
         except ClientError as cexp:
             logging.error(str(cexp))
