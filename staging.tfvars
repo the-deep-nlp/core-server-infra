@@ -7,10 +7,10 @@ cidr_block = "172.20.0.0/16"
 availability_zones = ["us-east-1a", "us-east-1b"]
 
 # ecs
-app_image      = "testserver" #"961104659532.dkr.ecr.us-east-1.amazonaws.com/nlp-server:latest"
-app_port       = 80
-fargate_cpu    = "256"
-fargate_memory = "512"
+app_image      = "nlp-server"
+app_port       = 8000
+fargate_cpu    = "2048"
+fargate_memory = "4096"
 
 # ecs role
 ecs_task_execution_role = "ECSTaskExecutionNLPServerRole"

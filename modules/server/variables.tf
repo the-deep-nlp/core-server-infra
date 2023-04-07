@@ -38,7 +38,7 @@ variable ecs_task_role {}
 
 # alb
 variable health_check_path {
-    default = "/"
+    default = "/admin"
 }
 
 # route 53
