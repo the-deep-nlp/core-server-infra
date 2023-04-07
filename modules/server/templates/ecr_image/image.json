@@ -19,6 +19,13 @@
           "hostPort": ${app_port}
         }
       ],
+      "entryPoint": [
+        "bash"
+      ],
+      "command": [
+        "-c",
+        "/code/scripts/run_prod_ecs.sh"
+      ],
       "environment": [
         {
           "name": "ENVIRONMENT",
@@ -31,6 +38,10 @@
         {
           "name": "ALLOWED_HOSTS",
           "value": "${allowed_hosts}"
+        },
+        {
+          "name": "CSRF_TRUSTED_ORIGINS",
+          "value": "${csrf_trusted_origins}"
         },
         {
           "name": "REDIS_HOST",
