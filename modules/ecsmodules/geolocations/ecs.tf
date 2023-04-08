@@ -29,7 +29,7 @@ resource "aws_ecs_task_definition" "task-def" {
       "essential": true,
       "mountPoints": [
           {
-              "containerPath": "/models",
+              "containerPath": "/geolocations",
               "sourceVolume": "efs-volume"
           }
       ],
