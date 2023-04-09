@@ -7,10 +7,10 @@ variable app_port {
     default = "80"
 }
 variable fargate_cpu {
-    default = "1024"
+    default = "4096"
 }
 variable fargate_memory {
-    default = "8192"
+    default = "20480"
 }
 
 variable app_count {
@@ -53,3 +53,6 @@ variable ssm_db_port_arn {}
 
 # db table
 variable db_table_name {}
+
+# s3
+variable s3_bucketname_task_results {}

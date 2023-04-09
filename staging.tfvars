@@ -7,10 +7,10 @@ cidr_block = "172.20.0.0/16"
 availability_zones = ["us-east-1a", "us-east-1b"]
 
 # ecs
-app_image      = "nlp-server"
+app_image      = "testserver" #nlp-server"
 app_port       = 8000
-fargate_cpu    = "2048"
-fargate_memory = "4096"
+fargate_cpu    = "256" #"2048"
+fargate_memory = "512" #"4096"
 
 # ecs role
 ecs_task_execution_role = "ECSTaskExecutionNLPServerRole"
@@ -33,6 +33,9 @@ ngrams_app_image_name = "ngrams_model"
 topicmodel_app_image_name = "topicmodeling_model"
 # ecs geolocations
 geolocations_app_image_name = "geolocations_model"
+
+# s3
+s3_bucketname_task_results = "test-ecs-parser11"
 
 # db table 
 db_table_name = "event_status_tracker"

@@ -97,6 +97,10 @@ module "nlp_server" {
   # NGrams
   ngrams_ecs_task_defn_arn = module.ngrams.ngrams_ecs_task_defn_arn
   ngrams_container_name = module.ngrams.ngrams_container_name
+  
+  # Geolocations
+  geo_ecs_task_defn_arn = module.geolocations.geo_ecs_task_defn_arn
+  geo_ecs_container_name = module.geolocations.geo_ecs_container_name
 }
 
 module "redis" {
@@ -266,6 +270,9 @@ module "geolocations" {
 
   # db table
   db_table_name = var.db_table_name
+
+  # s3
+  s3_bucketname_task_results = var.s3_bucketname_task_results
 }
 
 module "efilesystem" {
