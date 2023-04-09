@@ -10,6 +10,7 @@ boto3 = "==1.26.106"
 cloudpathlib= "==0.13.0"
 psycopg2-binary = "*"
 geolocation_generator = { git = "https://github.com/ranjan-stha/geolocation-generator", rev = "ccb43a7", branch = "main" }
+sentry-sdk = "==1.5.8"
 
 [tool.poetry.dev-dependencies]
 

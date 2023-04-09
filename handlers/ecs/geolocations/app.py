@@ -8,6 +8,7 @@ import shutil
 import psycopg2
 import requests
 import boto3
+import sentry_sdk
 from pathlib import Path
 from cloudpathlib import CloudPath
 from datetime import datetime
@@ -20,6 +21,10 @@ import warnings
 warnings.filterwarnings("ignore")
 
 logging.getLogger().setLevel(logging.INFO)
+
+SENTRY_DSN = os.environ.get("SENTRY_DSN")
+ENVIRONMENT = os.environ.get("ENVIRONMENT")
+sentry_sdk.init(SENTRY_DSN, environment=ENVIRONMENT, attach_stacktrace=True, traces_sample_rate=1.0)
 
 class ReportStatus(Enum):
     """
