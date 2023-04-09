@@ -65,6 +65,9 @@ class Database:
 
 
 class GeoLocationGeneratorHandler:
+    """
+    Geolocation class to extract geolocations from the excerpts
+    """
     def __init__(self):
         action_type = "geolocation"
         self.entries_url = os.environ.get("ENTRIES_URL") or None
@@ -92,10 +95,12 @@ class GeoLocationGeneratorHandler:
 
         self.db_table_name = os.environ.get("DB_TABLE_NAME", None)
 
-        if not self.callback_url:
+        if self.db_table_name:
             self.status_update_db(
                 sql_statement=f""" INSERT INTO {self.db_table_name} (status, unique_id, result_s3_link, type) VALUES ({ReportStatus.INITIATED.value},{self.geolocation_id},'', {action_type}) """
             )
+        else:
+            logging.error("Database table name is not found.")
 
     def _download_prepare_entries(self):
         """
@@ -113,28 +118,28 @@ class GeoLocationGeneratorHandler:
                 response = requests.get(self.entries_url, timeout=30)
                 if response.status_code == 200:
                     entries_data = json.loads(response.text)
-                    return [x["excerpt"] for x in entries_data]
+                    return entries_data
             except Exception as exc:
                 logging.error("Error occurred: %s", str(exc))
         return None
 
 
-    def download_resources(self):
+    def download_resources(
+        self,
+        s3_spacy_path = "s3://deep-geolocation-extraction/models/spacy_finetuned_100doc_5epochs/spacy_finetuned_100doc_5epochs",
+        s3_locationdata_path = "s3://deep-geolocation-extraction/geonames/locationdata.tsv.gz",
+        s3_locdictionary_path = "s3://deep-geolocation-extraction/geonames/locdictionary_unicode.json.gz",
+        s3_indexdir_path = "s3://deep-geolocation-extraction/geonames/indexdir.tar.gz"
+    ):
         """
         Downloads the resources and store them in the EFS
         """
         resources_info = {}
         resources_path = Path("/geolocations")
         resources_info_path = resources_path / "resources_info.json"
-        logging.info(os.listdir(resources_path))
-        logging.info(os.listdir(resources_path / "models"))
 
         if not any(os.listdir(resources_path)):
-            s3_spacy_path = "s3://deep-geolocation-extraction/models/spacy_finetuned_100doc_5epochs/spacy_finetuned_100doc_5epochs"
-            s3_locationdata_path = "s3://deep-geolocation-extraction/geonames/locationdata.tsv.gz"
-            s3_locdictionary_path = "s3://deep-geolocation-extraction/geonames/locdictionary_unicode.json.gz"
-            s3_indexdir_path = "s3://deep-geolocation-extraction/geonames/indexdir.tar.gz"
-
+            logging.info("Downloading the geolocation resources.")
             efs_spacy_path = resources_path / "models"
             efs_locationdata_path = resources_path / "locationdata.tsv.gz"
             efs_locdictionary_path = resources_path / "locdictionary_unicode.json.gz"
@@ -166,12 +171,11 @@ class GeoLocationGeneratorHandler:
                 "locdictionary_path": str(efs_locdictionary_path_final),
                 "indexdir_path": str(efs_indexdir_path_final)
             }
-            logging.info(resources_info)
             with open(resources_info_path, "w", encoding="utf-8") as resources_info_f:
                 json.dump(resources_info, resources_info_f)
         else:
             if os.path.exists(resources_info_path):
-                logging.info("Resources already exists in the EFS.")
+                logging.info("Resources already exist in the EFS.")
                 with open(resources_info_path, "r", encoding="utf-8") as resources_info_f:
                     resources_info = json.load(resources_info_f)
                     logging.info(resources_info)
@@ -206,15 +210,20 @@ class GeoLocationGeneratorHandler:
             return None
         return url
 
-    def summary_store_s3(self, summary, bucket_name="test-ecs-parser11", key="geolocation.json"):
+    def geolocations_store_s3(
+        self,
+        geolocation_data,
+        bucket_name="test-ecs-parser11",
+        key="geolocation.json"
+    ):
         """
-        Stores the summary in s3
+        Stores the geolocations in s3
         """
         try:
             session = boto3.Session()
             s3_resource = session.resource("s3")
             bucket = s3_resource.Bucket(bucket_name)
-            summary_bytes = bytes(summary, "utf-8")
+            summary_bytes = bytes(geolocation_data, "utf-8")
             summary_bytes_obj = io.BytesIO(summary_bytes)
             bucket.upload_fileobj(
                 summary_bytes_obj,
@@ -273,7 +282,7 @@ class GeoLocationGeneratorHandler:
         """
         if self.callback_url:
             self.send_request_on_callback(presigned_url=presigned_url, status=status)
-        elif presigned_url and self.db_table_name: # update for presigned url
+        if presigned_url and self.db_table_name: # update for presigned url
             self.status_update_db(
                 sql_statement=f""" UPDATE {self.db_table_name} SET status='{status}', result_s3_link='{presigned_url}' WHERE unique_id='{self.geolocation_id}' """
             )
@@ -283,43 +292,44 @@ class GeoLocationGeneratorHandler:
                 sql_statement=f""" UPDATE {self.db_table_name} SET status='{status}' WHERE unique_id='{self.geolocation_id}' """
             )
         else:
-            logging.error("Callback url and presigned s3 url are not available.")
+            logging.error("Callback url / presigned s3 url / Database table name are not found.")
 
 
     def __call__(self, resources_info, use_search_engine=True):
-        # if not self.entries:
-        #     self.dispatch_results(status=ReportStatus.INPUT_URL_PROCESS_FAILED.value)
-        #     return
-        geolocation = GeolocationGenerator(spacy_path=resources_info["spacy_path"])
-        geolocation_results = geolocation.get_geolocation(
-            raw_data=["I have lived in Nepal", "I have travelled to India."],
-            locationdata_path=resources_info["locationdata_path"],
-            locdictionary_path=resources_info["locdictionary_path"],
-            indexdir=resources_info["indexdir_path"],
-            use_search_engine=use_search_engine
-        )
+        if not self.entries:
+            logging.error("Input data not available.")
+            self.dispatch_results(status=ReportStatus.INPUT_URL_PROCESS_FAILED.value)
+            return
 
-        logging.info(json.dumps(geolocation_results))
+        try:
+            geolocation = GeolocationGenerator(spacy_path=resources_info["spacy_path"])
+            geolocation_results = geolocation.get_geolocation(
+                raw_data=[in_entries_dict["excerpt"] for in_entries_dict in self.entries],
+                locationdata_path=resources_info["locationdata_path"],
+                locdictionary_path=resources_info["locdictionary_path"],
+                indexdir=resources_info["indexdir_path"],
+                use_search_engine=use_search_engine
+            )
+            processed_results = [{
+                "entry_id": x["entry_id"], **y}
+                for x, y in zip(self.entries, geolocation_results)
+            ]
+            date_today = str(datetime.now().date())
+            presigned_url = self.geolocations_store_s3(
+                geolocation_data=json.dumps(processed_results),
+                bucket_name=self.bucket_name,
+                key=f"geolocations/{date_today}/{self.geolocation_id}/geolocation.txt"
+            )
+        except Exception as exc:
+            logging.error("Geolocation processing failed. %s", str(exc))
+            processed_results = []
+            presigned_url = None
 
-        # summary = repgenerator(self.entries)
-        # date_today = str(datetime.now().date())
-        # presigned_url = self.summary_store_s3(
-        #     summary=summary,
-        #     bucket_name=self.bucket_name,
-        #     key=f"summarization/{date_today}/{self.geolocation_id}/summary.txt"
-        # )
-
-        # if presigned_url:
-        #     self.dispatch_results(status=ReportStatus.SUCCESS.value, presigned_url=presigned_url)
-        # else:
-        #     self.dispatch_results(status=ReportStatus.FAILED.value)
-        # else:
-        #     self.status_update_db(
-        #         sql_statement=f""" UPDATE {self.db_table_name} SET status='{ReportStatus.FAILED.value}' WHERE unique_id='{self.geolocation_id}' """
-        #     )
-        #     logging.warning("Summarization models could not be loaded.")
-
+        if presigned_url:
+            self.dispatch_results(status=ReportStatus.SUCCESS.value, presigned_url=presigned_url)
+        else:
+            self.dispatch_results(status=ReportStatus.FAILED.value)
 
 geolocation_generator_handler = GeoLocationGeneratorHandler()
-resources_info = geolocation_generator_handler.download_resources()
-geolocation_generator_handler(resources_info=resources_info)
+resources_info_dict = geolocation_generator_handler.download_resources()
+geolocation_generator_handler(resources_info=resources_info_dict)
