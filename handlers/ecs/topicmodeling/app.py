@@ -60,6 +60,9 @@ class Database:
 
 
 class TopicModelGeneratorHandler:
+    """
+    TopicModel class to generate clusters from the excerpts
+    """
     def __init__(self):
         action_type = "topicmodel"
         self.entries_url = os.environ.get("ENTRIES_URL", None)
@@ -88,10 +91,12 @@ class TopicModelGeneratorHandler:
 
         self.db_table_name = os.environ.get("DB_TABLE_NAME", None)
 
-        if not self.callback_url:
+        if self.db_table_name:
             self.status_update_db(
                 sql_statement=f""" INSERT INTO {self.db_table_name} (status, unique_id, result_s3_link, type) VALUES ({ReportStatus.INITIATED.value},{self.topicmodel_id},'', {action_type}) """
             )
+        else:
+            logging.error("Database table name is not found.")
 
         self.entries_df = self._download_prepare_entries()
         if self.entries_df.empty:
@@ -258,7 +263,7 @@ class TopicModelGeneratorHandler:
         """
         if self.callback_url:
             self.send_request_on_callback(presigned_url=presigned_url, status=status)
-        elif presigned_url and self.db_table_name: # update for presigned url
+        if presigned_url and self.db_table_name: # update for presigned url
             self.status_update_db(
                 sql_statement=f""" UPDATE {self.db_table_name} SET status='{status}', result_s3_link='{presigned_url}' WHERE unique_id='{self.topicmodel_id}' """
             )
@@ -268,7 +273,7 @@ class TopicModelGeneratorHandler:
                 sql_statement=f""" UPDATE {self.db_table_name} SET status='{status}' WHERE unique_id='{self.topicmodel_id}' """
             )
         else:
-            logging.error("Callback url and presigned s3 url are not available.")
+            logging.error("Callback url / presigned s3 url / Database table name are not found.")
 
     def __call__(self):
         if self.entries_df.empty:

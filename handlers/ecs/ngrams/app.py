@@ -57,6 +57,9 @@ class Database:
 
 
 class NGramsGeneratorHandler:
+    """
+    NGrams class to generate n-grams of the excerpts
+    """
     def __init__(self):
         action_type = "ngrams"
         self.entries_url = os.environ.get("ENTRIES_URL", None)
@@ -104,10 +107,12 @@ class NGramsGeneratorHandler:
             "port": os.environ.get("DB_PORT")
         }
 
-        if not self.callback_url and self.db_table_name:
+        if self.db_table_name:
             self.status_update_db(
                 sql_statement=f""" INSERT INTO {self.db_table_name} (status, unique_id, result_s3_link, type) VALUES ({NGramsStatus.INITIATED.value},{self.ngrams_id},'',{action_type}) """
             )
+        else:
+            logging.error("Database table name is not found.")
 
     def _download_prepare_entries(self):
         """
@@ -236,7 +241,7 @@ class NGramsGeneratorHandler:
         """
         if self.callback_url:
             self.send_request_on_callback(presigned_url=presigned_url, status=status)
-        elif presigned_url and self.db_table_name: # update for presigned url
+        if presigned_url and self.db_table_name: # update for presigned url
             self.status_update_db(
                 sql_statement=f""" UPDATE {self.db_table_name} SET status='{status}', result_s3_link='{presigned_url}' WHERE unique_id='{self.ngrams_id}' """
             )
@@ -246,7 +251,7 @@ class NGramsGeneratorHandler:
                 sql_statement=f""" UPDATE {self.db_table_name} SET status='{status}' WHERE unique_id='{self.ngrams_id}' """
             )
         else:
-            logging.error("Callback url and presigned s3 url are not available.")
+            logging.error("Callback url / presigned s3 url / Database table name are not found.")
 
     def __call__(self):
         if not self.entries:

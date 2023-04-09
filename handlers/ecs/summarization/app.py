@@ -59,6 +59,9 @@ class Database:
 
 
 class ReportsGeneratorHandler:
+    """
+    Summarization class to generate summary of the excerpts
+    """
     def __init__(self):
         action_type = "summarization"
         self.entries_url = os.environ.get("ENTRIES_URL") or None
@@ -86,10 +89,12 @@ class ReportsGeneratorHandler:
 
         self.db_table_name = os.environ.get("DB_TABLE_NAME", None)
 
-        if not self.callback_url:
+        if self.db_table_name:
             self.status_update_db(
                 sql_statement=f""" INSERT INTO {self.db_table_name} (status, unique_id, result_s3_link, type) VALUES ({ReportStatus.INITIATED.value},{self.summarization_id},'', {action_type}) """
             )
+        else:
+            logging.error("Database table name is not found.")
 
     def _download_prepare_entries(self):
         """
@@ -241,7 +246,7 @@ class ReportsGeneratorHandler:
         """
         if self.callback_url:
             self.send_request_on_callback(presigned_url=presigned_url, status=status)
-        elif presigned_url and self.db_table_name: # update for presigned url
+        if presigned_url and self.db_table_name: # update for presigned url
             self.status_update_db(
                 sql_statement=f""" UPDATE {self.db_table_name} SET status='{status}', result_s3_link='{presigned_url}' WHERE unique_id='{self.summarization_id}' """
             )
@@ -251,7 +256,7 @@ class ReportsGeneratorHandler:
                 sql_statement=f""" UPDATE {self.db_table_name} SET status='{status}' WHERE unique_id='{self.summarization_id}' """
             )
         else:
-            logging.error("Callback url and presigned s3 url are not available.")
+            logging.error("Callback url / presigned s3 url / Database table name are not found.")
 
 
     def __call__(self, model_info):
@@ -279,12 +284,10 @@ class ReportsGeneratorHandler:
             else:
                 self.dispatch_results(status=ReportStatus.FAILED.value)
         else:
-            self.status_update_db(
-                sql_statement=f""" UPDATE {self.db_table_name} SET status='{ReportStatus.FAILED.value}' WHERE unique_id='{self.summarization_id}' """
-            )
+            self.dispatch_results(status=ReportStatus.FAILED.value)
             logging.warning("Summarization models could not be loaded.")
 
 
 reports_generator_handler = ReportsGeneratorHandler()
-model_info = reports_generator_handler.download_models()
-reports_generator_handler(model_info=model_info)
+model_info_dict = reports_generator_handler.download_models()
+reports_generator_handler(model_info=model_info_dict)
