@@ -53,3 +53,6 @@ variable ssm_db_port_arn {}
 
 # db table
 variable db_table_name {}
+
+# s3
+variable s3_bucketname_task_results {}

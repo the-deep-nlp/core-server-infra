@@ -51,6 +51,10 @@ resource "aws_ecs_task_definition" "task-def" {
         {
           "name": "DB_TABLE_NAME",
           "value": "${var.db_table_name}"
+        },
+        {
+          "name": "S3_BUCKET_NAME",
+          "value": "${var.s3_bucketname_task_results}"
         }
       ],
       "secrets": [

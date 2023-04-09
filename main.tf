@@ -159,6 +159,9 @@ module "topicmodel" {
 
   # db table
   db_table_name = var.db_table_name
+
+  # s3
+  s3_bucketname_task_results = var.s3_bucketname_task_results
 }
 
 module "ngrams" {
@@ -194,6 +197,9 @@ module "ngrams" {
 
   # db table
   db_table_name = var.db_table_name
+
+  # s3
+  s3_bucketname_task_results = var.s3_bucketname_task_results
 }
 
 module "summarization" {
@@ -232,6 +238,9 @@ module "summarization" {
 
   # db table
   db_table_name = var.db_table_name
+
+  # s3
+  s3_bucketname_task_results = var.s3_bucketname_task_results
 }
 
 module "geolocations" {
