@@ -53,3 +53,7 @@ output ssm_deep_db_port_arn {
 output ssm_deep_db_host_arn {
     value = data.aws_ssm_parameter.deep_db_host.arn
 }
+
+output ssm_sentry_dsn_url_arn {
+    value = data.aws_ssm_parameter.sentry_dsn_url.arn
+}
