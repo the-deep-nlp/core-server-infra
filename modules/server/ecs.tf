@@ -12,7 +12,7 @@ data "template_file" "config" {
   template = file("./modules/server/templates/ecr_image/image.json")
 
   vars = {
-    app_image      = local.app_image_url #var.app_image #"${data.aws_ssm_parameter.ecr_backend_image_url.value}:latest"
+    app_image      = local.app_image_url
     app_port       = var.app_port
     fargate_cpu    = var.fargate_cpu
     fargate_memory = var.fargate_memory
@@ -21,26 +21,26 @@ data "template_file" "config" {
     container_name = var.ecs_container_name
 
     # Django
-    django_secret_key = var.ssm_django_secret_key_arn #data.aws_ssm_parameter.django_secret_key.arn
+    django_secret_key = var.ssm_django_secret_key_arn
     debug = "False"
     allowed_hosts = "*"
     csrf_trusted_origins = "https://server.labs.thedeep.io"
     # Redis
-    redis_host = var.redis_host #data.aws_ssm_parameter.celery_redis_url.arn
+    redis_host = var.redis_host
     celery_broker_url = var.redis_endpoint
     celery_result_backend = var.redis_endpoint
     # NLP Database
-    nlp_db_name = var.ssm_db_name_arn #data.aws_ssm_parameter.db_name.arn
-    nlp_db_username = var.ssm_db_username_arn #data.aws_ssm_parameter.db_username.arn
-    nlp_db_password = var.ssm_db_password_arn #data.aws_ssm_parameter.db_password.arn
-    nlp_db_port = var.ssm_db_port_arn #data.aws_ssm_parameter.db_port.arn
+    nlp_db_name = var.ssm_db_name_arn
+    nlp_db_username = var.ssm_db_username_arn
+    nlp_db_password = var.ssm_db_password_arn
+    nlp_db_port = var.ssm_db_port_arn
     nlp_db_host = var.rds_instance_endpoint
     # DEEP Database
-    deep_db_name = var.ssm_deep_db_name_arn #data.aws_ssm_parameter.deep_db_name.arn
-    deep_db_username = var.ssm_deep_db_username_arn #data.aws_ssm_parameter.deep_db_username.arn
-    deep_db_password = var.ssm_deep_db_password_arn #data.aws_ssm_parameter.deep_db_password.arn
-    deep_db_port = var.ssm_deep_db_port_arn #data.aws_ssm_parameter.deep_db_port.arn
-    deep_db_host = var.ssm_deep_db_host_arn #data.aws_ssm_parameter.deep_db_host.arn
+    deep_db_name = var.ssm_deep_db_name_arn
+    deep_db_username = var.ssm_deep_db_username_arn
+    deep_db_password = var.ssm_deep_db_password_arn
+    deep_db_port = var.ssm_deep_db_port_arn
+    deep_db_host = var.ssm_deep_db_host_arn
     # Cron
     cron_deep_fetch_minute = var.cron_deep_fetch_minute
     cron_deep_fetch_hour = var.cron_deep_fetch_hour
