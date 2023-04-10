@@ -24,7 +24,7 @@ data "template_file" "config" {
     django_secret_key = var.ssm_django_secret_key_arn
     debug = "False"
     allowed_hosts = "*"
-    csrf_trusted_origins = "https://server.labs.thedeep.io"
+    csrf_trusted_origins = var.csrf_trusted_origins
     # Redis
     redis_host = var.redis_host
     celery_broker_url = var.redis_endpoint
