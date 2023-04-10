@@ -72,7 +72,7 @@ resource "aws_ecs_task_definition" "task-def" {
         },
         {
           "name": "SENTRY_DSN",
-          "valueFrom": "${var.ssm_sentry_dsn_url_arn}
+          "valueFrom": "${var.ssm_sentry_dsn_url_arn}"
         }
       ]
   }

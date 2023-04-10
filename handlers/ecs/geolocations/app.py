@@ -316,8 +316,9 @@ class GeoLocationGeneratorHandler:
                 use_search_engine=use_search_engine
             )
             processed_results = [{
-                "entry_id": x["entry_id"], **y}
-                for x, y in zip(self.entries, geolocation_results)
+                "entry_id": x["entry_id"],
+                "entities": y["entities"]
+                } for x, y in zip(self.entries, geolocation_results)
             ]
             date_today = str(datetime.now().date())
             presigned_url = self.geolocations_store_s3(
