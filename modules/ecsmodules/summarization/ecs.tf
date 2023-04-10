@@ -47,6 +47,10 @@ resource "aws_ecs_task_definition" "task-def" {
         {
           "name": "S3_BUCKET_NAME",
           "value": "${var.s3_bucketname_task_results}"
+        },
+        {
+          "name": "ENVIRONMENT",
+          "value": "${var.environment}"
         }
       ],
       "secrets": [
@@ -65,6 +69,10 @@ resource "aws_ecs_task_definition" "task-def" {
         {
           "name": "DB_PORT",
           "valueFrom": "${var.ssm_db_port_arn}"
+        },
+        {
+          "name": "SENTRY_DSN",
+          "valueFrom": "${var.ssm_sentry_dsn_url_arn}"
         }
       ]
   }
