@@ -9,7 +9,7 @@ python = ">=3.8"
 boto3 = "*"
 psycopg2-binary = "*"
 ngrams_generator = { git = "https://github.com/the-deep-nlp/ngrams-generator.git", rev = "f5c53e3", branch = "main" }
-
+sentry-sdk = "==1.5.8"
 
 [tool.poetry.dev-dependencies]
 

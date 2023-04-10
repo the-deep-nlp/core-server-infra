@@ -5,6 +5,7 @@ import logging
 import psycopg2
 import requests
 import boto3
+import sentry_sdk
 from datetime import datetime
 from enum import Enum
 from botocore.client import Config
@@ -12,6 +13,10 @@ from botocore.exceptions import ClientError
 from ngrams_generator import NGramsGenerator
 
 logging.getLogger().setLevel(logging.INFO)
+
+SENTRY_DSN = os.environ.get("SENTRY_DSN")
+ENVIRONMENT = os.environ.get("ENVIRONMENT")
+sentry_sdk.init(SENTRY_DSN, environment=ENVIRONMENT, attach_stacktrace=True, traces_sample_rate=1.0)
 
 class NGramsStatus(Enum):
     """
