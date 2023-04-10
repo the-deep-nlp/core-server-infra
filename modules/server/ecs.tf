@@ -89,6 +89,7 @@ resource "aws_ecs_service" "service" {
   task_definition = aws_ecs_task_definition.task-def.arn
   desired_count   = var.app_count
   launch_type     = "FARGATE"
+  enable_execute_command = true
 
   network_configuration {
     security_groups  = [

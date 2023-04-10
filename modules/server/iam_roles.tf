@@ -47,7 +47,11 @@ resource "aws_iam_role_policy" "ecs-role-policy" {
                     "ecr:List*",
                     "ecs:RunTask",
                     "iam:PassRole",
-                    "sagemaker:InvokeEndpoint"
+                    "sagemaker:InvokeEndpoint",
+                    "ssmmessages:CreateControlChannel",
+                    "ssmmessages:CreateDataChannel",
+                    "ssmmessages:OpenControlChannel",
+                    "ssmmessages:OpenDataChannel"
                 ],
                 "Resource": [
                   "*",
