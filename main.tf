@@ -85,6 +85,7 @@ module "nlp_server" {
   ssm_deep_db_password_arn = module.secrets.ssm_deep_db_password_arn
   ssm_deep_db_port_arn = module.secrets.ssm_deep_db_port_arn
   ssm_deep_db_host_arn = module.secrets.ssm_deep_db_host_arn
+  ssm_sentry_dsn_url_arn = module.secrets.ssm_sentry_dsn_url_arn
 
   # Topic Modeling
   topicmodel_ecs_task_defn_arn = module.topicmodel.topicmodel_ecs_task_defn_arn
@@ -156,6 +157,7 @@ module "topicmodel" {
   ssm_db_username_arn = module.secrets.ssm_db_username_arn
   ssm_db_password_arn = module.secrets.ssm_db_password_arn
   ssm_db_port_arn = module.secrets.ssm_db_port_arn
+  ssm_sentry_dsn_url_arn = module.secrets.ssm_sentry_dsn_url_arn
 
   # db table
   db_table_name = var.db_table_name
@@ -194,6 +196,7 @@ module "ngrams" {
   ssm_db_username_arn = module.secrets.ssm_db_username_arn
   ssm_db_password_arn = module.secrets.ssm_db_password_arn
   ssm_db_port_arn = module.secrets.ssm_db_port_arn
+  ssm_sentry_dsn_url_arn = module.secrets.ssm_sentry_dsn_url_arn
 
   # db table
   db_table_name = var.db_table_name
@@ -235,6 +238,7 @@ module "summarization" {
   ssm_db_username_arn = module.secrets.ssm_db_username_arn
   ssm_db_password_arn = module.secrets.ssm_db_password_arn
   ssm_db_port_arn = module.secrets.ssm_db_port_arn
+  ssm_sentry_dsn_url_arn = module.secrets.ssm_sentry_dsn_url_arn
 
   # db table
   db_table_name = var.db_table_name
@@ -276,6 +280,7 @@ module "geolocations" {
   ssm_db_username_arn = module.secrets.ssm_db_username_arn
   ssm_db_password_arn = module.secrets.ssm_db_password_arn
   ssm_db_port_arn = module.secrets.ssm_db_port_arn
+  ssm_sentry_dsn_url_arn = module.secrets.ssm_sentry_dsn_url_arn
 
   # db table
   db_table_name = var.db_table_name

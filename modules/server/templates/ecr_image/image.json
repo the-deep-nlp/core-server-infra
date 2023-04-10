@@ -126,6 +126,22 @@
         {
           "name": "NGRAMS_VPC_PRIVATE_SUBNET",
           "value": "${ngrams_vpc_private_subnet}"
+        },
+        {
+          "name": "GEOLOCATION_ECS_CLUSTER_ID",
+          "value": "${geo_ecs_cluster_id}"
+        },
+        {
+          "name": "GEOLOCATION_ECS_TASK_DEFN_ARN",
+          "value": "${geo_ecs_task_defn_arn}"
+        },
+        {
+          "name": "GEOLOCATION_ECS_CONTAINER_NAME",
+          "value": "${geo_ecs_container_name}"
+        },
+        {
+          "name": "GEOLOCATION_VPC_PRIVATE_SUBNET",
+          "value": "${geo_vpc_private_subnet}"
         }
       ],
       "secrets": [
@@ -168,6 +184,10 @@
         {
           "name": "DJANGO_SECRET_KEY",
           "valueFrom": "${django_secret_key}"
+        },
+        {
+          "name": "SENTRY_DSN",
+          "valueFrom": "${sentry_dsn_url}"
         }
       ]
     }

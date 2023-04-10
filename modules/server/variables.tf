@@ -47,11 +47,11 @@ variable domain_name {
 }
 
 # database
-variable rds_instance_endpoint {default="test"}
+variable rds_instance_endpoint {}
 
 # redis
-variable redis_endpoint {default="test"}
-variable redis_host {default="test"}
+variable redis_endpoint {}
+variable redis_host {}
 
 # cron
 variable cron_deep_fetch_minute {
@@ -79,6 +79,10 @@ variable summarization_ecs_container_name {}
 variable ngrams_ecs_task_defn_arn {}
 variable ngrams_container_name {}
 
+# Geolocations
+variable geo_ecs_task_defn_arn {}
+variable geo_ecs_container_name {}
+
 # secrets
 variable ssm_django_secret_key_arn {}
 variable ssm_db_name_arn {}
@@ -90,3 +94,4 @@ variable ssm_deep_db_username_arn {}
 variable ssm_deep_db_password_arn {}
 variable ssm_deep_db_port_arn {}
 variable ssm_deep_db_host_arn {}
+variable ssm_sentry_dsn_url_arn {}

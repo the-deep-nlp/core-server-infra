@@ -24,6 +24,7 @@ data "template_file" "config" {
     django_secret_key = var.ssm_django_secret_key_arn #data.aws_ssm_parameter.django_secret_key.arn
     debug = "False"
     allowed_hosts = "*"
+    csrf_trusted_origins = "https://server.labs.thedeep.io"
     # Redis
     redis_host = var.redis_host #data.aws_ssm_parameter.celery_redis_url.arn
     celery_broker_url = var.redis_endpoint
@@ -61,6 +62,13 @@ data "template_file" "config" {
     ngrams_ecs_task_defn_arn = var.ngrams_ecs_task_defn_arn
     ngrams_ecs_container_name = var.ngrams_container_name
     ngrams_vpc_private_subnet = var.private_subnets[0]
+    # ECS Geolocations
+    geo_ecs_cluster_id = aws_ecs_cluster.cluster.id
+    geo_ecs_task_defn_arn = var.geo_ecs_task_defn_arn
+    geo_ecs_container_name = var.geo_ecs_container_name
+    geo_vpc_private_subnet = var.private_subnets[0]
+    # Sentry
+    sentry_dsn_url = var.ssm_sentry_dsn_url_arn
   }
 }
 
