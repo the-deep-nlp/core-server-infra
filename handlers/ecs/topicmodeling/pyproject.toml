@@ -9,8 +9,8 @@ python = ">=3.8"
 pillow = "==9.0.0"
 boto3 = "*"
 psycopg2-binary = "*"
-topic_generator = { git = "https://github.com/the-deep-nlp/topic-generator", rev = "22e6d74", branch = "main" }
-
+topic_generator = { git = "https://github.com/the-deep-nlp/topic-generator", rev = "b63a87e", branch = "main" }
+sentry-sdk = "==1.5.8"
 
 [tool.poetry.dev-dependencies]
 
