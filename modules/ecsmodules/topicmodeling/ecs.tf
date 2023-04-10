@@ -4,20 +4,6 @@ locals {
   app_image_url = "${data.aws_caller_identity.current_user.account_id}.dkr.ecr.${var.aws_region}.amazonaws.com/${var.app_image_name}:latest"
 }
 
-# data "template_file" "config" {
-#   template = file("./modules/ecsmodules/topicmodeling/templates/ecr_image/image.json")
-
-#   vars = {
-#     app_image      = var.app_image_name #"${data.aws_ssm_parameter.ecr_backend_image_url.value}:latest"
-#     app_port       = var.app_port
-#     fargate_cpu    = var.fargate_cpu
-#     fargate_memory = var.fargate_memory
-#     aws_region     = var.aws_region
-#     environment    = var.environment
-#     container_name = var.ecs_container_name
-#   }
-# }
-
 resource "aws_ecs_task_definition" "task-def" {
   family                   = "${var.ecs_task_definition_name}-${var.environment}"
   execution_role_arn       = var.iam_task_execution_role_arn
