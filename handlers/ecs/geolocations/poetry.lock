@@ -314,9 +314,9 @@ transformers = ["transformers"]
 
 [package.source]
 type = "git"
-url = "https://github.com/ranjan-stha/geolocation-generator"
-reference = "ccb43a7"
-resolved_reference = "ccb43a76258eb5a9fb9145ce226dd425a18d4a2d"
+url = "https://github.com/the-deep-nlp/geolocation-generator"
+reference = "da1bb2b"
+resolved_reference = "da1bb2b4439981e4aabdd0b636355e308fda3f5b"
 
 [[package]]
 name = "greenlet"
@@ -1646,4 +1646,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "6a75f4730f1a4dea6ed3b1db12cb69b180b4fa725997e0a5cd928f909946dc99"
+content-hash = "bec8979f457adfbab4890bef844bb05cec489b214a21e8f75eacb68657ad2332"

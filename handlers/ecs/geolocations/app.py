@@ -9,6 +9,7 @@ import psycopg2
 import requests
 import boto3
 import sentry_sdk
+import warnings
 from pathlib import Path
 from cloudpathlib import CloudPath
 from datetime import datetime
@@ -17,7 +18,6 @@ from botocore.client import Config
 from botocore.exceptions import ClientError
 from geolocation_generator import GeolocationGenerator
 
-import warnings
 warnings.filterwarnings("ignore")
 
 logging.getLogger().setLevel(logging.INFO)
