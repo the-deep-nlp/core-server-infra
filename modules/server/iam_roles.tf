@@ -37,8 +37,9 @@ resource "aws_iam_role_policy" "ecs-role-policy" {
             {
                 "Effect": "Allow",
                 "Action": [
+                    "s3:GetObject*",
+                    "s3:PutObject*",
                     "s3:ListBucket",
-                    "s3:*Object",
                     "rds:*",
                     "elasticache:*",
                     "rds-db:connect",
@@ -54,8 +55,11 @@ resource "aws_iam_role_policy" "ecs-role-policy" {
                     "ssmmessages:OpenDataChannel"
                 ],
                 "Resource": [
-                  "*",
-                  "arn:aws:s3:::test-ecs-parser11/*"
+                  "${var.s3_bucketname_task_results_arn}",
+                  "${var.s3_bucketname_task_results_arn}/*",
+                  "${var.nlp_server_bucket_static_arn}",
+                  "${var.nlp_server_bucket_static_arn}/*",
+                  "*"
                 ]
             }
         ]

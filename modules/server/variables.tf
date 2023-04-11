@@ -99,3 +99,8 @@ variable ssm_deep_db_password_arn {}
 variable ssm_deep_db_port_arn {}
 variable ssm_deep_db_host_arn {}
 variable ssm_sentry_dsn_url_arn {}
+
+# s3
+variable nlp_server_bucket_static_name {}
+variable nlp_server_bucket_static_arn {}
+variable s3_bucketname_task_results_arn {}

@@ -52,6 +52,7 @@ resource "aws_eip" "eip" {
   depends_on = [aws_internet_gateway.igw]
   tags              = {
     Environment = var.environment
+    Name = "nlp-server-eip-${var.environment}"
   }
 }
 

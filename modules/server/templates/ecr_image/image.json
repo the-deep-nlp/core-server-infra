@@ -32,6 +32,18 @@
           "value": "${environment}"
         },
         {
+          "name": "AWS_REGION",
+          "value": "${aws_region}"
+        },
+        {
+          "name": "AWS_S3_REGION_NAME",
+          "value": "${aws_region}"
+        },
+        {
+          "name": "AWS_S3_BUCKET_NAME",
+          "value": "${nlp_server_bucket_static_name}"
+        },
+        {
           "name": "DEBUG",
           "value": "${debug}"
         },

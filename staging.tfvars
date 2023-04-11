@@ -32,7 +32,7 @@ topicmodel_app_image_name = "topicmodeling_model"
 geolocations_app_image_name = "geolocations_model"
 
 # s3
-s3_bucketname_task_results = "test-ecs-parser11"
+s3_bucketname_task_results = "nlp-tasks-processed-results"
 
 # db table 
 db_table_name = "event_status_tracker"

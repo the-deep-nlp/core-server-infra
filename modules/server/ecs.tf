@@ -69,6 +69,8 @@ data "template_file" "config" {
     geo_vpc_private_subnet = var.private_subnets[0]
     # Sentry
     sentry_dsn_url = var.ssm_sentry_dsn_url_arn
+    # s3
+    nlp_server_bucket_static_name = var.nlp_server_bucket_static_name
   }
 }
 

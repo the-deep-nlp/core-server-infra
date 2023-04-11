@@ -102,6 +102,11 @@ module "nlp_server" {
   # Geolocations
   geo_ecs_task_defn_arn = module.geolocations.geo_ecs_task_defn_arn
   geo_ecs_container_name = module.geolocations.geo_ecs_container_name
+
+  # s3
+  nlp_server_bucket_static_name = module.s3.nlp_server_bucket_static_name
+  nlp_server_bucket_static_arn = module.s3.nlp_server_bucket_static_arn
+  s3_bucketname_task_results_arn = module.s3.task_results_bucket_arn
 }
 
 module "redis" {
@@ -163,7 +168,7 @@ module "topicmodel" {
   db_table_name = var.db_table_name
 
   # s3
-  s3_bucketname_task_results = var.s3_bucketname_task_results
+  s3_bucketname_task_results = module.s3.task_results_bucket_name
 }
 
 module "ngrams" {
@@ -202,7 +207,7 @@ module "ngrams" {
   db_table_name = var.db_table_name
 
   # s3
-  s3_bucketname_task_results = var.s3_bucketname_task_results
+  s3_bucketname_task_results = module.s3.task_results_bucket_name
 }
 
 module "summarization" {
@@ -244,7 +249,7 @@ module "summarization" {
   db_table_name = var.db_table_name
 
   # s3
-  s3_bucketname_task_results = var.s3_bucketname_task_results
+  s3_bucketname_task_results = module.s3.task_results_bucket_name
 }
 
 module "geolocations" {
@@ -286,7 +291,7 @@ module "geolocations" {
   db_table_name = var.db_table_name
 
   # s3
-  s3_bucketname_task_results = var.s3_bucketname_task_results
+  s3_bucketname_task_results = module.s3.task_results_bucket_name
 }
 
 module "efilesystem" {
@@ -299,4 +304,11 @@ module "efilesystem" {
   vpc_id = module.nlp_vpc.aws_vpc_id
   availability_zone_count = 2 #module.nlp_vpc.availability_zone_count
   private_subnets = module.nlp_vpc.private_subnets
+}
+
+module "s3" {
+  source = "./modules/s3"
+
+  environment = var.environment
+  s3_bucketname_task_results = var.s3_bucketname_task_results
 }
