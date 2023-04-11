@@ -40,6 +40,7 @@ resource "aws_iam_role_policy" "ecs-role-policy" {
                     "s3:GetObject*",
                     "s3:PutObject*",
                     "s3:ListBucket",
+                    "s3:DeleteObject*",
                     "rds:*",
                     "elasticache:*",
                     "rds-db:connect",
