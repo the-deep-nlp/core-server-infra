@@ -66,7 +66,6 @@ class NGramsGeneratorHandler:
     NGrams class to generate n-grams of the excerpts
     """
     def __init__(self):
-        action_type = "ngrams"
         self.entries_url = os.environ.get("ENTRIES_URL", None)
         self.client_id = os.environ.get("CLIENT_ID", None)
         self.callback_url = os.environ.get("CALLBACK_URL", None)
@@ -83,7 +82,7 @@ class NGramsGeneratorHandler:
         self.enable_stopwords = os.environ.get("ENABLE_STOPWORDS", False)
         self.enable_stemming = os.environ.get("ENABLE_STEMMING", False)
         self.enable_case_sensitive = os.environ.get("ENABLE_CASE_SENSITIVE", True)
-        self.max_ngrams_tokens = os.environ.get("MAX_NGRAMS_TOKENS", 10)
+        self.max_ngrams_tokens = os.environ.get("MAX_NGRAMS_ITEMS", 10)
 
         self.generate_unigrams = True if self.generate_unigrams == "True" else False
         self.generate_bigrams = True if self.generate_bigrams == "True" else False
@@ -112,11 +111,7 @@ class NGramsGeneratorHandler:
             "port": os.environ.get("DB_PORT")
         }
 
-        if self.db_table_name:
-            self.status_update_db(
-                sql_statement=f""" INSERT INTO {self.db_table_name} (status, unique_id, result_s3_link, type) VALUES ({NGramsStatus.INITIATED.value},{self.ngrams_id},'',{action_type}) """
-            )
-        else:
+        if not self.db_table_name:
             logging.error("Database table name is not found.")
 
     def _download_prepare_entries(self):
@@ -234,7 +229,7 @@ class NGramsGeneratorHandler:
                 timeout=30
             )
         except requests.exceptions.RequestException as rexc:
-            raise Exception(f"Exception occurred while sending request - {rexc}")
+            logging.error("Exception occurred while sending request %s", str(rexc))
         if response.status_code == 200:
             logging.info("Successfully sent the request on callback url")
         else:
