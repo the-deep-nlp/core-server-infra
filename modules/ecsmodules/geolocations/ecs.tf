@@ -73,6 +73,10 @@ resource "aws_ecs_task_definition" "task-def" {
         {
           "name": "SENTRY_DSN",
           "valueFrom": "${var.ssm_sentry_dsn_url_arn}"
+        },
+        {
+          "name": "GEONAME_API_USER",
+          "valueFrom": "${var.ssm_geoname_api_user_arn}"
         }
       ]
   }

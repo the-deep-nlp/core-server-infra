@@ -7,10 +7,10 @@ variable app_port {
     default = "80"
 }
 variable fargate_cpu {
-    default = "4096"
+    default = "512"
 }
 variable fargate_memory {
-    default = "20480"
+    default = "2048"
 }
 
 variable app_count {
@@ -57,3 +57,6 @@ variable db_table_name {}
 
 # s3
 variable s3_bucketname_task_results {}
+
+# geoname api user
+variable ssm_geoname_api_user_arn {}

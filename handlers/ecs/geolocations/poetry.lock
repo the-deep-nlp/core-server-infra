@@ -63,14 +63,14 @@ crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 
 [[package]]
 name = "botocore"
-version = "1.29.109"
+version = "1.29.111"
 description = "Low-level, data-driven core of boto 3."
 category = "main"
 optional = false
 python-versions = ">= 3.7"
 files = [
-    {file = "botocore-1.29.109-py3-none-any.whl", hash = "sha256:cf43dddb7e2ba5425fe19fad68b10043307b61d9103d06566f1ab6034e38b8db"},
-    {file = "botocore-1.29.109.tar.gz", hash = "sha256:2e449525f0ccedb31fdb962a77caac48b4c486c23515b84c5989a39a1823a024"},
+    {file = "botocore-1.29.111-py3-none-any.whl", hash = "sha256:baa6442df9b539c5c4e622bd22b47bc3594a0428f280587a359a9298e73a6e48"},
+    {file = "botocore-1.29.111.tar.gz", hash = "sha256:c3a51d80ceac0945969f94894651c4728525c7cf2df7d7838063c3516f5ee9e3"},
 ]
 
 [package.dependencies]
@@ -315,8 +315,8 @@ transformers = ["transformers"]
 [package.source]
 type = "git"
 url = "https://github.com/the-deep-nlp/geolocation-generator"
-reference = "da1bb2b"
-resolved_reference = "da1bb2b4439981e4aabdd0b636355e308fda3f5b"
+reference = "44c0c6b"
+resolved_reference = "44c0c6ba0443a0045e37268aafa71d5b12ca3f14"
 
 [[package]]
 name = "greenlet"
@@ -1646,4 +1646,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "bec8979f457adfbab4890bef844bb05cec489b214a21e8f75eacb68657ad2332"
+content-hash = "ac310cdd123187d33127d9f2ec12f41ae1cff535467f46339b2ce8ebead4856e"

@@ -74,7 +74,6 @@ class GeoLocationGeneratorHandler:
     Geolocation class to extract geolocations from the excerpts
     """
     def __init__(self):
-        action_type = "geolocation"
         self.entries_url = os.environ.get("ENTRIES_URL") or None
         self.client_id = os.environ.get("CLIENT_ID") or None
         self.callback_url = os.environ.get("CALLBACK_URL") or None
@@ -82,6 +81,7 @@ class GeoLocationGeneratorHandler:
         self.aws_region = os.environ.get("AWS_REGION", "us-east-1")
         self.signed_url_expiry_secs = os.environ.get("SIGNED_URL_EXPIRY_SECS", 86400) # 1 day
         self.bucket_name = os.environ.get("S3_BUCKET_NAME", None)
+        self.geoname_api_user = os.environ.get("GEONAME_API_USER", None)
 
         self.entries = self._download_prepare_entries()
 
@@ -100,11 +100,7 @@ class GeoLocationGeneratorHandler:
 
         self.db_table_name = os.environ.get("DB_TABLE_NAME", None)
 
-        if self.db_table_name:
-            self.status_update_db(
-                sql_statement=f""" INSERT INTO {self.db_table_name} (status, unique_id, result_s3_link, type) VALUES ({ReportStatus.INITIATED.value},{self.geolocation_id},'', {action_type}) """
-            )
-        else:
+        if not self.db_table_name:
             logging.error("Database table name is not found.")
 
     def _download_prepare_entries(self):
@@ -127,6 +123,39 @@ class GeoLocationGeneratorHandler:
             except Exception as exc:
                 logging.error("Error occurred: %s", str(exc))
         return None
+
+    def download_spacy_model(
+        self,
+        s3_spacy_path = "s3://deep-geolocation-extraction/models/spacy_finetuned_100doc_5epochs/spacy_finetuned_100doc_5epochs",
+    ):
+        """
+        Downloads the spacy model and stores it in the EFS
+        """
+        resources_info = {}
+        resources_path = Path("/geolocations")
+        resources_info_path = resources_path / "resources_info.json"
+
+        if not any(os.listdir(resources_path)):
+            logging.info("Downloading the geolocation resources.")
+            efs_spacy_path = resources_path / "models"
+
+            cloudpath_spacy = CloudPath(s3_spacy_path)
+            cloudpath_spacy.download_to(efs_spacy_path)
+
+            resources_info = {
+                "spacy_path": str(efs_spacy_path)
+            }
+            with open(resources_info_path, "w", encoding="utf-8") as resources_info_f:
+                json.dump(resources_info, resources_info_f)
+        else:
+            if os.path.exists(resources_info_path):
+                logging.info("Resources already exist in the EFS.")
+                with open(resources_info_path, "r", encoding="utf-8") as resources_info_f:
+                    resources_info = json.load(resources_info_f)
+                    logging.info(resources_info)
+            else:
+                return {}
+        return resources_info
 
 
     def download_resources(
@@ -275,7 +304,7 @@ class GeoLocationGeneratorHandler:
                 timeout=30
             )
         except requests.exceptions.RequestException as rexc:
-            raise Exception(f"Exception occurred while sending request - {rexc}")
+            logging.error("Exception occurred while sending request %s", str(rexc))
         if response.status_code == 200:
             logging.info("Successfully sent the request on callback url")
         else:
@@ -308,12 +337,17 @@ class GeoLocationGeneratorHandler:
 
         try:
             geolocation = GeolocationGenerator(spacy_path=resources_info["spacy_path"])
-            geolocation_results = geolocation.get_geolocation(
+            # Below method not in use
+            # geolocation_results = geolocation.get_geolocation(
+            #     raw_data=[in_entries_dict["excerpt"] for in_entries_dict in self.entries],
+            #     locationdata_path=resources_info["locationdata_path"],
+            #     locdictionary_path=resources_info["locdictionary_path"],
+            #     indexdir=resources_info["indexdir_path"],
+            #     use_search_engine=use_search_engine
+            # )
+            geolocation_results = geolocation.get_geolocation_api(
                 raw_data=[in_entries_dict["excerpt"] for in_entries_dict in self.entries],
-                locationdata_path=resources_info["locationdata_path"],
-                locdictionary_path=resources_info["locdictionary_path"],
-                indexdir=resources_info["indexdir_path"],
-                use_search_engine=use_search_engine
+                geonames_username=self.geoname_api_user
             )
             processed_results = [{
                 "entry_id": x["entry_id"],
