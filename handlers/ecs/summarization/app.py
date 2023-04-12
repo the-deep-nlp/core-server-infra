@@ -68,7 +68,6 @@ class ReportsGeneratorHandler:
     Summarization class to generate summary of the excerpts
     """
     def __init__(self):
-        action_type = "summarization"
         self.entries_url = os.environ.get("ENTRIES_URL") or None
         self.client_id = os.environ.get("CLIENT_ID") or None
         self.callback_url = os.environ.get("CALLBACK_URL") or None
@@ -94,11 +93,7 @@ class ReportsGeneratorHandler:
 
         self.db_table_name = os.environ.get("DB_TABLE_NAME", None)
 
-        if self.db_table_name:
-            self.status_update_db(
-                sql_statement=f""" INSERT INTO {self.db_table_name} (status, unique_id, result_s3_link, type) VALUES ({ReportStatus.INITIATED.value},{self.summarization_id},'', {action_type}) """
-            )
-        else:
+        if not self.db_table_name:
             logging.error("Database table name is not found.")
 
     def _download_prepare_entries(self):
@@ -239,7 +234,7 @@ class ReportsGeneratorHandler:
                 timeout=30
             )
         except requests.exceptions.RequestException as rexc:
-            raise Exception(f"Exception occurred while sending request - {rexc}")
+            logging.error("Exception occurred while sending request %s", str(rexc))
         if response.status_code == 200:
             logging.info("Successfully sent the request on callback url")
         else:

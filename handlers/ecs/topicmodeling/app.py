@@ -69,7 +69,6 @@ class TopicModelGeneratorHandler:
     TopicModel class to generate clusters from the excerpts
     """
     def __init__(self):
-        action_type = "topicmodel"
         self.entries_url = os.environ.get("ENTRIES_URL", None)
         self.client_id = os.environ.get("CLIENT_ID", None)
         self.callback_url = os.environ.get("CALLBACK_URL", None)
@@ -78,7 +77,7 @@ class TopicModelGeneratorHandler:
         self.signed_url_expiry_secs = os.environ.get("SIGNED_URL_EXPIRY_SECS", 86400) # 1 day
         self.bucket_name = os.environ.get("S3_BUCKET_NAME", None)
 
-        self.max_cluster_num = os.environ.get("MAX_CLUSTER_NUM", 5)
+        self.max_cluster_num = os.environ.get("MAX_CLUSTERS_NUM", 5)
         self.cluster_size = os.environ.get("CLUSTER_SIZE")
 
         self.headers = {
@@ -96,11 +95,7 @@ class TopicModelGeneratorHandler:
 
         self.db_table_name = os.environ.get("DB_TABLE_NAME", None)
 
-        if self.db_table_name:
-            self.status_update_db(
-                sql_statement=f""" INSERT INTO {self.db_table_name} (status, unique_id, result_s3_link, type) VALUES ({ReportStatus.INITIATED.value},{self.topicmodel_id},'', {action_type}) """
-            )
-        else:
+        if not self.db_table_name:
             logging.error("Database table name is not found.")
 
         self.entries_df = self._download_prepare_entries()
@@ -256,7 +251,7 @@ class TopicModelGeneratorHandler:
                 timeout=30
             )
         except requests.exceptions.RequestException as rexc:
-            raise Exception(f"Exception occurred while sending request - {rexc}")
+            logging.error("Exception occurred while sending request %s", str(rexc))
         if response.status_code == 200:
             logging.info("Successfully sent the request on callback url")
         else:
