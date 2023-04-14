@@ -132,13 +132,15 @@ class GeoLocationGeneratorHandler:
         Downloads the spacy model and stores it in the EFS
         """
         resources_info = {}
-        resources_path = Path("/geolocations")
+        resources_path = Path("/models/geolocation")
         resources_info_path = resources_path / "resources_info.json"
+
+        if not os.path.exists(resources_path):
+            os.makedirs(resources_path)
 
         if not any(os.listdir(resources_path)):
             logging.info("Downloading the geolocation resources.")
             efs_spacy_path = resources_path / "models"
-
             cloudpath_spacy = CloudPath(s3_spacy_path)
             cloudpath_spacy.download_to(efs_spacy_path)
 
@@ -371,5 +373,5 @@ class GeoLocationGeneratorHandler:
             self.dispatch_results(status=ReportStatus.FAILED.value)
 
 geolocation_generator_handler = GeoLocationGeneratorHandler()
-resources_info_dict = geolocation_generator_handler.download_resources()
+resources_info_dict = geolocation_generator_handler.download_spacy_model()
 geolocation_generator_handler(resources_info=resources_info_dict)
