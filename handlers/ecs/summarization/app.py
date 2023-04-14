@@ -127,9 +127,14 @@ class ReportsGeneratorHandler:
         Downloads the models and store them in the EFS
         """
         model_info = {}
-        models_path = Path("/models")
+        models_path = Path("/models/summarization")
         models_info_path = models_path / "model_info.json"
+
+        if not os.path.exists(models_path):
+            os.makedirs(models_path)
+
         if not any(os.listdir(models_path)):
+            logging.info("Downloading the summarization resources.")
             summarization_model_local_path = snapshot_download(
                 repo_id=summ_model,
                 cache_dir=models_path
@@ -146,8 +151,10 @@ class ReportsGeneratorHandler:
                 json.dump(model_info, models_info_f)
         else:
             if os.path.exists(models_info_path):
+                logging.info("Resources already exist in the EFS.")
                 with open(models_info_path, "r", encoding="utf-8") as models_info_f:
                     model_info = json.load(models_info_f)
+                    logging.info(model_info)
             else:
                 return {}
         return model_info
