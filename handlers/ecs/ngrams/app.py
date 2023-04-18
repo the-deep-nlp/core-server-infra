@@ -76,12 +76,13 @@ class NGramsGeneratorHandler:
         self.mock = os.environ.get("NGRAMS_MOCK", False)
 
         # N-Grams config
-        self.generate_unigrams = os.environ.get("GENERATE_UNIGRAMS", False)
-        self.generate_bigrams = os.environ.get("GENERATE_BIGRAMS", False)
-        self.generate_trigrams = os.environ.get("GENERATE_TRIGRAMS", False)
-        self.enable_stopwords = os.environ.get("ENABLE_STOPWORDS", False)
-        self.enable_stemming = os.environ.get("ENABLE_STEMMING", False)
-        self.enable_case_sensitive = os.environ.get("ENABLE_CASE_SENSITIVE", True)
+        self.generate_unigrams = os.environ.get("GENERATE_UNIGRAMS", "False")
+        self.generate_bigrams = os.environ.get("GENERATE_BIGRAMS", "False")
+        self.generate_trigrams = os.environ.get("GENERATE_TRIGRAMS", "False")
+        self.enable_stopwords = os.environ.get("ENABLE_STOPWORDS", "False")
+        self.enable_stemming = os.environ.get("ENABLE_STEMMING", "False")
+        self.enable_case_sensitive = os.environ.get("ENABLE_CASE_SENSITIVE", "True")
+        self.enable_end_of_sentence = os.environ.get("ENABLE_END_OF_SENTENCE", "True")
         self.max_ngrams_tokens = os.environ.get("MAX_NGRAMS_ITEMS", 10)
 
         self.generate_unigrams = True if self.generate_unigrams == "True" else False
@@ -90,6 +91,7 @@ class NGramsGeneratorHandler:
         self.enable_stopwords = True if self.enable_stopwords == "True" else False
         self.enable_stemming = True if self.enable_stemming == "True" else False
         self.enable_case_sensitive = True if self.enable_case_sensitive == "True" else False
+        self.enable_end_of_sentence = True if self.enable_end_of_sentence == "True" else False
         self.max_ngrams_tokens = int(self.max_ngrams_tokens)
         self.mock = True if self.mock == "True" else False
 
@@ -265,7 +267,8 @@ class NGramsGeneratorHandler:
             generate_trigrams=self.generate_trigrams,
             enable_stopwords=self.enable_stopwords,
             enable_stemming=self.enable_stemming,
-            enable_case_sensitive=self.enable_case_sensitive
+            enable_case_sensitive=self.enable_case_sensitive,
+            enable_end_of_sentence=self.enable_end_of_sentence
         )
 
         ng_output = ngrams_gen(self.entries)
