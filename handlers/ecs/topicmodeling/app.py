@@ -77,12 +77,14 @@ class TopicModelGeneratorHandler:
         self.signed_url_expiry_secs = os.environ.get("SIGNED_URL_EXPIRY_SECS", 86400) # 1 day
         self.bucket_name = os.environ.get("S3_BUCKET_NAME", None)
 
-        self.max_cluster_num = os.environ.get("MAX_CLUSTERS_NUM", 5)
-        self.cluster_size = os.environ.get("CLUSTER_SIZE")
+        self.max_cluster_num = int(os.environ.get("MAX_CLUSTERS_NUM", 15))
+        self.cluster_size = int(os.environ.get("CLUSTER_SIZE", 200))
 
         self.headers = {
             "Content-Type": "application/json"
         }
+
+        self.default_umap_components = os.environ.get("UMAP_COMPONENTS", 25)
 
         # db
         self.db_config = {
@@ -102,7 +104,7 @@ class TopicModelGeneratorHandler:
         if self.entries_df.empty:
             self.embeddings = np.array([])
         else:
-            self.embeddings = self._get_embeddings(self.entries_df.excerpts)
+            self.embeddings = self._get_embeddings(self.entries_df.Document)
 
     def _download_prepare_entries(self):
         """
@@ -121,7 +123,7 @@ class TopicModelGeneratorHandler:
                 if response.status_code == 200:
                     entries_data = json.loads(response.text)
                     df = pd.DataFrame(entries_data)
-                    df.rename({"excerpt":"excerpts"}, axis=1, inplace=True)
+                    self.rename_columns(df)
                     return df
             except Exception as exc:
                 logging.error("Error occurred: %s", str(exc))
@@ -135,7 +137,7 @@ class TopicModelGeneratorHandler:
         finetuned_task: list = ["first_level_tags"],
         return_type: str = "default_analyis",
         embeddings_return_type: str = "array",
-        batch_size: int = 5
+        batch_size: int = 10
     ):
         """
         Calculates the embeddings of the entries
@@ -158,16 +160,55 @@ class TopicModelGeneratorHandler:
                 "embeddings_return_type": embeddings_return_type
             }
 
-            response = client.invoke_endpoint(
-                EndpointName=model_name,
-                Body=pd.DataFrame(req).to_json(orient="split"),
-                ContentType="application/json; format=pandas-split",
-            )
+            try:
+                response = client.invoke_endpoint(
+                    EndpointName=model_name,
+                    Body=pd.DataFrame(req).to_json(orient="split"),
+                    ContentType="application/json; format=pandas-split",
+                )
+            except ClientError as cexc:
+                self.dispatch_results(status=ReportStatus.FAILED.value)
+                raise Exception(f"Error occurred while invoking sagemaker endpoint. {str(cexc)}")
 
             output = literal_eval(response["Body"].read().decode("ascii"))
             total.append(output["output_backbone"])
 
         return np.vstack([x for b in total for x in  b])
+
+    def rename_columns(self, df):
+        """
+        Renames the column names
+        """
+        df.rename(columns={"excerpt":"Document"}, inplace=True)
+
+    def generate_topics(self, entries, entries_embeddings, n_topics=15, umap_n_compontens=25):
+        """
+        Generates the topic predicted by the Bertopic library
+        """
+        topic_model = TopicGenerator(entries, entries_embeddings)
+        topic_model.get_total_topics(n_topics=n_topics, umap_n_compontens=umap_n_compontens)
+        return topic_model.general_topics_df
+
+    def create_complete_df(self, main_df, topic_model_df):
+        """
+        Merge the input dataframe with the topic model dataframe
+        and also includes embeddings as a column
+        """
+        return topic_model_df.merge(main_df, how="inner", on="Document")
+
+    def exclude_topic_clusters(self, dataframe, topic_value=-1):
+        """
+        Excludes the topic from the dataframe.
+        """
+        return dataframe[dataframe["Topic"] != topic_value]
+
+    def select_most_relevant_excerpts(self, df):
+        """
+        Select only the most relevant excerpts if it exceeds the cluster size
+        """
+        df.set_index("entry_id", inplace=True)
+        df_per_topic_nlargest = df.groupby("Topic")["Probability"].nlargest(self.cluster_size).reset_index()
+        return df_per_topic_nlargest.groupby("Topic")["entry_id"].apply(list).to_dict()
 
     def generate_presigned_url(self, bucket_name, key):
         """
@@ -277,25 +318,31 @@ class TopicModelGeneratorHandler:
 
     def __call__(self):
         if self.entries_df.empty:
+            logging.error("The input data is not available.")
             self.dispatch_results(status=ReportStatus.INPUT_URL_PROCESS_FAILED.value)
             return
 
         if self.embeddings.any():
-            topicmodel_summary = TopicGenerator(
-                self.entries_df.excerpts,
-                self.embeddings
-            )
-            topicmodel_summary.get_total_topics(n_topics=self.max_cluster_num)
-            topicmodel_df = topicmodel_summary.topics_df
-            topicmodel_merged_df = pd.merge(topicmodel_df, self.entries_df, how="left", on=["excerpts"])
-            topicmodel_op_dict = topicmodel_merged_df.groupby("topics")["entry_id"].apply(list).to_dict()
-
-            date_today = str(datetime.now().date())
-            presigned_url = self.topicmodel_summary(
-                tm_summary=json.dumps(topicmodel_op_dict),
-                bucket_name=self.bucket_name,
-                key=f"topicmodel/{date_today}/{self.topicmodel_id}/topicmodel.json"
-            )
+            entries = self.entries_df.Document.to_list()
+            try:
+                df_topics = self.generate_topics(
+                    entries,
+                    self.embeddings,
+                    n_topics=self.max_cluster_num,
+                    umap_n_compontens=self.default_umap_components
+                )
+                df_merged = self.create_complete_df(self.entries_df, df_topics)
+                df_merged = self.exclude_topic_clusters(df_merged)
+                topics_dict = self.select_most_relevant_excerpts(df_merged)
+                date_today = str(datetime.now().date())
+                presigned_url = self.topicmodel_summary(
+                    tm_summary=json.dumps(topics_dict),
+                    bucket_name=self.bucket_name,
+                    key=f"topicmodel/{date_today}/{self.topicmodel_id}/topicmodel.json"
+                )
+            except Exception as exc:
+                logging.error("Some errors occurred during processing of topics. %s", str(exc))
+                presigned_url = None
 
             if presigned_url:
                 self.dispatch_results(status=ReportStatus.SUCCESS.value, presigned_url=presigned_url)
