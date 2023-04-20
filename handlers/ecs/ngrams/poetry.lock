@@ -119,9 +119,9 @@ files = [
 six = "*"
 
 [[package]]
-name = "ngrams_generator"
+name = "ngrams-generator"
 version = "0.1"
-description = ""
+description = "Generates the n-grams from the texts"
 category = "main"
 optional = false
 python-versions = "*"
@@ -135,8 +135,8 @@ nltk = ">=3.8.1"
 [package.source]
 type = "git"
 url = "https://github.com/the-deep-nlp/ngrams-generator.git"
-reference = "727d031"
-resolved_reference = "727d031264b3fd0db500a40df2fd5ab7e12e8848"
+reference = "92d9ebb"
+resolved_reference = "92d9ebb0977d5ae6c1a12eef3db66ae6fc7e4600"
 
 [[package]]
 name = "nltk"
@@ -426,4 +426,4 @@ socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8"
-content-hash = "c9b8543b827d30152f5f56cbb35cb4b5bdac2cc86e12162b175740c449c2d20b"
+content-hash = "e49d44731019906c9abe4877c42fec8c4e4f9a69d81f0c7f2ef66fabbe053b8e"
