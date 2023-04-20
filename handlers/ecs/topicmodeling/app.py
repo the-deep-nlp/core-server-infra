@@ -77,7 +77,7 @@ class TopicModelGeneratorHandler:
         self.signed_url_expiry_secs = os.environ.get("SIGNED_URL_EXPIRY_SECS", 86400) # 1 day
         self.bucket_name = os.environ.get("S3_BUCKET_NAME", None)
 
-        self.max_cluster_num = int(os.environ.get("MAX_CLUSTERS_NUM", 15))
+        self.max_cluster_num = int(os.environ.get("MAX_CLUSTERS_NUM", 10))
         self.cluster_size = int(os.environ.get("CLUSTER_SIZE", 200))
 
         self.headers = {
