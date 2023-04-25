@@ -9,7 +9,7 @@ python = ">=3.8"
 boto3 = "*"
 huggingface-hub = "*"
 psycopg2-binary = "*"
-the_deep_reports_generator = { git = "https://github.com/the-deep-nlp/the-deep-reports-generator", rev = "fbe6f515728b29ff278b4f4a2e6b6bad2e8366b7", branch = "main" }
+the_deep_reports_generator = { git = "https://github.com/the-deep-nlp/the-deep-reports-generator", rev = "e371d31", branch = "main" }
 sentry-sdk = "==1.5.8"
 
 [tool.poetry.dev-dependencies]
