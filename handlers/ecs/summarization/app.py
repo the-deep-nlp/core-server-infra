@@ -68,10 +68,10 @@ class ReportsGeneratorHandler:
     Summarization class to generate summary of the excerpts
     """
     def __init__(self):
-        self.entries_url = os.environ.get("ENTRIES_URL") or None
-        self.client_id = os.environ.get("CLIENT_ID") or None
-        self.callback_url = os.environ.get("CALLBACK_URL") or None
-        self.summarization_id = os.environ.get("SUMMARIZATION_ID",) or None
+        self.entries_url = os.environ.get("ENTRIES_URL", None)
+        self.client_id = os.environ.get("CLIENT_ID", None)
+        self.callback_url = os.environ.get("CALLBACK_URL", None)
+        self.summarization_id = os.environ.get("SUMMARIZATION_ID", None)
         self.aws_region = os.environ.get("AWS_REGION", "us-east-1")
         self.signed_url_expiry_secs = os.environ.get("SIGNED_URL_EXPIRY_SECS", 86400) # 1 day
         self.bucket_name = os.environ.get("S3_BUCKET_NAME", None)
