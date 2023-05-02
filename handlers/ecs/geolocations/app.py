@@ -118,8 +118,7 @@ class GeoLocationGeneratorHandler:
             try:
                 response = requests.get(self.entries_url, timeout=30)
                 if response.status_code == 200:
-                    entries_data = json.loads(response.text)
-                    return entries_data
+                    return response.json()
             except Exception as exc:
                 logging.error("Error occurred: %s", str(exc))
         return None

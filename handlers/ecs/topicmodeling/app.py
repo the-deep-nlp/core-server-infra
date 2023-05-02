@@ -121,8 +121,7 @@ class TopicModelGeneratorHandler:
             try:
                 response = requests.get(self.entries_url, timeout=30)
                 if response.status_code == 200:
-                    entries_data = json.loads(response.text)
-                    df = pd.DataFrame(entries_data)
+                    df = pd.DataFrame(response.json())
                     self.rename_columns(df)
                     return df
             except Exception as exc:
