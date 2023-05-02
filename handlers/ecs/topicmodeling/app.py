@@ -8,7 +8,7 @@ import boto3
 import sentry_sdk
 import pandas as pd
 import numpy as np
-from datetime import datetime
+from datetime import date
 from enum import Enum
 from ast import literal_eval
 from botocore.client import Config
@@ -333,7 +333,7 @@ class TopicModelGeneratorHandler:
                 df_merged = self.create_complete_df(self.entries_df, df_topics)
                 df_merged = self.exclude_topic_clusters(df_merged)
                 topics_dict = self.select_most_relevant_excerpts(df_merged)
-                date_today = str(datetime.now().date())
+                date_today = date.today().isoformat()
                 presigned_url = self.topicmodel_summary(
                     tm_summary=json.dumps(topics_dict),
                     bucket_name=self.bucket_name,

@@ -7,7 +7,7 @@ import requests
 import boto3
 import sentry_sdk
 from pathlib import Path
-from datetime import datetime
+from datetime import date
 from enum import Enum
 from botocore.client import Config
 from botocore.exceptions import ClientError
@@ -278,7 +278,7 @@ class ReportsGeneratorHandler:
                 device="cpu"
             )
             summary = repgenerator(self.entries)
-            date_today = str(datetime.now().date())
+            date_today = date.today().isoformat()
             presigned_url = self.summary_store_s3(
                 summary=summary,
                 bucket_name=self.bucket_name,

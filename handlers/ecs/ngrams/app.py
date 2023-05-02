@@ -6,7 +6,7 @@ import psycopg2
 import requests
 import boto3
 import sentry_sdk
-from datetime import datetime
+from datetime import date
 from enum import Enum
 from botocore.client import Config
 from botocore.exceptions import ClientError
@@ -272,7 +272,7 @@ class NGramsGeneratorHandler:
 
         ng_output = ngrams_gen(self.entries)
 
-        date_today = str(datetime.now().date())
+        date_today = date.today().isoformat()
         if not self.mock:
             presigned_url = self.ngrams_summary_store_s3(
                 ngrams_summary=json.dumps(ng_output),

@@ -12,7 +12,7 @@ import sentry_sdk
 import warnings
 from pathlib import Path
 from cloudpathlib import CloudPath
-from datetime import datetime
+from datetime import date
 from enum import Enum
 from botocore.client import Config
 from botocore.exceptions import ClientError
@@ -355,7 +355,7 @@ class GeoLocationGeneratorHandler:
                 "entities": y["entities"]
                 } for x, y in zip(self.entries, geolocation_results)
             ]
-            date_today = str(datetime.now().date())
+            date_today = date.today().isoformat()
             presigned_url = self.geolocations_store_s3(
                 geolocation_data=json.dumps(processed_results),
                 bucket_name=self.bucket_name,
