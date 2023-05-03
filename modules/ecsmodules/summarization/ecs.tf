@@ -45,6 +45,10 @@ resource "aws_ecs_task_definition" "task-def" {
           "value": "${var.db_table_name}"
         },
         {
+          "name": "DB_TABLE_CALLBACK_TRACKER",
+          "value": "${var.db_table_callback_tracker}"
+        },
+        {
           "name": "S3_BUCKET_NAME",
           "value": "${var.s3_bucketname_task_results}"
         },
