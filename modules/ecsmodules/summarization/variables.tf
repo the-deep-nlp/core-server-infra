@@ -54,6 +54,7 @@ variable ssm_sentry_dsn_url_arn {}
 
 # db table
 variable db_table_name {}
+variable db_table_callback_tracker {}
 
 # s3
 variable s3_bucketname_task_results {}

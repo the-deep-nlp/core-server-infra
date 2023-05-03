@@ -36,3 +36,4 @@ s3_bucketname_task_results = "nlp-tasks-processed-results"
 
 # db table 
 db_table_name = "event_status_tracker"
+db_table_callback_tracker = "failed_callback_tracker"

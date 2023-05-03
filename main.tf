@@ -166,6 +166,7 @@ module "topicmodel" {
 
   # db table
   db_table_name = var.db_table_name
+  db_table_callback_tracker = var.db_table_callback_tracker
 
   # s3
   s3_bucketname_task_results = module.s3.task_results_bucket_name
@@ -205,6 +206,7 @@ module "ngrams" {
 
   # db table
   db_table_name = var.db_table_name
+  db_table_callback_tracker = var.db_table_callback_tracker
 
   # s3
   s3_bucketname_task_results = module.s3.task_results_bucket_name
@@ -247,6 +249,7 @@ module "summarization" {
 
   # db table
   db_table_name = var.db_table_name
+  db_table_callback_tracker = var.db_table_callback_tracker
 
   # s3
   s3_bucketname_task_results = module.s3.task_results_bucket_name
@@ -290,6 +293,7 @@ module "geolocations" {
   
   # db table
   db_table_name = var.db_table_name
+  db_table_callback_tracker = var.db_table_callback_tracker
 
   # s3
   s3_bucketname_task_results = module.s3.task_results_bucket_name

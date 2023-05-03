@@ -36,6 +36,7 @@ variable geolocations_app_image_name {}
 
 # db table
 variable db_table_name {}
+variable db_table_callback_tracker {}
 
 # s3
 variable s3_bucketname_task_results {}
