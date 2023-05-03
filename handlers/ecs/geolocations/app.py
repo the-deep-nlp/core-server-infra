@@ -12,7 +12,7 @@ import sentry_sdk
 import warnings
 from pathlib import Path
 from cloudpathlib import CloudPath
-from datetime import date
+from datetime import date, datetime
 from enum import Enum
 from botocore.client import Config
 from botocore.exceptions import ClientError
@@ -99,6 +99,7 @@ class GeoLocationGeneratorHandler:
         }
 
         self.db_table_name = os.environ.get("DB_TABLE_NAME", None)
+        self.db_table_callback_tracker = os.environ.get("DB_TABLE_CALLBACK_TRACKER", None)
 
         if not self.db_table_name:
             logging.error("Database table name is not found.")
@@ -289,6 +290,19 @@ class GeoLocationGeneratorHandler:
                 if db_conn is not None:
                     db_conn.close()
 
+    def _update_db_table_callback_retry(self):
+        """
+        Updates the table whenever the callback fails
+        """
+        if self.db_table_callback_tracker and self.geolocation_id:
+            now_date = datetime.now().isoformat()
+            self.status_update_db(
+                sql_statement=f""" INSERT INTO {self.db_table_callback_tracker} 
+                                (request_unique_id, created_at, modified_at, retries_count, status) 
+                                VALUES ('{self.geolocation_id}', '{now_date}', '{now_date}', 0, 3) """  # status = 3(Retrying)
+            )
+            logging.info("Updated the db table for callback retries.")
+
     def send_request_on_callback(self, presigned_url, status):
         """
         Sends the results in a callback url
@@ -306,10 +320,12 @@ class GeoLocationGeneratorHandler:
             )
         except requests.exceptions.RequestException as rexc:
             logging.error("Exception occurred while sending request %s", str(rexc))
+            self._update_db_table_callback_retry()
         if response.status_code == 200:
             logging.info("Successfully sent the request on callback url")
         else:
             logging.error("Error while sending the request on callback url")
+            self._update_db_table_callback_retry()
 
     def dispatch_results(self, status, presigned_url=None):
         """
@@ -321,11 +337,13 @@ class GeoLocationGeneratorHandler:
             self.status_update_db(
                 sql_statement=f""" UPDATE {self.db_table_name} SET status='{status}', result_s3_link='{presigned_url}' WHERE unique_id='{self.geolocation_id}' """
             )
+            logging.info("Updated the db table with event status %s", str(status))
         elif self.db_table_name:
             # Presigned url generation failed
             self.status_update_db(
                 sql_statement=f""" UPDATE {self.db_table_name} SET status='{status}' WHERE unique_id='{self.geolocation_id}' """
             )
+            logging.info("Updated the db table with event status %s", str(status))
         else:
             logging.error("Callback url / presigned s3 url / Database table name are not found.")
 
