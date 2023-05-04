@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "geolocations"
+version = "0.1.0"
+description = ""
+authors = ["dev <nlp@thedeep.io>"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+boto3 = "==1.26.106"
+cloudpathlib= "==0.13.0"
+psycopg2-binary = "*"
+geolocation_generator = { git = "https://github.com/the-deep-nlp/geolocation-generator", rev = "44c0c6b", branch = "main" }
+sentry-sdk = "==1.5.8"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

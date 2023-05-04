@@ -7,7 +7,7 @@ resource "aws_alb" "alb" {
 
 resource "aws_alb_target_group" "tg" {
   name        = "alb-target-group-${var.environment}"
-  port        = 80
+  port        = var.app_port
   protocol    = "HTTP"
   target_type = "ip"
   vpc_id      = var.vpc_id

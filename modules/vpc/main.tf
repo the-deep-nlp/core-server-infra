@@ -52,6 +52,7 @@ resource "aws_eip" "eip" {
   depends_on = [aws_internet_gateway.igw]
   tags              = {
     Environment = var.environment
+    Name = "nlp-server-eip-${var.environment}"
   }
 }
 
@@ -85,15 +86,15 @@ resource "aws_route_table_association" "private" {
   route_table_id = element(aws_route_table.private.*.id, count.index)
 }
 
-# resource "aws_vpc_endpoint" "s3" {
-#   vpc_id          = aws_vpc.vpc.id
-#   service_name    = "com.amazonaws.${var.aws_region}.s3"
-#   route_table_ids = aws_route_table.private.*.id
+resource "aws_vpc_endpoint" "s3" {
+  vpc_id          = aws_vpc.vpc.id
+  service_name    = "com.amazonaws.${var.aws_region}.s3"
+  route_table_ids = aws_route_table.private.*.id
 
-#   tags = {
-#     Name = "s3-endpoint-${var.environment}"
-#   }
-# }
+  tags = {
+    Name = "nlp-s3-endpoint-${var.environment}"
+  }
+}
 
 # resource "aws_vpc_endpoint" "ecr-dkr" {
 #   vpc_id          = aws_vpc.vpc.id

@@ -37,20 +37,31 @@ resource "aws_iam_role_policy" "ecs-role-policy" {
             {
                 "Effect": "Allow",
                 "Action": [
-                    "ssmmessages:CreateControlChannel",
-                    "ssmmessages:CreateDataChannel",
-                    "ssmmessages:OpenControlChannel",
-                    "ssmmessages:OpenDataChannel",
-                    "s3:*",
+                    "s3:GetObject*",
+                    "s3:PutObject*",
+                    "s3:ListBucket",
+                    "s3:DeleteObject*",
                     "rds:*",
                     "elasticache:*",
                     "rds-db:connect",
                     "ssm:GetParameters",
-                    "ecr:*",
-                    "kms:Decrypt",
-                    "secretsmanager:GetSecretValue"
+                    "ecr:Get*",
+                    "ecr:List*",
+                    "ecs:RunTask",
+                    "iam:PassRole",
+                    "sagemaker:InvokeEndpoint",
+                    "ssmmessages:CreateControlChannel",
+                    "ssmmessages:CreateDataChannel",
+                    "ssmmessages:OpenControlChannel",
+                    "ssmmessages:OpenDataChannel"
                 ],
-                "Resource": "*"
+                "Resource": [
+                  "${var.s3_bucketname_task_results_arn}",
+                  "${var.s3_bucketname_task_results_arn}/*",
+                  "${var.nlp_server_bucket_static_arn}",
+                  "${var.nlp_server_bucket_static_arn}/*",
+                  "*"
+                ]
             }
         ]
     }
@@ -67,9 +78,8 @@ resource "aws_iam_role_policy" "param_store" {
       {
         "Action": [
           "ssm:GetParameters",
-          "kms:Decrypt",
-          "secretsmanager:GetSecretValue",
-          "ecr:*"
+          "ecr:Get*",
+          "ecr:List*"
         ],
         "Effect": "Allow",
         "Resource": "*"

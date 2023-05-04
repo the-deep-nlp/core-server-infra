@@ -1,6 +1,6 @@
 [
     {
-      "name": "backend-server-${environment}",
+      "name": "${container_name}-${environment}",
       "image": "${app_image}",
       "cpu": ${fargate_cpu},
       "memory": ${fargate_memory},
@@ -28,12 +28,32 @@
       ],
       "environment": [
         {
+          "name": "ENVIRONMENT",
+          "value": "${environment}"
+        },
+        {
+          "name": "AWS_REGION",
+          "value": "${aws_region}"
+        },
+        {
+          "name": "AWS_S3_REGION_NAME",
+          "value": "${aws_region}"
+        },
+        {
+          "name": "AWS_S3_BUCKET_NAME",
+          "value": "${nlp_server_bucket_static_name}"
+        },
+        {
           "name": "DEBUG",
           "value": "${debug}"
         },
         {
           "name": "ALLOWED_HOSTS",
           "value": "${allowed_hosts}"
+        },
+        {
+          "name": "CSRF_TRUSTED_ORIGINS",
+          "value": "${csrf_trusted_origins}"
         },
         {
           "name": "REDIS_HOST",
@@ -66,6 +86,74 @@
         {
           "name": "CRON_CREATE_INDICES_HOUR",
           "value": "${cron_create_indices_hour}"
+        },
+        {
+          "name": "TOPICMODEL_ECS_CLUSTER_ID",
+          "value": "${topicmodel_ecs_cluster_id}"
+        },
+        {
+          "name": "TOPICMODEL_ECS_TASK_DEFN_ARN",
+          "value": "${topicmodel_ecs_task_defn_arn}"
+        },
+        {
+          "name": "TOPICMODEL_ECS_CONTAINER_NAME",
+          "value": "${topicmodel_ecs_container_name}"
+        },
+        {
+          "name": "TOPICMODEL_VPC_PRIVATE_SUBNET",
+          "value": "${topicmodel_vpc_private_subnet}"
+        },
+        {
+          "name": "ECS_CLUSTER_NAME",
+          "value": "${ecs_cluster_name}"
+        },
+        {
+          "name": "SUMMARIZATION_ECS_CLUSTER_ID",
+          "value": "${summarization_ecs_cluster_id}"
+        },
+        {
+          "name": "SUMMARIZATION_ECS_TASK_DEFN_ARN",
+          "value": "${summarization_ecs_task_defn_arn}"
+        },
+        {
+          "name": "SUMMARIZATION_ECS_CONTAINER_NAME",
+          "value": "${summarization_ecs_container_name}"
+        },
+        {
+          "name": "SUMMARIZATION_VPC_PRIVATE_SUBNET",
+          "value": "${summarization_vpc_private_subnet}"
+        },
+        {
+          "name": "NGRAMS_ECS_CLUSTER_ID",
+          "value": "${ngrams_ecs_cluster_id}"
+        },
+        {
+          "name": "NGRAMS_ECS_TASK_DEFN_ARN",
+          "value": "${ngrams_ecs_task_defn_arn}"
+        },
+        {
+          "name": "NGRAMS_ECS_CONTAINER_NAME",
+          "value": "${ngrams_ecs_container_name}"
+        },
+        {
+          "name": "NGRAMS_VPC_PRIVATE_SUBNET",
+          "value": "${ngrams_vpc_private_subnet}"
+        },
+        {
+          "name": "GEOLOCATION_ECS_CLUSTER_ID",
+          "value": "${geo_ecs_cluster_id}"
+        },
+        {
+          "name": "GEOLOCATION_ECS_TASK_DEFN_ARN",
+          "value": "${geo_ecs_task_defn_arn}"
+        },
+        {
+          "name": "GEOLOCATION_ECS_CONTAINER_NAME",
+          "value": "${geo_ecs_container_name}"
+        },
+        {
+          "name": "GEOLOCATION_VPC_PRIVATE_SUBNET",
+          "value": "${geo_vpc_private_subnet}"
         }
       ],
       "secrets": [
@@ -108,6 +196,10 @@
         {
           "name": "DJANGO_SECRET_KEY",
           "valueFrom": "${django_secret_key}"
+        },
+        {
+          "name": "SENTRY_DSN",
+          "valueFrom": "${sentry_dsn_url}"
         }
       ]
     }
