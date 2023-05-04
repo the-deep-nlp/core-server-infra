@@ -1,7 +1,7 @@
 resource "aws_vpc" "vpc" {
-  cidr_block = var.cidr_block
+  cidr_block           = var.cidr_block
   enable_dns_hostnames = true
-  enable_dns_support = true
+  enable_dns_support   = true
   tags = {
     Environment = var.environment
   }
@@ -13,7 +13,7 @@ resource "aws_subnet" "private" {
   cidr_block        = cidrsubnet(aws_vpc.vpc.cidr_block, 8, count.index)
   availability_zone = var.availability_zones[count.index]
   vpc_id            = aws_vpc.vpc.id
-  tags              = {
+  tags = {
     Environment = var.environment
   }
 }
@@ -25,7 +25,7 @@ resource "aws_subnet" "public" {
   availability_zone       = var.availability_zones[count.index]
   vpc_id                  = aws_vpc.vpc.id
   map_public_ip_on_launch = true
-  tags              = {
+  tags = {
     Environment = var.environment
   }
 }
@@ -33,7 +33,7 @@ resource "aws_subnet" "public" {
 # Internet Gateway for the public subnet
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.vpc.id
-  tags              = {
+  tags = {
     Environment = var.environment
   }
 }
@@ -50,9 +50,9 @@ resource "aws_eip" "eip" {
   count      = var.az_count
   vpc        = true
   depends_on = [aws_internet_gateway.igw]
-  tags              = {
+  tags = {
     Environment = var.environment
-    Name = "nlp-server-eip-${var.environment}"
+    Name        = "nlp-server-eip-${var.environment}"
   }
 }
 
@@ -60,7 +60,7 @@ resource "aws_nat_gateway" "natgw" {
   count         = var.az_count
   subnet_id     = element(aws_subnet.public.*.id, count.index)
   allocation_id = element(aws_eip.eip.*.id, count.index)
-  tags              = {
+  tags = {
     Environment = var.environment
   }
 }
@@ -74,7 +74,7 @@ resource "aws_route_table" "private" {
     cidr_block     = "0.0.0.0/0"
     nat_gateway_id = element(aws_nat_gateway.natgw.*.id, count.index)
   }
-  tags              = {
+  tags = {
     Environment = var.environment
   }
 }

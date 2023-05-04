@@ -23,20 +23,20 @@ variable "redis_num_cache_nodes" {}
 variable "redis_port" {}
 
 # summarization ecs
-variable summarization_app_image_name {}
+variable "summarization_app_image_name" {}
 
 # ngrams ecs
-variable ngrams_app_image_name {}
+variable "ngrams_app_image_name" {}
 
 # topicmodel ecs
-variable topicmodel_app_image_name {}
+variable "topicmodel_app_image_name" {}
 
 # geolocations ecs
-variable geolocations_app_image_name {}
+variable "geolocations_app_image_name" {}
 
 # db table
-variable db_table_name {}
-variable db_table_callback_tracker {}
+variable "db_table_name" {}
+variable "db_table_callback_tracker" {}
 
 # s3
-variable s3_bucketname_task_results {}
+variable "s3_bucketname_task_results" {}
