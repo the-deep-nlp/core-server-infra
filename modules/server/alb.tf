@@ -1,7 +1,7 @@
 
 resource "aws_alb" "alb" {
-  name           = "nlp-server-lb-${var.environment}"
-  subnets        =  var.public_subnets
+  name            = "nlp-server-lb-${var.environment}"
+  subnets         = var.public_subnets
   security_groups = [aws_security_group.alb_sg.id]
 }
 
@@ -46,12 +46,12 @@ data "aws_route53_zone" "zone" {
 
 # Add a record set in Route 53
 resource "aws_route53_record" "terraform" {
-  zone_id = "${data.aws_route53_zone.zone.zone_id}"
+  zone_id = data.aws_route53_zone.zone.zone_id
   name    = "server.${var.domain_name}"
   type    = "A"
   alias {
-    name                   = "${aws_alb.alb.dns_name}"
-    zone_id                = "${aws_alb.alb.zone_id}"
+    name                   = aws_alb.alb.dns_name
+    zone_id                = aws_alb.alb.zone_id
     evaluate_target_health = true
   }
 } 

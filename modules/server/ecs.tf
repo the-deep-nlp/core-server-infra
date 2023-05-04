@@ -21,50 +21,50 @@ data "template_file" "config" {
     container_name = var.ecs_container_name
 
     # Django
-    django_secret_key = var.ssm_django_secret_key_arn
-    debug = "False"
-    allowed_hosts = "*"
+    django_secret_key    = var.ssm_django_secret_key_arn
+    debug                = "False"
+    allowed_hosts        = "*"
     csrf_trusted_origins = var.csrf_trusted_origins
     # Redis
-    redis_host = var.redis_host
-    celery_broker_url = var.redis_endpoint
+    redis_host            = var.redis_host
+    celery_broker_url     = var.redis_endpoint
     celery_result_backend = var.redis_endpoint
     # NLP Database
-    nlp_db_name = var.ssm_db_name_arn
+    nlp_db_name     = var.ssm_db_name_arn
     nlp_db_username = var.ssm_db_username_arn
     nlp_db_password = var.ssm_db_password_arn
-    nlp_db_port = var.ssm_db_port_arn
-    nlp_db_host = var.rds_instance_endpoint
+    nlp_db_port     = var.ssm_db_port_arn
+    nlp_db_host     = var.rds_instance_endpoint
     # DEEP Database
-    deep_db_name = var.ssm_deep_db_name_arn
+    deep_db_name     = var.ssm_deep_db_name_arn
     deep_db_username = var.ssm_deep_db_username_arn
     deep_db_password = var.ssm_deep_db_password_arn
-    deep_db_port = var.ssm_deep_db_port_arn
-    deep_db_host = var.ssm_deep_db_host_arn
+    deep_db_port     = var.ssm_deep_db_port_arn
+    deep_db_host     = var.ssm_deep_db_host_arn
     # Cron
-    cron_deep_fetch_minute = var.cron_deep_fetch_minute
-    cron_deep_fetch_hour = var.cron_deep_fetch_hour
+    cron_deep_fetch_minute     = var.cron_deep_fetch_minute
+    cron_deep_fetch_hour       = var.cron_deep_fetch_hour
     cron_create_indices_minute = var.cron_create_indices_minute
-    cron_create_indices_hour = var.cron_create_indices_hour
+    cron_create_indices_hour   = var.cron_create_indices_hour
     # ECS
-    ecs_cluster_name = aws_ecs_cluster.cluster.id
-    topicmodel_ecs_cluster_id = aws_ecs_cluster.cluster.id
-    topicmodel_ecs_task_defn_arn = var.topicmodel_ecs_task_defn_arn
+    ecs_cluster_name              = aws_ecs_cluster.cluster.id
+    topicmodel_ecs_cluster_id     = aws_ecs_cluster.cluster.id
+    topicmodel_ecs_task_defn_arn  = var.topicmodel_ecs_task_defn_arn
     topicmodel_ecs_container_name = var.topicmodel_ecs_container_name
     topicmodel_vpc_private_subnet = var.private_subnets[0]
     # ECS Summarization
-    summarization_ecs_cluster_id = aws_ecs_cluster.cluster.id
-    summarization_ecs_task_defn_arn = var.summarization_ecs_task_defn_arn
+    summarization_ecs_cluster_id     = aws_ecs_cluster.cluster.id
+    summarization_ecs_task_defn_arn  = var.summarization_ecs_task_defn_arn
     summarization_ecs_container_name = var.summarization_ecs_container_name
     summarization_vpc_private_subnet = var.private_subnets[0]
     # ECS NGrams
-    ngrams_ecs_cluster_id = aws_ecs_cluster.cluster.id
-    ngrams_ecs_task_defn_arn = var.ngrams_ecs_task_defn_arn
+    ngrams_ecs_cluster_id     = aws_ecs_cluster.cluster.id
+    ngrams_ecs_task_defn_arn  = var.ngrams_ecs_task_defn_arn
     ngrams_ecs_container_name = var.ngrams_container_name
     ngrams_vpc_private_subnet = var.private_subnets[0]
     # ECS Geolocations
-    geo_ecs_cluster_id = aws_ecs_cluster.cluster.id
-    geo_ecs_task_defn_arn = var.geo_ecs_task_defn_arn
+    geo_ecs_cluster_id     = aws_ecs_cluster.cluster.id
+    geo_ecs_task_defn_arn  = var.geo_ecs_task_defn_arn
     geo_ecs_container_name = var.geo_ecs_container_name
     geo_vpc_private_subnet = var.private_subnets[0]
     # Sentry
@@ -86,16 +86,16 @@ resource "aws_ecs_task_definition" "task-def" {
 }
 
 resource "aws_ecs_service" "service" {
-  name            = "${var.ecs_service_name}-${var.environment}"
-  cluster         = aws_ecs_cluster.cluster.id
-  task_definition = aws_ecs_task_definition.task-def.arn
-  desired_count   = var.app_count
-  launch_type     = "FARGATE"
+  name                   = "${var.ecs_service_name}-${var.environment}"
+  cluster                = aws_ecs_cluster.cluster.id
+  task_definition        = aws_ecs_task_definition.task-def.arn
+  desired_count          = var.app_count
+  launch_type            = "FARGATE"
   enable_execute_command = true
 
   network_configuration {
-    security_groups  = [
-        aws_security_group.ecs_sg.id
+    security_groups = [
+      aws_security_group.ecs_sg.id
     ]
     subnets          = var.private_subnets
     assign_public_ip = true

@@ -12,7 +12,7 @@ resource "aws_ecs_task_definition" "task-def" {
   requires_compatibilities = ["FARGATE"]
   cpu                      = var.fargate_cpu
   memory                   = var.fargate_memory
-  container_definitions = <<DEFINITION
+  container_definitions    = <<DEFINITION
 [
   {
       "memory": ${var.fargate_memory},
@@ -86,18 +86,18 @@ resource "aws_ecs_service" "service" {
   launch_type     = "FARGATE"
 
   network_configuration {
-    security_groups  = [
-        var.ecs_security_group_id
+    security_groups = [
+      var.ecs_security_group_id
     ]
     subnets          = var.private_subnets
     assign_public_ip = false
   }
 
-#   load_balancer {
-#     target_group_arn = aws_alb_target_group.tg.arn
-#     container_name   = "backend-server-${var.environment}"
-#     container_port   = var.app_port
-#   }
+  #   load_balancer {
+  #     target_group_arn = aws_alb_target_group.tg.arn
+  #     container_name   = "backend-server-${var.environment}"
+  #     container_port   = var.app_port
+  #   }
 
   depends_on = [
     #aws_alb_listener.app_listener,

@@ -3,7 +3,7 @@ aws_region  = "us-east-1"
 aws_profile = "nlp_tf"
 
 # vpc
-cidr_block = "172.20.0.0/16"
+cidr_block         = "172.20.0.0/16"
 availability_zones = ["us-east-1a", "us-east-1b"]
 
 # ecs
@@ -35,5 +35,5 @@ geolocations_app_image_name = "geolocations_model"
 s3_bucketname_task_results = "nlp-tasks-processed-results"
 
 # db table 
-db_table_name = "event_status_tracker"
+db_table_name             = "event_status_tracker"
 db_table_callback_tracker = "failed_callback_tracker"
