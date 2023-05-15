@@ -95,6 +95,11 @@ module "nlp_server" {
   summarization_ecs_task_defn_arn  = module.summarization.s_ecs_task_defn_arn
   summarization_ecs_container_name = module.summarization.s_ecs_container_name
 
+  # Summarization v2
+  summarization_v2_ecs_task_defn_arn = module.summarization_v2.summarization_v2_ecs_task_defn_arn
+  summarization_v2_ecs_container_name = module.summarization_v2.summarization_v2_container_name
+  summarization_v2_ecs_endpoint = module.summarization_v2.aws_service_discovery_service_endpoint
+
   # NGrams
   ngrams_ecs_task_defn_arn = module.ngrams.ngrams_ecs_task_defn_arn
   ngrams_container_name    = module.ngrams.ngrams_container_name
@@ -316,4 +321,57 @@ module "s3" {
 
   environment                = var.environment
   s3_bucketname_task_results = var.s3_bucketname_task_results
+}
+
+module "summarization_v2" {
+  source = "./modules/ecsmodules/summarization_v2"
+
+  environment = var.environment
+  aws_region  = var.aws_region
+
+  # ecs
+  ecs_cluster_id = module.nlp_server.ecs_cluster_id
+
+  # security grp
+  ecs_security_group_id = module.nlp_server.ecs_security_group_id
+
+  # vpc
+  vpc_id          = module.nlp_vpc.aws_vpc_id
+  private_subnets = module.nlp_vpc.private_subnets
+  public_subnets  = module.nlp_vpc.public_subnets
+
+  iam_task_execution_role_arn       = module.nlp_server.iam_task_execution_role_arn
+  iam_ecs_task_arn                  = module.nlp_server.iam_ecs_task_arn
+  iam_ecs_task_execution_policy_arn = module.nlp_server.iam_ecs_task_execution_policy_arn
+
+  # ecr
+  app_image_name = var.summarization_v2_app_image_name
+
+  # secrets
+  rds_instance_endpoint  = module.nlp_database.rds_instance_endpoint
+  ssm_db_name_arn        = module.secrets.ssm_db_name_arn
+  ssm_db_username_arn    = module.secrets.ssm_db_username_arn
+  ssm_db_password_arn    = module.secrets.ssm_db_password_arn
+  ssm_db_port_arn        = module.secrets.ssm_db_port_arn
+  ssm_sentry_dsn_url_arn = module.secrets.ssm_sentry_dsn_url_arn
+
+  # db table
+  db_table_name             = var.db_table_name
+  db_table_callback_tracker = var.db_table_callback_tracker
+
+  # s3
+  s3_bucketname_task_results = module.s3.task_results_bucket_name
+  # efs
+  efs_volume_id = module.efilesystem.efs_volume_id
+
+  # cloudmap
+  private_dns_namespace_id = module.cloudmap.private_dns_namespace_id
+  private_dns_namespace_local_domain = module.cloudmap.private_dns_namespace_local_domain
+}
+
+module "cloudmap" {
+  source = "./modules/cloudmap"
+  environment = var.environment
+  # vpc
+  vpc_id = module.nlp_vpc.aws_vpc_id
 }

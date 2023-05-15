@@ -25,6 +25,9 @@ variable "redis_port" {}
 # summarization ecs
 variable "summarization_app_image_name" {}
 
+# summarization v2 ecs
+variable "summarization_v2_app_image_name" {}
+
 # ngrams ecs
 variable "ngrams_app_image_name" {}
 

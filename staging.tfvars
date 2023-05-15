@@ -24,6 +24,8 @@ redis_port            = 6379
 
 # ecs summarization
 summarization_app_image_name = "summarization_model"
+# ecs summarization v2
+summarization_v2_app_image_name = "summarization_model_v2"
 # ecs ngrams
 ngrams_app_image_name = "ngrams_model"
 # ecs topicmodel
