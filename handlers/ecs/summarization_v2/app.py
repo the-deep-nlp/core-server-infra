@@ -14,10 +14,9 @@ from botocore.exceptions import ClientError
 from huggingface_hub import snapshot_download
 from reports_generator import ReportsGenerator
 
-import fastapi
 from fastapi import FastAPI
 from pydantic import BaseModel
-from typing import Optional, Union
+from typing import Union
 
 logging.getLogger().setLevel(logging.INFO)
 
@@ -38,7 +37,8 @@ ecs_app = FastAPI()
 
 @ecs_app.get("/")
 def home():
-    return "Welcome to the ecs task server 1"
+    """ Test endpoint """
+    return "Welcome to the ECS Task of Summarization Module v2."
 
 @ecs_app.post("/generate_report")
 def gen_report(item: InputStructure):
@@ -105,18 +105,11 @@ class ReportsGeneratorHandler:
     Summarization class to generate summary of the excerpts
     """
     def __init__(self):
-        #self.entries_url = os.environ.get("ENTRIES_URL", None)
-        #self.client_id = os.environ.get("CLIENT_ID", None)
-        #self.callback_url = os.environ.get("CALLBACK_URL", None)
-        #self.summarization_id = os.environ.get("SUMMARIZATION_ID", None)
-
         self.repgenerator = None
 
         self.aws_region = os.environ.get("AWS_REGION", "us-east-1")
         self.signed_url_expiry_secs = os.environ.get("SIGNED_URL_EXPIRY_SECS", 86400) # 1 day
         self.bucket_name = os.environ.get("S3_BUCKET_NAME", None)
-
-        # self.entries = self.download_prepare_entries()
 
         self.headers = {
             "Content-Type": "application/json"
@@ -342,7 +335,6 @@ class ReportsGeneratorHandler:
 
         if self.repgenerator:
             summary = self.repgenerator(entries)
-            logging.info(f"{client_id} - {summary}")
             date_today = date.today().isoformat()
             presigned_url = self.summary_store_s3(
                 summary=summary,
@@ -362,4 +354,3 @@ class ReportsGeneratorHandler:
 reports_generator_handler = ReportsGeneratorHandler()
 model_info_dict = reports_generator_handler.download_models()
 reports_generator_handler.load_model(model_info_dict)
-#reports_generator_handler(model_info=model_info_dict)
