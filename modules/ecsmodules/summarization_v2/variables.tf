@@ -58,7 +58,7 @@ variable "db_table_callback_tracker" {}
 variable "s3_bucketname_task_results" {}
 
 variable "ecs_cluster_name" {
-  default = "nlp-server-cluster-staging"
+  default = "nlp-server-cluster"
 }
 
 variable "efs_volume_id" {}
