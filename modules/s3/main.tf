@@ -6,6 +6,14 @@ resource "aws_s3_bucket" "static" {
 resource "aws_s3_bucket_acl" "static" {
   bucket = aws_s3_bucket.static.id
   acl    = "private"
+  depends_on = [ aws_s3_bucket_ownership_controls.s3_bucket_acl_ownership_static ]
+}
+
+resource "aws_s3_bucket_ownership_controls" "s3_bucket_acl_ownership_static" {
+  bucket = aws_s3_bucket.static.id
+  rule {
+    object_ownership = "ObjectWriter"
+  }
 }
 
 resource "aws_s3_bucket" "processed_bucket" {
@@ -16,4 +24,12 @@ resource "aws_s3_bucket" "processed_bucket" {
 resource "aws_s3_bucket_acl" "processed_bucket" {
   bucket = aws_s3_bucket.processed_bucket.id
   acl    = "private"
+  depends_on = [ aws_s3_bucket_ownership_controls.s3_bucket_acl_ownership_processed ]
+}
+
+resource "aws_s3_bucket_ownership_controls" "s3_bucket_acl_ownership_processed" {
+  bucket = aws_s3_bucket.processed_bucket.id
+  rule {
+    object_ownership = "ObjectWriter"
+  }
 }
