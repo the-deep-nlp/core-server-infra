@@ -51,7 +51,7 @@ resource "aws_route" "internet_access" {
 
 # Create a NAT gateway with an Elastic IP for each private subnet to get internet connectivity
 resource "aws_eip" "eip" {
-  count      = var.az_count
+  count      = 1
   vpc        = true
   depends_on = [aws_internet_gateway.igw]
   tags = {
@@ -61,7 +61,7 @@ resource "aws_eip" "eip" {
 }
 
 resource "aws_nat_gateway" "natgw" {
-  count         = var.az_count
+  count         = 1
   subnet_id     = element(aws_subnet.public.*.id, count.index)
   allocation_id = element(aws_eip.eip.*.id, count.index)
   tags = {
