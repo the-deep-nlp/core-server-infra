@@ -131,7 +131,7 @@ resource "aws_ecs_service" "service" {
 }
 
 resource "aws_service_discovery_service" "subdomain" {
-  name = "${var.local_sub_domain}"
+  name = "${var.local_sub_domain}-${var.environment}"
   dns_config {
     namespace_id = "${var.private_dns_namespace_id}"
     dns_records {
