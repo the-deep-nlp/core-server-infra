@@ -46,10 +46,6 @@ variable "domain_name" {
   default = "labs.thedeep.io"
 }
 
-variable "csrf_trusted_origins" {
-  default = "https://server.labs.thedeep.io"
-}
-
 # database
 variable "rds_instance_endpoint" {}
 

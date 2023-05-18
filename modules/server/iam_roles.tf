@@ -69,7 +69,7 @@ resource "aws_iam_role_policy" "ecs-role-policy" {
 }
 
 resource "aws_iam_role_policy" "param_store" {
-  name   = "secrets-paramstore-policy"
+  name   = "secrets-paramstore-policy-${var.environment}"
   role   = aws_iam_role.ecs_task_execution_role.id
   policy = <<-EOF
   {

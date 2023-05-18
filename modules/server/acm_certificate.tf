@@ -1,7 +1,7 @@
 # request public certificates from the amazon certificate manager.
 resource "aws_acm_certificate" "acm_certificate" {
   domain_name               = var.domain_name
-  subject_alternative_names = ["server.${var.domain_name}"]
+  subject_alternative_names = ["server-${var.environment}.${var.domain_name}"]
   validation_method         = "DNS"
 
   lifecycle {
