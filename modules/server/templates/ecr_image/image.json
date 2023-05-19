@@ -124,6 +124,22 @@
           "value": "${summarization_vpc_private_subnet}"
         },
         {
+          "name": "SUMMARIZATION_V2_ECS_CLUSTER_ID",
+          "value": "${summarization_v2_ecs_cluster_id}"
+        },
+        {
+          "name": "SUMMARIZATION_V2_TASK_DEFN_ARN",
+          "value": "${summarization_v2_ecs_task_defn_arn}"
+        },
+        {
+          "name": "SUMMARIZATION_V2_PRIVATE_SUBNET",
+          "value": "${summarization_v2_vpc_private_subnet}"
+        },
+        {
+          "name": "SUMMARIZATION_V2_ECS_ENDPOINT",
+          "value": "${summarization_v2_ecs_endpoint}"
+        },
+        {
           "name": "NGRAMS_ECS_CLUSTER_ID",
           "value": "${ngrams_ecs_cluster_id}"
         },

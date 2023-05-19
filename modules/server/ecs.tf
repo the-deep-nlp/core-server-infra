@@ -24,7 +24,7 @@ data "template_file" "config" {
     django_secret_key    = var.ssm_django_secret_key_arn
     debug                = "False"
     allowed_hosts        = "*"
-    csrf_trusted_origins = var.csrf_trusted_origins
+    csrf_trusted_origins = var.environment == "prod" ? "https://server.${var.domain_name}" : "https://server-${var.environment}.${var.domain_name}"
     # Redis
     redis_host            = var.redis_host
     celery_broker_url     = var.redis_endpoint
@@ -57,6 +57,12 @@ data "template_file" "config" {
     summarization_ecs_task_defn_arn  = var.summarization_ecs_task_defn_arn
     summarization_ecs_container_name = var.summarization_ecs_container_name
     summarization_vpc_private_subnet = var.private_subnets[0]
+    # ECS Summarization v2
+    summarization_v2_ecs_cluster_id = aws_ecs_cluster.cluster.id
+    summarization_v2_ecs_task_defn_arn = var.summarization_v2_ecs_task_defn_arn
+    summarization_v2_ecs_container_name = var.summarization_v2_ecs_container_name
+    summarization_v2_vpc_private_subnet = var.private_subnets[0]
+    summarization_v2_ecs_endpoint = var.summarization_v2_ecs_endpoint
     # ECS NGrams
     ngrams_ecs_cluster_id     = aws_ecs_cluster.cluster.id
     ngrams_ecs_task_defn_arn  = var.ngrams_ecs_task_defn_arn

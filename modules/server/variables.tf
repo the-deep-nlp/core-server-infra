@@ -46,10 +46,6 @@ variable "domain_name" {
   default = "labs.thedeep.io"
 }
 
-variable "csrf_trusted_origins" {
-  default = "https://server.labs.thedeep.io"
-}
-
 # database
 variable "rds_instance_endpoint" {}
 
@@ -78,6 +74,11 @@ variable "topicmodel_ecs_container_name" {}
 # Summarization
 variable "summarization_ecs_task_defn_arn" {}
 variable "summarization_ecs_container_name" {}
+
+# Summarization v2
+variable "summarization_v2_ecs_task_defn_arn" {}
+variable "summarization_v2_ecs_container_name" {}
+variable "summarization_v2_ecs_endpoint" {}
 
 # NGrams
 variable "ngrams_ecs_task_defn_arn" {}

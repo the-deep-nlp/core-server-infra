@@ -4,6 +4,7 @@ resource "aws_vpc" "vpc" {
   enable_dns_support   = true
   tags = {
     Environment = var.environment
+    Name        = "nlp-vpc-${var.environment}"
   }
 }
 
@@ -15,6 +16,7 @@ resource "aws_subnet" "private" {
   vpc_id            = aws_vpc.vpc.id
   tags = {
     Environment = var.environment
+    Name        = "nlp-private-subnet-${var.environment}"
   }
 }
 
@@ -27,6 +29,7 @@ resource "aws_subnet" "public" {
   map_public_ip_on_launch = true
   tags = {
     Environment = var.environment
+    Name        = "nlp-public-subnet-${var.environment}"
   }
 }
 
@@ -35,6 +38,7 @@ resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.vpc.id
   tags = {
     Environment = var.environment
+    Name        = "nlp-gateway-${var.environment}"
   }
 }
 
@@ -47,21 +51,22 @@ resource "aws_route" "internet_access" {
 
 # Create a NAT gateway with an Elastic IP for each private subnet to get internet connectivity
 resource "aws_eip" "eip" {
-  count      = var.az_count
+  count      = 1
   vpc        = true
   depends_on = [aws_internet_gateway.igw]
   tags = {
     Environment = var.environment
-    Name        = "nlp-server-eip-${var.environment}"
+    Name        = "nlp-eip-${var.environment}"
   }
 }
 
 resource "aws_nat_gateway" "natgw" {
-  count         = var.az_count
+  count         = 1
   subnet_id     = element(aws_subnet.public.*.id, count.index)
   allocation_id = element(aws_eip.eip.*.id, count.index)
   tags = {
     Environment = var.environment
+    Name        = "nlp-gateway-${var.environment}"
   }
 }
 
@@ -76,6 +81,7 @@ resource "aws_route_table" "private" {
   }
   tags = {
     Environment = var.environment
+    Name        = "nlp-route-table-${var.environment}"
   }
 }
 
@@ -92,7 +98,8 @@ resource "aws_vpc_endpoint" "s3" {
   route_table_ids = aws_route_table.private.*.id
 
   tags = {
-    Name = "nlp-s3-endpoint-${var.environment}"
+    Name        = "nlp-s3-endpoint-${var.environment}"
+    Environment = var.environment
   }
 }
 

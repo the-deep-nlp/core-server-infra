@@ -15,7 +15,7 @@ resource "aws_rds_cluster" "nlp_db" {
   master_username           = var.ssm_db_username_value #data.aws_ssm_parameter.db_username.value
   master_password           = var.ssm_db_password_value #data.aws_ssm_parameter.db_password.value
   skip_final_snapshot       = var.database_skip_final_snapshot
-  final_snapshot_identifier = var.unique_name
+  final_snapshot_identifier = "${var.unique_name}-${var.environment}"
   backup_retention_period   = var.retention_period
 }
 

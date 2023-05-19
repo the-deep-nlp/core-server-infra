@@ -47,7 +47,7 @@ data "aws_route53_zone" "zone" {
 # Add a record set in Route 53
 resource "aws_route53_record" "terraform" {
   zone_id = data.aws_route53_zone.zone.zone_id
-  name    = "server.${var.domain_name}"
+  name    = var.environment == "prod" ? "server.${var.domain_name}" : "server-${var.environment}.${var.domain_name}"
   type    = "A"
   alias {
     name                   = aws_alb.alb.dns_name
