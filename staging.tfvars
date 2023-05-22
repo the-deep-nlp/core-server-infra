@@ -32,6 +32,8 @@ ngrams_app_image_name = "ngrams_model"
 topicmodel_app_image_name = "topicmodeling_model"
 # ecs geolocations
 geolocations_app_image_name = "geolocations_model"
+# ecs text extraction
+textextraction_app_image_name = "deepex_text_extraction"
 
 # s3
 s3_bucketname_task_results = "nlp-tasks-processed-results"

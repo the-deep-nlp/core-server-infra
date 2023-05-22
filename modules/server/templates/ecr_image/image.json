@@ -170,6 +170,26 @@
         {
           "name": "GEOLOCATION_VPC_PRIVATE_SUBNET",
           "value": "${geo_vpc_private_subnet}"
+        },
+        {
+          "name": "TEXTEXTRACTION_ECS_CLUSTER_ID",
+          "value": "${textextraction_ecs_cluster_id}"
+        },
+        {
+          "name": "TEXTEXTRACTION_ECS_TASK_DEFN_ARN",
+          "value": "${textextraction_ecs_task_defn_arn}"
+        },
+        {
+          "name": "TEXTEXTRACTION_ECS_CONTAINER_NAME",
+          "value": "${textextraction_ecs_container_name}"
+        },
+        {
+          "name": "TEXTEXTRACTION_VPC_PRIVATE_SUBNET",
+          "value": "${textextraction_vpc_private_subnet}"
+        },
+        {
+          "name": "TEXTEXTRACTION_ECS_ENDPOINT",
+          "value": "${textextraction_ecs_endpoint}"
         }
       ],
       "secrets": [

@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "text_extraction"
+version = "0.1.0"
+description = ""
+authors = ["dev <nlp@thedeep.io>"]
+
+[tool.poetry.dependencies]
+python = ">=3.8"
+boto3 = "*"
+psycopg2-binary = "*"
+sentry-sdk = "==1.5.8"
+requests = "==2.26.0"
+fastapi = "^0.95.1"
+uvicorn = "^0.22.0"
+deep-parser = { git = "https://github.com/the-deep/deepex.git", rev="fd0b014cc5a08b50d448c5584220d312d430674b", branch = "master" }
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

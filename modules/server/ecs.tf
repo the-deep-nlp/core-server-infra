@@ -73,6 +73,13 @@ data "template_file" "config" {
     geo_ecs_task_defn_arn  = var.geo_ecs_task_defn_arn
     geo_ecs_container_name = var.geo_ecs_container_name
     geo_vpc_private_subnet = var.private_subnets[0]
+    # ECS Text Extraction
+    # Text Extraction
+    textextraction_ecs_cluster_id = aws_ecs_cluster.cluster.id
+    textextraction_ecs_task_defn_arn = var.textextraction_ecs_task_defn_arn
+    textextraction_ecs_container_name = var.textextraction_ecs_container_name
+    textextraction_vpc_private_subnet = var.private_subnets[0]
+    textextraction_ecs_endpoint = var.textextraction_ecs_endpoint
     # Sentry
     sentry_dsn_url = var.ssm_sentry_dsn_url_arn
     # s3
