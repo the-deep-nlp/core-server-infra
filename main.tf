@@ -420,6 +420,7 @@ module "deepex" {
 
   # s3
   s3_bucketname_task_results = module.s3.task_results_bucket_name
+  nlp_docs_conversion_bucket_name = module.s3.nlp_docs_conversion_bucket_name
 
   # cloudmap
   private_dns_namespace_id = module.cloudmap.private_dns_namespace_id

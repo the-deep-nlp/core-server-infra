@@ -53,7 +53,8 @@ resource "aws_iam_role_policy" "ecs-role-policy" {
                     "ssmmessages:CreateControlChannel",
                     "ssmmessages:CreateDataChannel",
                     "ssmmessages:OpenControlChannel",
-                    "ssmmessages:OpenDataChannel"
+                    "ssmmessages:OpenDataChannel",
+                    "lambda:InvokeFunction"
                 ],
                 "Resource": [
                   "${var.s3_bucketname_task_results_arn}",

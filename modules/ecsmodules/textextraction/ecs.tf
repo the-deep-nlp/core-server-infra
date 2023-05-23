@@ -58,6 +58,14 @@ resource "aws_ecs_task_definition" "task-def" {
         {
           "name": "ENVIRONMENT",
           "value": "${var.environment}"
+        },
+        {
+          "name": "DOCS_CONVERSION_BUCKET_NAME",
+          "value": "${var.nlp_docs_conversion_bucket_name}"
+        },
+        {
+          "name": "DOCS_CONVERT_LAMBDA_FN_NAME",
+          "value": "${var.lambda_docs_conversion_fn}"
         }
       ],
       "secrets": [
@@ -91,7 +99,7 @@ resource "aws_ecs_service" "service" {
   name            = "${var.ecs_service_name}-${var.environment}"
   cluster         = var.ecs_cluster_id
   task_definition = aws_ecs_task_definition.task-def.arn
-  desired_count   = 0
+  desired_count   = var.app_count
   launch_type     = "FARGATE"
 
   network_configuration {
