@@ -19,6 +19,9 @@ class UrlTypes(str, Enum):
 
 
 class ExtractContentType:
+    """
+    Gets the content type of the file from the link
+    """
     def __init__(self):
         self.content_types_pdf = ('application/pdf', 'pdf')
         self.content_types_html = ('text/html', 'text/html; charset=utf-8', 'text/html;charset=UTF-8',
@@ -36,7 +39,7 @@ class ExtractContentType:
         Retrieve the content type of the url
         """
         try:
-            response = requests.head(url, headers=req_headers)
+            response = requests.head(url, headers=req_headers, timeout=30)
             content_type = response.headers['Content-Type']
 
             logging.info("The content type of %s is %s", url, content_type)
@@ -45,8 +48,6 @@ class ExtractContentType:
                 return UrlTypes.PDF.value
             elif content_type in self.content_types_pdf:
                 return UrlTypes.PDF.value
-            elif content_type in self.content_types_html:
-                return UrlTypes.HTML.value
             elif url.endswith(".docx") or content_type in self.content_types_docx:
                 return UrlTypes.DOCX.value
             elif url.endswith(".doc") or content_type in self.content_types_doc:
@@ -59,6 +60,8 @@ class ExtractContentType:
                 return UrlTypes.PPTX.value
             elif url.endswith(".ppt") or content_type in self.content_types_ppt:
                 return UrlTypes.PPT.value
+            elif content_type in self.content_types_html:
+                return UrlTypes.HTML.value
             elif (content_type in self.content_types_img or 
                 any([
                     url.endswith(f".{extension}") for extension in [

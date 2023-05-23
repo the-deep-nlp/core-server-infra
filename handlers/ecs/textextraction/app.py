@@ -45,7 +45,7 @@ def home():
     return "This is Text Extraction ECS Task"
 
 @ecs_app.post("/extract_document")
-def gen_report(item: InputStructure):
+def extract_texts(item: InputStructure):
     """Generate reports"""
     client_id = item.client_id
     url = item.url
@@ -111,7 +111,7 @@ class TextExtractionHandler:
         self.signed_url_expiry_secs = os.environ.get("SIGNED_URL_EXPIRY_SECS", 86400) # 1 day
         self.bucket_name = os.environ.get("S3_BUCKET_NAME", None)
         self.docs_conversion_bucket_name = os.environ.get("DOCS_CONVERSION_BUCKET_NAME", None)
-        self.docs_convert_lambda_fn_name = os.environ.get("DOCS_CONVERT_FN_NAME", None)
+        self.docs_convert_lambda_fn_name = os.environ.get("DOCS_CONVERT_LAMBDA_FN_NAME", None)
 
         self.extract_content_type = ExtractContentType()
 
