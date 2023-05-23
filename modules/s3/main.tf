@@ -33,3 +33,21 @@ resource "aws_s3_bucket_ownership_controls" "s3_bucket_acl_ownership_processed" 
     object_ownership = "ObjectWriter"
   }
 }
+
+resource "aws_s3_bucket" "docs_conversion" {
+  bucket_prefix = "${var.nlp_docs_conversion_bucket}-${var.environment}-"
+  force_destroy = true
+}
+
+resource "aws_s3_bucket_acl" "docs_conversion" {
+  bucket = aws_s3_bucket.docs_conversion.id
+  acl    = "private"
+  depends_on = [ aws_s3_bucket_ownership_controls.s3_bucket_acl_ownership_docs_conversion ]
+}
+
+resource "aws_s3_bucket_ownership_controls" "s3_bucket_acl_ownership_docs_conversion" {
+  bucket = aws_s3_bucket.docs_conversion.id
+  rule {
+    object_ownership = "ObjectWriter"
+  }
+}
