@@ -21,4 +21,3 @@ RUN pip install --upgrade --no-cache-dir pip poetry \
     && pip uninstall -y poetry virtualenv-clone virtualenv
 
 COPY . /code/
-CMD [ "uvicorn", "app:ecs_app", "--host", "0.0.0.0", "--port", "8080" ]
