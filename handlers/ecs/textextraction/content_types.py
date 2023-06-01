@@ -17,6 +17,21 @@ class UrlTypes(str, Enum):
     XLS = 'xls'
     IMG = 'img'
 
+extension_to_enum_map = {
+    "pdf": UrlTypes.PDF,
+    "docx": UrlTypes.DOCX,
+    "doc": UrlTypes.MSWORD,
+    "xlsx": UrlTypes.XLSX,
+    "xls": UrlTypes.XLS,
+    "pptx": UrlTypes.PPTX,
+    "ppt": UrlTypes.PPT,
+    # Images
+    "jpg": UrlTypes.IMG,
+    "jpeg": UrlTypes.IMG,
+    "png": UrlTypes.IMG,
+    "gif": UrlTypes.IMG,
+    "bmp": UrlTypes.IMG,
+}
 
 class ExtractContentType:
     """
@@ -76,21 +91,7 @@ class ExtractContentType:
                 except Exception:
                     logging.error("Error while downloading the file from %s to check the file extension.", url)
                     return None
-                extension_to_enum_map = {
-                    "pdf": UrlTypes.PDF,
-                    "docx": UrlTypes.DOCX,
-                    "doc": UrlTypes.MSWORD,
-                    "xlsx": UrlTypes.XLSX,
-                    "xls": UrlTypes.XLS,
-                    "pptx": UrlTypes.PPTX,
-                    "ppt": UrlTypes.PPT,
-                    # Images
-                    "jpg": UrlTypes.IMG,
-                    "jpeg": UrlTypes.IMG,
-                    "png": UrlTypes.IMG,
-                    "gif": UrlTypes.IMG,
-                    "bmp": UrlTypes.IMG,
-                }
+                
                 file_extension = temp_filepath.split(".")[-1]
                 if file_extension not in extension_to_enum_map:
                     logging.warning("Could not determine the content-type of the %s", url)
