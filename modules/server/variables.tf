@@ -105,3 +105,8 @@ variable "ssm_sentry_dsn_url_arn" {}
 variable "nlp_server_bucket_static_name" {}
 variable "nlp_server_bucket_static_arn" {}
 variable "s3_bucketname_task_results_arn" {}
+
+# Text Extraction
+variable "textextraction_ecs_task_defn_arn" {}
+variable "textextraction_ecs_container_name" {}
+variable "textextraction_ecs_endpoint" {}

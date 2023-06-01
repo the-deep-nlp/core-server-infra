@@ -21,7 +21,7 @@ resource "aws_ecs_task_definition" "task-def" {
       "logConfiguration": {
           "logDriver": "awslogs",
           "options": {
-            "awslogs-group": "/ecs/summarization-v2-task-${var.environment}",
+            "awslogs-group": "/ecs/textextraction-task-${var.environment}",
             "awslogs-region": "${var.aws_region}",
             "awslogs-stream-prefix": "ecs"
           }
@@ -33,12 +33,6 @@ resource "aws_ecs_task_definition" "task-def" {
         }
       ],
       "essential": true,
-      "mountPoints": [
-          {
-              "containerPath": "/models",
-              "sourceVolume": "efs-volume"
-          }
-      ],
       "command": [
         "uvicorn", "app:ecs_app", "--host", "0.0.0.0", "--port", "${var.app_port}"
       ],
@@ -64,6 +58,14 @@ resource "aws_ecs_task_definition" "task-def" {
         {
           "name": "ENVIRONMENT",
           "value": "${var.environment}"
+        },
+        {
+          "name": "DOCS_CONVERSION_BUCKET_NAME",
+          "value": "${var.nlp_docs_conversion_bucket_name}"
+        },
+        {
+          "name": "DOCS_CONVERT_LAMBDA_FN_NAME",
+          "value": "${var.lambda_docs_conversion_fn}"
         }
       ],
       "secrets": [
@@ -91,13 +93,6 @@ resource "aws_ecs_task_definition" "task-def" {
   }
 ]
 DEFINITION
-  volume {
-    name = "efs-volume"
-    efs_volume_configuration {
-      file_system_id = var.efs_volume_id
-      root_directory = "/"
-    }
-  }
 }
 
 resource "aws_ecs_service" "service" {
@@ -126,11 +121,11 @@ resource "aws_ecs_service" "service" {
     var.iam_ecs_task_execution_policy_arn
   ]
   service_registries {
-    registry_arn = "${aws_service_discovery_service.subdomain.arn}"
+    registry_arn = "${aws_service_discovery_service.name.arn}"
   }
 }
 
-resource "aws_service_discovery_service" "subdomain" {
+resource "aws_service_discovery_service" "name" {
   name = "${var.local_sub_domain}-${var.environment}"
   dns_config {
     namespace_id = "${var.private_dns_namespace_id}"

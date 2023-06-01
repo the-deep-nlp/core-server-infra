@@ -50,10 +50,14 @@ resource "aws_iam_role_policy" "ecs-role-policy" {
                     "ecs:RunTask",
                     "iam:PassRole",
                     "sagemaker:InvokeEndpoint",
+                    "sagemaker:DescribeEndpoint",
+                    "sagemaker:DescribeModel",
+                    "sagemaker:ListTags",
                     "ssmmessages:CreateControlChannel",
                     "ssmmessages:CreateDataChannel",
                     "ssmmessages:OpenControlChannel",
-                    "ssmmessages:OpenDataChannel"
+                    "ssmmessages:OpenDataChannel",
+                    "lambda:InvokeFunction"
                 ],
                 "Resource": [
                   "${var.s3_bucketname_task_results_arn}",

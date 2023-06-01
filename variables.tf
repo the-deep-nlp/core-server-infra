@@ -37,6 +37,9 @@ variable "topicmodel_app_image_name" {}
 # geolocations ecs
 variable "geolocations_app_image_name" {}
 
+# text extraction ecs
+variable "textextraction_app_image_name" {}
+
 # db table
 variable "db_table_name" {}
 variable "db_table_callback_tracker" {}

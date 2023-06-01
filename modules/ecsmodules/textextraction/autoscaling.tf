@@ -1,6 +1,6 @@
 resource "aws_appautoscaling_target" "ecs_target" {
-  max_capacity       = var.summarization_scaling_max_capacity
-  min_capacity       = var.summarization_scaling_min_capacity
+  max_capacity       = var.textextraction_scaling_max_capacity
+  min_capacity       = var.textextraction_scaling_min_capacity
   resource_id        = "service/${var.ecs_cluster_id}/${var.ecs_service_name}-${var.environment}"
   scalable_dimension = "ecs:service:DesiredCount"
   service_namespace  = "ecs"
@@ -9,7 +9,7 @@ resource "aws_appautoscaling_target" "ecs_target" {
 }
 
 resource "aws_appautoscaling_policy" "ecs_target_cpu" {
-  name               = "summarization-application-scaling-policy-cpu-${var.environment}"
+  name               = "textextraction-application-scaling-policy-cpu-${var.environment}"
   policy_type        = "TargetTrackingScaling"
   resource_id        = aws_appautoscaling_target.ecs_target.resource_id
   scalable_dimension = aws_appautoscaling_target.ecs_target.scalable_dimension
@@ -19,13 +19,13 @@ resource "aws_appautoscaling_policy" "ecs_target_cpu" {
     predefined_metric_specification {
       predefined_metric_type = "ECSServiceAverageCPUUtilization"
     }
-    target_value = "${var.summarization_cpu_target_value}"
+    target_value = "${var.textextraction_cpu_target_value}"
   }
   depends_on = [aws_appautoscaling_target.ecs_target]
 }
 
 resource "aws_appautoscaling_policy" "ecs_target_memory" {
-  name               = "summarization-application-scaling-policy-memory-${var.environment}"
+  name               = "textextraction-application-scaling-policy-memory-${var.environment}"
   policy_type        = "TargetTrackingScaling"
   resource_id        = aws_appautoscaling_target.ecs_target.resource_id
   scalable_dimension = aws_appautoscaling_target.ecs_target.scalable_dimension
@@ -35,7 +35,7 @@ resource "aws_appautoscaling_policy" "ecs_target_memory" {
     predefined_metric_specification {
       predefined_metric_type = "ECSServiceAverageMemoryUtilization"
     }
-    target_value = "${var.summarization_mem_target_value}"
+    target_value = "${var.textextraction_mem_target_value}"
   }
   depends_on = [aws_appautoscaling_target.ecs_target]
 }
