@@ -18,7 +18,7 @@ from botocore.exceptions import ClientError
 
 from fastapi import FastAPI
 from pydantic import BaseModel
-from typing import Union
+from typing import Optional
 
 from deep_parser import TextFromFile, TextFromWeb
 from content_types import ExtractContentType, UrlTypes
@@ -33,15 +33,16 @@ sentry_sdk.init(SENTRY_DSN, environment=ENVIRONMENT, attach_stacktrace=True, tra
 
 class InputStructure(BaseModel):
     """Input Structure """
-    client_id: Union[str, None]
-    url: Union[str, None]
-    textextraction_id: Union[str, None]
-    callback_url: Union[str, None] = None
+    client_id: str
+    url: str
+    textextraction_id: str
+    callback_url: Optional[str] = None
 
 ecs_app = FastAPI()
 
 @ecs_app.get("/")
 def home():
+    """Home page message for test"""
     return "This is Text Extraction ECS Task"
 
 @ecs_app.post("/extract_document")
