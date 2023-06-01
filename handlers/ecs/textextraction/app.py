@@ -1,9 +1,7 @@
 import os
 import io
-import re
 import json
 import uuid
-import tempfile
 import base64
 import logging
 import psycopg2
@@ -13,7 +11,6 @@ import sentry_sdk
 from enum import Enum
 from pathlib import Path
 from datetime import date, datetime
-from botocore.client import Config
 from botocore.exceptions import ClientError
 
 from fastapi import FastAPI
@@ -24,6 +21,14 @@ from deep_parser import TextFromFile, TextFromWeb
 from content_types import ExtractContentType, UrlTypes
 
 from s3handler import Storage
+from utils import (
+    create_tempfile,
+    get_words_count,
+    preprocess_extracted_texts,
+    download_file,
+    generate_presigned_url,
+    invoke_conversion_lambda
+)
 
 logging.getLogger().setLevel(logging.INFO)
 
@@ -136,68 +141,47 @@ class TextExtractionHandler:
         if not self.db_table_name:
             logging.error("Database table name is not found.")
 
-
-    def invoke_conversion_lambda(self, tmp_filename, ext_type):
+    def _common_doc_handler(
+        self,
+        entries,
+        client_id,
+        textextraction_id,
+        callback_url,
+        total_pages=1
+    ):
         """
-        Invoke lambda function to convert documents(docx, pptx, xlsx) to pdf
+        Common doc handler for pdf and webpages
         """
-        lambda_client = boto3.client('lambda', region_name=self.aws_region)
-        payload = json.dumps({
-            "file": tmp_filename,
-            "bucket": self.docs_conversion_bucket_name,
-            "ext": ext_type,
-            "fromS3": 1
-        })
+        entries_list = [item for sublist in entries for item in sublist]
+        extracted_text = "\n".join(entries_list)
+        extracted_text = preprocess_extracted_texts(extracted_text)
+        total_words_count = get_words_count(extracted_text)
+        date_today = date.today().isoformat()
 
-        docs_conversion_lambda_response = lambda_client.invoke(
-            FunctionName=self.docs_convert_lambda_fn_name,
-            InvocationType="RequestResponse",
-            Payload=payload
+        text_presigned_url = self.upload_text_in_s3(
+            extracted_text=extracted_text,
+            bucket_name=self.bucket_name,
+            key=f"textextraction/{date_today}/{textextraction_id}/summary.txt"
         )
-        docs_conversion_lambda_response_json = json.loads(
-            docs_conversion_lambda_response["Payload"].read().decode("utf-8")
-        )
-        return docs_conversion_lambda_response_json
 
-    def _create_tempfile(self, response):
-        """
-        Creates a temporary file
-        """
-        tempf = tempfile.NamedTemporaryFile(mode="w+b")
-        for chunk in response.iter_content(chunk_size=128):
-            tempf.write(chunk)
-        tempf.seek(0)
-        return tempf
-
-    def _download_file(self, filename_s3, bucketname, filename_local):
-        """
-        Downloads the file
-        """
-        s3_client = boto3.client("s3", region_name=self.aws_region)
-        try:
-            s3_client.download_file(
-                bucketname,
-                filename_s3,
-                filename_local
+        if text_presigned_url:
+            self.dispatch_results(
+                client_id,
+                textextraction_id,
+                callback_url,
+                status=TextExtractionStatus.SUCCESS.value,
+                text_presigned_url=text_presigned_url,
+                total_pages=total_pages,
+                total_words_count=total_words_count
             )
-            logging.info("The file is downloaded in the lambda /tmp directory.")
-        except ClientError as cexc:
-            logging.error("Client error occurred. %s", str(cexc))
-            return False
-        return True
+        else:
+            self.dispatch_results(
+                client_id,
+                textextraction_id,
+                callback_url,
+                status=TextExtractionStatus.FAILED.value
+            )
 
-    def _get_words_count(self, text):
-        if text:
-            w = re.sub(r'[^\w\s]', '', text)
-            w = re.sub(r'_', '', w)
-            return len(w.split())
-        return 0
-
-
-    def _preprocess_extracted_texts(self, text):
-        extracted_text = text.replace("\x00", "")  # remove null chars
-        extracted_text = extracted_text.encode('utf-8', 'ignore').decode('utf-8')
-        return extracted_text
 
     def handle_pdf_text(self, file_path, file_name, client_id, textextraction_id, callback_url):
         """ Extract texts from pdf documents """
@@ -216,40 +200,10 @@ class TextExtractionHandler:
                 status=TextExtractionStatus.FAILED.value
             )
             return
-
-        entries_list = [item for sublist in entries for item in sublist]
-        extracted_text = "\n".join(entries_list)
-
-        extracted_text = self._preprocess_extracted_texts(extracted_text)
-
+        
         total_pages = len(entries)
-        total_words_count = self._get_words_count(extracted_text)
 
-        date_today = date.today().isoformat()
-
-        text_presigned_url = self.upload_text_in_s3(
-            extracted_text=extracted_text,
-            bucket_name=self.bucket_name,
-            key=f"textextraction/{date_today}/{textextraction_id}/summary.txt"
-        )
-
-        if text_presigned_url:
-            self.dispatch_results(
-                client_id,
-                textextraction_id,
-                callback_url,
-                status=TextExtractionStatus.SUCCESS.value,
-                text_presigned_url=text_presigned_url,
-                total_pages=total_pages,
-                total_words_count=total_words_count
-            )
-        else:
-            self.dispatch_results(
-                client_id,
-                textextraction_id,
-                callback_url,
-                status=TextExtractionStatus.FAILED.value
-            )
+        self._common_doc_handler(entries, client_id, textextraction_id, callback_url, total_pages=total_pages)
 
     def handle_html_text(self, url, file_name, client_id, textextraction_id, callback_url):
         """ Extract html texts """
@@ -266,48 +220,14 @@ class TextExtractionHandler:
             )
             return
 
-        entries_list = [item for sublist in entries for item in sublist]
-        extracted_text = "\n".join(entries_list)
-
-        extracted_text = self._preprocess_extracted_texts(extracted_text)
-
-        total_pages = 1
-        total_words_count = self._get_words_count(extracted_text)
-
-        date_today = date.today().isoformat()
-        
-        date_today = date.today().isoformat()
-
-        text_presigned_url = self.upload_text_in_s3(
-            extracted_text=extracted_text,
-            bucket_name=self.bucket_name,
-            key=f"textextraction/{date_today}/{textextraction_id}/summary.txt"
-        )
-
-        if text_presigned_url:
-            self.dispatch_results(
-                client_id,
-                textextraction_id,
-                callback_url,
-                status=TextExtractionStatus.SUCCESS.value,
-                text_presigned_url=text_presigned_url,
-                total_pages=total_pages,
-                total_words_count=total_words_count
-            )
-        else:
-            self.dispatch_results(
-                client_id,
-                textextraction_id,
-                callback_url,
-                status=TextExtractionStatus.FAILED.value
-            )
+        self._common_doc_handler(entries, client_id, textextraction_id, callback_url)
 
     def __call__(self, client_id, url, textextraction_id, callback_url, file_name="extract_text.txt"):
         content_type = self.extract_content_type.get_content_type(url, self.headers)
 
         if content_type == UrlTypes.PDF.value:  # assume it is http/https pdf weblink
             response = requests.get(url, headers=self.headers, stream=True, timeout=30)
-            tempf = self._create_tempfile(response)
+            tempf = create_tempfile(response)
 
             self.handle_pdf_text(
                 tempf.name, file_name, client_id, textextraction_id, callback_url
@@ -330,19 +250,25 @@ class TextExtractionHandler:
             response = requests.get(url, headers=self.headers, stream=True, timeout=60)
 
             s3_uploader = Storage(self.docs_conversion_bucket_name, "")
-            tempf = self._create_tempfile(response)
+            tempf = create_tempfile(response)
             with open(tempf.name, "rb") as tmpf:
                 s3_uploader.upload(tmp_filename, tmpf)
                 # Converts docx, xlsx, doc, xls, ppt, pptx type files to pdf using lambda
-                docs_conversion_lambda_response_json = self.invoke_conversion_lambda(tmp_filename, ext_type)
+                docs_conversion_lambda_response_json = invoke_conversion_lambda(
+                    self.aws_region,
+                    self.docs_conversion_bucket_name,
+                    self.docs_convert_lambda_fn_name,
+                    tmp_filename,
+                    ext_type
+                )
 
                 if ("statusCode" in docs_conversion_lambda_response_json and
-                    docs_conversion_lambda_response_json["statusCode"] == 200):
+                        docs_conversion_lambda_response_json["statusCode"] == 200):
                     bucket_name = docs_conversion_lambda_response_json["bucket"]
                     file_path = docs_conversion_lambda_response_json["file"]
                     filename = file_path.split("/")[-1]
 
-                    if self._download_file(file_path, bucket_name, f"/tmp/{filename}"):
+                    if download_file(self.aws_region, file_path, bucket_name, f"/tmp/{filename}"):
                         self.handle_pdf_text(
                             f"/tmp/{filename}", file_name, client_id, textextraction_id, callback_url
                         )
@@ -377,33 +303,6 @@ class TextExtractionHandler:
                 status=TextExtractionStatus.FAILED.value
             )
 
-    def generate_presigned_url(self, bucket_name, key):
-        """
-        Generates a presigned url of the file stored in s3
-        """
-        # Note that the bucket and service(e.g. summarization) should run on the same aws region
-        try:
-            s3_client = boto3.client(
-                "s3",
-                region_name=self.aws_region,
-                config=Config(
-                    signature_version="s3v4",
-                    s3={"addressing_style": "path"}
-                )
-            )
-            url = s3_client.generate_presigned_url(
-                ClientMethod="get_object",
-                Params={
-                    "Bucket": bucket_name,
-                    "Key": key
-                },
-                ExpiresIn=self.signed_url_expiry_secs
-            )
-        except ClientError as cexc:
-            logging.error("Error while generating presigned url %s", cexc)
-            return None
-        return url
-
     def upload_text_in_s3(self, extracted_text, bucket_name="test-ecs-parser11", key="extracted_text.txt"):
         """
         Stores the extracted text in s3
@@ -419,7 +318,12 @@ class TextExtractionHandler:
                 key,
                 ExtraArgs={"ContentType": "text/plain; charset=utf-8"}
             )
-            return self.generate_presigned_url(bucket_name, key)
+            return generate_presigned_url(
+                self.aws_region,
+                bucket_name,
+                key,
+                self.signed_url_expiry_secs
+            )
         except ClientError as cexp:
             logging.error(str(cexp))
             return None
