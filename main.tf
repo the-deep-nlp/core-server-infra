@@ -12,13 +12,13 @@ terraform {
     region = "us-east-1"
     #   dynamodb_table  = "terraform-lock-integration-db"
     encrypt = true
-    profile = "nlp_tf"
+    #profile = "nlp_tf"
   }
 }
 
 provider "aws" {
   region  = var.aws_region
-  profile = var.aws_profile
+  #profile = var.aws_profile
   #shared_credentials_files = ["~/.aws/credentials"]
 }
 
