@@ -23,17 +23,17 @@ redis_num_cache_nodes = 1
 redis_port            = 6379
 
 # ecs summarization
-summarization_app_image_name = "summarization_model"
+summarization_app_image_name = "summarization_model_staging"
 # ecs summarization v2
-summarization_v2_app_image_name = "summarization_model_v2"
+summarization_v2_app_image_name = "summarization_model_v2_staging"
 # ecs ngrams
-ngrams_app_image_name = "ngrams_model"
+ngrams_app_image_name = "ngrams_model_staging"
 # ecs topicmodel
-topicmodel_app_image_name = "topicmodeling_model"
+topicmodel_app_image_name = "topicmodeling_model_staging"
 # ecs geolocations
-geolocations_app_image_name = "geolocations_model"
+geolocations_app_image_name = "geolocations_model_staging"
 # ecs text extraction
-textextraction_app_image_name = "deepex_text_extraction"
+textextraction_app_image_name = "deepex_text_extraction_staging"
 
 # s3
 s3_bucketname_task_results = "nlp-tasks-processed-results"
