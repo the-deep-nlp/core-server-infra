@@ -13,7 +13,7 @@ from pathlib import Path
 from datetime import date, datetime
 from botocore.exceptions import ClientError
 
-from fastapi import FastAPI
+from fastapi import FastAPI, BackgroundTasks
 from pydantic import BaseModel
 from typing import Optional
 
@@ -51,17 +51,23 @@ def home():
     return "This is Text Extraction ECS Task"
 
 @ecs_app.post("/extract_document")
-def extract_texts(item: InputStructure):
+async def extract_texts(item: InputStructure, background_tasks: BackgroundTasks):
     """Generate reports"""
     client_id = item.client_id
     url = item.url
     textextraction_id = item.textextraction_id
     callback_url = item.callback_url
 
-    text_extraction_handler(client_id, url, textextraction_id, callback_url)
+    background_tasks.add_task(
+        text_extraction_handler,
+        client_id,
+        url,
+        textextraction_id,
+        callback_url
+    )
 
     return {
-        "output": "Processed successfully"
+        "message": "Task received and running in background."
     }
 
 

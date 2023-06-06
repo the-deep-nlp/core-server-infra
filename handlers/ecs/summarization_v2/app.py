@@ -14,7 +14,7 @@ from botocore.exceptions import ClientError
 from huggingface_hub import snapshot_download
 from reports_generator import ReportsGenerator
 
-from fastapi import FastAPI
+from fastapi import FastAPI, BackgroundTasks
 from pydantic import BaseModel
 from typing import Union
 
@@ -41,7 +41,7 @@ def home():
     return "Welcome to the ECS Task of Summarization Module v2."
 
 @ecs_app.post("/generate_report")
-def gen_report(item: InputStructure):
+async def gen_report(item: InputStructure, background_tasks: BackgroundTasks):
     """Generate reports"""
     entries_url = item.entries_url
     client_id = item.client_id
@@ -50,10 +50,16 @@ def gen_report(item: InputStructure):
 
     entries = reports_generator_handler.download_prepare_entries(entries_url=entries_url)
 
-    reports_generator_handler(client_id, entries, summarization_id, callback_url)
+    background_tasks.add_task(
+        reports_generator_handler,
+        client_id,
+        entries,
+        summarization_id,
+        callback_url
+    )
 
     return {
-        "output": "Processed successfully"
+        "message": "Task received and running in background."
     }
 
 
