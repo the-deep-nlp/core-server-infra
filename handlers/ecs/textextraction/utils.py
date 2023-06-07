@@ -2,8 +2,6 @@ import re
 import json
 import tempfile
 import logging
-import boto3
-from botocore.client import Config
 from botocore.exceptions import ClientError
 
 logging.getLogger().setLevel(logging.INFO)
@@ -36,11 +34,10 @@ def preprocess_extracted_texts(text):
     extracted_text = extracted_text.encode('utf-8', 'ignore').decode('utf-8')
     return extracted_text
 
-def download_file(aws_region, filename_s3, bucketname, filename_local):
+def download_file(s3_client, filename_s3, bucketname, filename_local):
     """
     Downloads the file
     """
-    s3_client = boto3.client("s3", region_name=aws_region)
     try:
         s3_client.download_file(
             bucketname,
@@ -54,7 +51,7 @@ def download_file(aws_region, filename_s3, bucketname, filename_local):
     return True
 
 def generate_presigned_url(
-    aws_region,
+    s3_client_presigned_url,
     bucket_name,
     key,
     signed_url_expiry_secs
@@ -64,15 +61,7 @@ def generate_presigned_url(
     """
     # Note that the bucket and service(e.g. summarization) should run on the same aws region
     try:
-        s3_client = boto3.client(
-            "s3",
-            region_name=aws_region,
-            config=Config(
-                signature_version="s3v4",
-                s3={"addressing_style": "path"}
-            )
-        )
-        url = s3_client.generate_presigned_url(
+        url = s3_client_presigned_url.generate_presigned_url(
             ClientMethod="get_object",
             Params={
                 "Bucket": bucket_name,
@@ -86,7 +75,7 @@ def generate_presigned_url(
     return url
 
 def invoke_conversion_lambda(
-    aws_region,
+    lambda_client,
     docs_conversion_bucket_name,
     docs_convert_lambda_fn_name,
     tmp_filename,
@@ -96,7 +85,6 @@ def invoke_conversion_lambda(
     Invoke lambda function to convert documents(docx, pptx, xlsx) to pdf
     """
     logging.info("File conversion request initiated.")
-    lambda_client = boto3.client('lambda', region_name=aws_region)
     payload = json.dumps({
         "file": tmp_filename,
         "bucket": docs_conversion_bucket_name,
