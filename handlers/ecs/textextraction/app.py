@@ -11,6 +11,7 @@ import sentry_sdk
 from enum import Enum
 from pathlib import Path
 from datetime import date, datetime
+from botocore.client import Config
 from botocore.exceptions import ClientError
 
 from fastapi import FastAPI, BackgroundTasks
@@ -34,7 +35,21 @@ logging.getLogger().setLevel(logging.INFO)
 
 SENTRY_DSN = os.environ.get("SENTRY_DSN")
 ENVIRONMENT = os.environ.get("ENVIRONMENT")
+AWS_REGION = os.environ.get("AWS_REGION", "us-east-1")
+
 sentry_sdk.init(SENTRY_DSN, environment=ENVIRONMENT, attach_stacktrace=True, traces_sample_rate=1.0)
+
+# Note: boto3 initialization outside class to make it thread safe.
+s3_client = boto3.client("s3", region_name=AWS_REGION)
+s3_client_presigned_url = boto3.client(
+    "s3",
+    region_name=AWS_REGION,
+    config=Config(
+        signature_version="s3v4",
+        s3={"addressing_style": "path"}
+    )
+)
+lambda_client = boto3.client('lambda', region_name=AWS_REGION)
 
 class InputStructure(BaseModel):
     """Input Structure """
@@ -119,7 +134,6 @@ class TextExtractionHandler:
     Text extraction from the documents(e.g. pdf, docx, xlsx, pptx) or websites
     """
     def __init__(self):
-        self.aws_region = os.environ.get("AWS_REGION", "us-east-1")
         self.signed_url_expiry_secs = os.environ.get("SIGNED_URL_EXPIRY_SECS", 86400) # 1 day
         self.bucket_name = os.environ.get("S3_BUCKET_NAME", None)
         self.docs_conversion_bucket_name = os.environ.get("DOCS_CONVERSION_BUCKET_NAME", None)
@@ -261,7 +275,7 @@ class TextExtractionHandler:
                 s3_uploader.upload(tmp_filename, tmpf)
                 # Converts docx, xlsx, doc, xls, ppt, pptx type files to pdf using lambda
                 docs_conversion_lambda_response_json = invoke_conversion_lambda(
-                    self.aws_region,
+                    lambda_client,
                     self.docs_conversion_bucket_name,
                     self.docs_convert_lambda_fn_name,
                     tmp_filename,
@@ -274,7 +288,7 @@ class TextExtractionHandler:
                     file_path = docs_conversion_lambda_response_json["file"]
                     filename = file_path.split("/")[-1]
 
-                    if download_file(self.aws_region, file_path, bucket_name, f"/tmp/{filename}"):
+                    if download_file(s3_client, file_path, bucket_name, f"/tmp/{filename}"):
                         self.handle_pdf_text(
                             f"/tmp/{filename}", file_name, client_id, textextraction_id, callback_url
                         )
@@ -325,7 +339,7 @@ class TextExtractionHandler:
                 ExtraArgs={"ContentType": "text/plain; charset=utf-8"}
             )
             return generate_presigned_url(
-                self.aws_region,
+                s3_client_presigned_url,
                 bucket_name,
                 key,
                 self.signed_url_expiry_secs

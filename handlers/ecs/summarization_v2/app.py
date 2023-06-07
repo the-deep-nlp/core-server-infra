@@ -26,6 +26,17 @@ SENTRY_DSN = os.environ.get("SENTRY_DSN")
 ENVIRONMENT = os.environ.get("ENVIRONMENT")
 sentry_sdk.init(SENTRY_DSN, environment=ENVIRONMENT, attach_stacktrace=True, traces_sample_rate=1.0)
 
+# Note: boto3 initialization outside class to make it thread safe.
+# s3_client for generating presigned Url.
+s3_client = boto3.client(
+    "s3",
+    region_name=os.environ.get("AWS_REGION", "us-east-1"),
+    config=Config(
+        signature_version="s3v4",
+        s3={"addressing_style": "path"}
+    )
+)
+
 class InputStructure(BaseModel):
     """Input Str"""
     entries_url: Union[str, None] = None
@@ -113,7 +124,6 @@ class ReportsGeneratorHandler:
     def __init__(self):
         self.repgenerator = None
 
-        self.aws_region = os.environ.get("AWS_REGION", "us-east-1")
         self.signed_url_expiry_secs = os.environ.get("SIGNED_URL_EXPIRY_SECS", 86400) # 1 day
         self.bucket_name = os.environ.get("S3_BUCKET_NAME", None)
 
@@ -204,14 +214,6 @@ class ReportsGeneratorHandler:
         """
         # Note that the bucket and service(e.g. summarization) should run on the same aws region
         try:
-            s3_client = boto3.client(
-                "s3",
-                region_name=self.aws_region,
-                config=Config(
-                    signature_version="s3v4",
-                    s3={"addressing_style": "path"}
-                )
-            )
             url = s3_client.generate_presigned_url(
                 ClientMethod="get_object",
                 Params={
