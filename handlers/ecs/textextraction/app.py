@@ -393,14 +393,15 @@ class TextExtractionHandler:
         """
         Sends the results in a callback url
         """
+        # TODO: images_path is currently empty list; handle it later when required.
         try:
             response = requests.post(
                 callback_url,
                 headers=self.headers,
                 data=json.dumps({
                     "client_id": client_id,
-                    "text_presigned_url": text_presigned_url,
-                    "images_presigned_url": None,
+                    "text_path": text_presigned_url,
+                    "images_path": [],
                     "total_pages": total_pages,
                     "total_words_count": total_words_count,
                     "extraction_status": status
