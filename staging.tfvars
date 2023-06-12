@@ -7,7 +7,7 @@ cidr_block         = "172.20.0.0/16"
 availability_zones = ["us-east-1a", "us-east-1b"]
 
 # ecs
-app_image      = "nlp-server"
+app_image      = "nlp-server-staging"
 app_port       = 8000
 fargate_cpu    = "2048"
 fargate_memory = "4096"
