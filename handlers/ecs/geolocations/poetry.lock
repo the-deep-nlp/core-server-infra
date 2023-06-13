@@ -290,9 +290,9 @@ files = [
 ]
 
 [[package]]
-name = "geolocation-generator"
+name = "geolocation_generator"
 version = "0.1"
-description = "Detect geolocation entities from the texts"
+description = ""
 category = "main"
 optional = false
 python-versions = "*"
@@ -560,9 +560,9 @@ files = [
 ]
 
 [[package]]
-name = "nlp-modules-utils"
+name = "nlp_modules_utils"
 version = "0.1"
-description = "Helper utils functions"
+description = ""
 category = "main"
 optional = false
 python-versions = "*"
@@ -577,8 +577,8 @@ requests = "2.31.0"
 [package.source]
 type = "git"
 url = "https://github.com/the-deep-nlp/nlp-modules-utils.git"
-reference = "c3bb503"
-resolved_reference = "c3bb503dd9e493a41ebfa3ec1186cd27cc395557"
+reference = "74f3f2c"
+resolved_reference = "74f3f2c0e63bf72f13d7abed12f47d88a054fdd5"
 
 [[package]]
 name = "nltk"
@@ -1696,4 +1696,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "e8bfeafdacb0e57f9e343286c23ce8aca7d71461b0cf69d76e592ced8f19ed73"
+content-hash = "017f600f38811aada7084da31396c364d8427edce4915487268eb56754a1f9b0"

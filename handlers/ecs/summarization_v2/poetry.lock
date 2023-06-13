@@ -392,8 +392,8 @@ requests = "2.31.0"
 [package.source]
 type = "git"
 url = "https://github.com/the-deep-nlp/nlp-modules-utils.git"
-reference = "c3bb503"
-resolved_reference = "c3bb503dd9e493a41ebfa3ec1186cd27cc395557"
+reference = "74f3f2c"
+resolved_reference = "74f3f2c0e63bf72f13d7abed12f47d88a054fdd5"
 
 [[package]]
 name = "numpy"
@@ -1164,9 +1164,9 @@ typing-extensions = {version = ">=3.10.0", markers = "python_version < \"3.10\""
 full = ["httpx (>=0.22.0)", "itsdangerous", "jinja2", "python-multipart", "pyyaml"]
 
 [[package]]
-name = "the_deep_reports_generator"
+name = "the-deep-reports-generator"
 version = "0.1"
-description = ""
+description = "A summarization tool designed to extract the most relevant information from long texts."
 category = "main"
 optional = false
 python-versions = "*"
@@ -1428,4 +1428,4 @@ standard = ["colorama (>=0.4)", "httptools (>=0.5.0)", "python-dotenv (>=0.13)",
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8"
-content-hash = "a8f5c1f16545e0a6d51569249beb4610e1cade576dbbefcfbea2c928c12f237e"
+content-hash = "12f03154de2b9b976d6563effd565ef638e80ae01d1736ea3a75088468cf4b6d"
