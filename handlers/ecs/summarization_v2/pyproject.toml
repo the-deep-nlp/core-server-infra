@@ -6,13 +6,12 @@ authors = ["dev <nlp@thedeep.io>"]
 
 [tool.poetry.dependencies]
 python = ">=3.8"
-boto3 = "*"
 huggingface-hub = "*"
-psycopg2-binary = "*"
 sentry-sdk = "==1.5.8"
 the_deep_reports_generator = { git = "https://github.com/the-deep-nlp/the-deep-reports-generator", rev = "e371d31", branch = "main" }
 fastapi = "^0.95.1"
 uvicorn = "^0.22.0"
+nlp_modules_utils = { git = "https://github.com/the-deep-nlp/nlp-modules-utils.git", rev = "c3bb503", branch = "main" }
 
 [tool.poetry.dev-dependencies]
 
