@@ -1,18 +1,13 @@
 import os
-import io
-import json
 import uuid
 import base64
 import logging
-import psycopg2
 import requests
 import boto3
 import sentry_sdk
-from enum import Enum
 from pathlib import Path
-from datetime import date, datetime
+from datetime import date
 from botocore.client import Config
-from botocore.exceptions import ClientError
 
 from fastapi import FastAPI, BackgroundTasks
 from pydantic import BaseModel
@@ -27,8 +22,17 @@ from utils import (
     get_words_count,
     preprocess_extracted_texts,
     download_file,
-    generate_presigned_url,
     invoke_conversion_lambda
+)
+from nlp_modules_utils import (
+    Database,
+    StateHandler,
+    prepare_sql_statement_success,
+    prepare_sql_statement_failure,
+    status_update_db,
+    upload_to_s3,
+    send_request_on_callback,
+    update_db_table_callback_retry
 )
 
 logging.getLogger().setLevel(logging.INFO)
@@ -85,50 +89,6 @@ async def extract_texts(item: InputStructure, background_tasks: BackgroundTasks)
         "message": "Task received and running in background."
     }
 
-
-class TextExtractionStatus(Enum):
-    """
-    List of categories to indicate the status of task
-    """
-    INITIATED = 1
-    SUCCESS = 2
-    FAILED = 3
-    INPUT_URL_PROCESS_FAILED = 4
-
-class Database:
-    """
-    Class to handle database connections
-    """
-    def __init__(
-        self,
-        endpoint: str,
-        database: str,
-        username: str,
-        password: str,
-        port: int=5432,
-    ):
-        self.endpoint = endpoint
-        self.database = database
-        self.username = username
-        self.password = password
-        self.port = port
-
-    def __call__(self):
-        try:
-            conn = psycopg2.connect(
-                host=self.endpoint,
-                port=self.port,
-                database=self.database,
-                user=self.username,
-                password=self.password
-            )
-            cur = conn.cursor()
-            return conn, cur
-        except Exception as exc:
-            logging.error("Database connection failed %s", exc)
-            return None, None
-
-
 class TextExtractionHandler:
     """
     Text extraction from the documents(e.g. pdf, docx, xlsx, pptx) or websites
@@ -178,10 +138,14 @@ class TextExtractionHandler:
         total_words_count = get_words_count(extracted_text)
         date_today = date.today().isoformat()
 
-        text_presigned_url = self.upload_text_in_s3(
-            extracted_text=extracted_text,
+        text_presigned_url = upload_to_s3(
+            contents=extracted_text,
+            contents_type="text/plain; charset=utf-8",
             bucket_name=self.bucket_name,
-            key=f"textextraction/{date_today}/{textextraction_id}/summary.txt"
+            key=f"textextraction/{date_today}/{textextraction_id}/extracted_text.txt",
+            aws_region=AWS_REGION,
+            s3_client=s3_client_presigned_url,
+            signed_url_expiry_secs=self.signed_url_expiry_secs
         )
 
         if text_presigned_url:
@@ -189,7 +153,7 @@ class TextExtractionHandler:
                 client_id,
                 textextraction_id,
                 callback_url,
-                status=TextExtractionStatus.SUCCESS.value,
+                status=StateHandler.SUCCESS.value,
                 text_presigned_url=text_presigned_url,
                 total_pages=total_pages,
                 total_words_count=total_words_count
@@ -199,9 +163,8 @@ class TextExtractionHandler:
                 client_id,
                 textextraction_id,
                 callback_url,
-                status=TextExtractionStatus.FAILED.value
+                status=StateHandler.FAILED.value
             )
-
 
     def handle_pdf_text(self, file_path, file_name, client_id, textextraction_id, callback_url):
         """ Extract texts from pdf documents """
@@ -217,7 +180,7 @@ class TextExtractionHandler:
                 client_id,
                 textextraction_id,
                 callback_url,
-                status=TextExtractionStatus.FAILED.value
+                status=StateHandler.FAILED.value
             )
             return
         
@@ -236,7 +199,7 @@ class TextExtractionHandler:
                 client_id,
                 textextraction_id,
                 callback_url,
-                status=TextExtractionStatus.FAILED.value
+                status=StateHandler.FAILED.value
             )
             return
 
@@ -302,17 +265,17 @@ class TextExtractionHandler:
                     client_id,
                     textextraction_id,
                     callback_url,
-                    status=TextExtractionStatus.FAILED.value
+                    status=StateHandler.FAILED.value
                 )
                 # s3_file_path, s3_images_path, total_pages, total_words_count = None, None, -1, -1
-                # extraction_status = TextExtractionStatus.FAILED.value
+                # extraction_status = StateHandler.FAILED.value
         elif content_type == UrlTypes.IMG.value:
             logging.warning("Text extraction from Images is not available.")
             self.dispatch_results(
                 client_id,
                 textextraction_id,
                 callback_url,
-                status=TextExtractionStatus.FAILED.value
+                status=StateHandler.FAILED.value
             )
         else:
             logging.error("Text extraction is not available for this content type - %s", content_type)
@@ -320,102 +283,8 @@ class TextExtractionHandler:
                 client_id,
                 textextraction_id,
                 callback_url,
-                status=TextExtractionStatus.FAILED.value
+                status=StateHandler.FAILED.value
             )
-
-    def upload_text_in_s3(self, extracted_text, bucket_name="test-ecs-parser11", key="extracted_text.txt"):
-        """
-        Stores the extracted text in s3
-        """
-        try:
-            session = boto3.Session()
-            s3_resource = session.resource("s3")
-            bucket = s3_resource.Bucket(bucket_name)
-            extracted_text_bytes = bytes(extracted_text, "utf-8")
-            extracted_text_bytes_obj = io.BytesIO(extracted_text_bytes)
-            bucket.upload_fileobj(
-                extracted_text_bytes_obj,
-                key,
-                ExtraArgs={"ContentType": "text/plain; charset=utf-8"}
-            )
-            return generate_presigned_url(
-                s3_client_presigned_url,
-                bucket_name,
-                key,
-                self.signed_url_expiry_secs
-            )
-        except ClientError as cexp:
-            logging.error(str(cexp))
-            return None
-
-
-    def status_update_db(self, sql_statement):
-        """
-        Updates the status in the database
-        """
-        db = Database(**self.db_config)
-        db_conn, db_cursor = db()
-        if db_cursor:
-            try:
-                db_cursor.execute(sql_statement)
-                logging.info("Db updated. Number of rows affected: %s", db_cursor.rowcount)
-                db_conn.commit()
-                db_cursor.close()
-            except (Exception, psycopg2.DatabaseError) as error:
-                logging.error(error)
-            finally:
-                if db_conn is not None:
-                    db_conn.close()
-    
-    def _update_db_table_callback_retry(self, id):
-        """
-        Updates the table whenever the callback fails
-        """
-        if self.db_table_callback_tracker and id:
-            now_date = datetime.now().isoformat()
-            self.status_update_db(
-                sql_statement=f""" INSERT INTO {self.db_table_callback_tracker} 
-                                (request_unique_id, created_at, modified_at, retries_count, status) 
-                                VALUES ('{id}', '{now_date}', '{now_date}', 0, 3) """  # status = 3(Retrying)
-            )
-            logging.info("Updated the db table for callback retries.")
-
-    def send_request_on_callback(
-        self,
-        client_id,
-        callback_url,
-        textextraction_id,
-        status,
-        text_presigned_url,
-        total_pages,
-        total_words_count
-    ):
-        """
-        Sends the results in a callback url
-        """
-        # TODO: images_path is currently empty list; handle it later when required.
-        try:
-            response = requests.post(
-                callback_url,
-                headers=self.headers,
-                data=json.dumps({
-                    "client_id": client_id,
-                    "text_path": text_presigned_url,
-                    "images_path": [],
-                    "total_pages": total_pages,
-                    "total_words_count": total_words_count,
-                    "extraction_status": status
-                }),
-                timeout=30
-            )
-        except requests.exceptions.RequestException as rexc:
-            logging.error("Exception occurred while sending request %s", str(rexc))
-            self._update_db_table_callback_retry(textextraction_id)
-        if response.status_code == 200:
-            logging.info("Successfully sent the request on callback url")
-        else:
-            logging.error("Error while sending the request on callback url")
-            self._update_db_table_callback_retry(textextraction_id)
 
     def dispatch_results(
         self,
@@ -430,26 +299,50 @@ class TextExtractionHandler:
         """
         Dispatch results to callback url or write to database
         """
+        response_data = {
+            "client_id": client_id,
+            "text_path": text_presigned_url,
+            "images_path": [],
+            "total_pages": total_pages,
+            "total_words_count": total_words_count,
+            "extraction_status": status
+        }
         if callback_url:
-            self.send_request_on_callback(
-                client_id,
+            callback_response = send_request_on_callback(
                 callback_url,
-                textextraction_id,
-                status=status,
-                text_presigned_url=text_presigned_url,
-                total_pages=total_pages,
-                total_words_count=total_words_count
+                response_data=response_data,
+                headers=self.headers
             )
+            if not callback_response:
+                db_client = Database(**self.db_config)
+                db_conn, db_cursor = db_client.db_connection()
+                update_db_table_callback_retry(
+                    db_conn,
+                    db_cursor,
+                    textextraction_id,
+                    self.db_table_callback_tracker
+                )
+        # Setup database connections
+        db_client = Database(**self.db_config)
+        db_conn, db_cursor = db_client.db_connection()
+
         if text_presigned_url and self.db_table_name: # update for presigned url
-            self.status_update_db(
-                sql_statement=f""" UPDATE {self.db_table_name} SET status='{status}', result_s3_link='{text_presigned_url}' WHERE unique_id='{textextraction_id}' """
+            sql_statement = prepare_sql_statement_success(
+                textextraction_id,
+                self.db_table_name,
+                status,
+                response_data
             )
+            status_update_db(db_conn, db_cursor, sql_statement)
             logging.info("Updated the db table with event status %s", str(status))
         elif self.db_table_name:
             # Presigned url generation failed
-            self.status_update_db(
-                sql_statement=f""" UPDATE {self.db_table_name} SET status='{status}' WHERE unique_id='{textextraction_id}' """
+            sql_statement = prepare_sql_statement_failure(
+                textextraction_id,
+                self.db_table_name,
+                status
             )
+            status_update_db(db_conn, db_cursor, sql_statement)
             logging.info("Updated the db table with event status %s", str(status))
         else:
             logging.error("Callback url / presigned s3 url / Database table name are not found.")
