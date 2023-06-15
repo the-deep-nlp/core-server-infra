@@ -240,7 +240,11 @@ class TopicModelGeneratorHandler:
                 )
                 df_merged = self.create_complete_df(self.entries_df, df_topics)
                 df_merged = self.exclude_topic_clusters(df_merged)
-                topics_dict = self.select_most_relevant_excerpts(df_merged)
+                if df_merged.empty:
+                    logging.warning("The clusters could not be formed.")
+                    topics_dict = {}
+                else:
+                    topics_dict = self.select_most_relevant_excerpts(df_merged)
                 date_today = date.today().isoformat()
                 presigned_url = upload_to_s3(
                     contents=json.dumps(topics_dict),
