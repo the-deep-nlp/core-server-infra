@@ -7,8 +7,7 @@ authors = ["dev <nlp@thedeep.io>"]
 [tool.poetry.dependencies]
 python = "^3.8"
 cloudpathlib= "==0.13.0"
-typing_extensions = "==4.4.0"
-geolocation_generator = { git = "https://github.com/the-deep-nlp/geolocation-generator", rev = "44c0c6b", branch = "main" }
+geolocation_generator = { git = "https://github.com/the-deep-nlp/geolocation-generator.git", rev = "8d70ccf", branch = "main" }
 sentry-sdk = "==1.5.8"
 nlp_modules_utils = { git = "https://github.com/the-deep-nlp/nlp-modules-utils.git", rev = "74f3f2c", branch = "main" }
 
