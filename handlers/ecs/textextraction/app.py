@@ -305,7 +305,7 @@ class TextExtractionHandler:
             "images_path": [],
             "total_pages": total_pages,
             "total_words_count": total_words_count,
-            "extraction_status": status
+            "status": status
         }
         if callback_url:
             callback_response = send_request_on_callback(
