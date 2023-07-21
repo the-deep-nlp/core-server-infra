@@ -15,7 +15,6 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.docstore.document import Document
 
 from langchain.chains.summarize import load_summarize_chain
-from langchain.chains import LLMSummarizationCheckerChain
 
 from fastapi import FastAPI, BackgroundTasks
 from pydantic import BaseModel
