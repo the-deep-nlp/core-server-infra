@@ -80,6 +80,10 @@ resource "aws_ecs_task_definition" "task-def" {
         {
           "name": "SENTRY_DSN",
           "valueFrom": "${var.ssm_sentry_dsn_url_arn}"
+        },
+        {
+          "name": "OPENAI_API_KEY",
+          "valueFrom": "${var.ssm_openai_api_key_arn}"
         }
       ]
   }

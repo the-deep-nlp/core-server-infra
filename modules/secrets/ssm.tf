@@ -49,3 +49,7 @@ data "aws_ssm_parameter" "sentry_dsn_url" {
 data "aws_ssm_parameter" "geoname_api_user" {
   name = "geoname_api_user"
 }
+
+data "aws_ssm_parameter" "openai_api_key" {
+  name = "openai_api_key"
+}

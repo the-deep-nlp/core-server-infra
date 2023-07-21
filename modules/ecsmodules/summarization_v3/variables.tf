@@ -69,6 +69,8 @@ variable "private_dns_namespace_local_domain" {}
 variable "local_sub_domain" {
   default = "summarizationv3"
 }
+# openai api key
+variable "ssm_openai_api_key_arn" {}
 
 # autoscaling
 variable "summarization_scaling_max_capacity" {
