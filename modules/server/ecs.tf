@@ -63,6 +63,12 @@ data "template_file" "config" {
     summarization_v2_ecs_container_name = var.summarization_v2_ecs_container_name
     summarization_v2_vpc_private_subnet = var.private_subnets[0]
     summarization_v2_ecs_endpoint = var.summarization_v2_ecs_endpoint
+    # ECS Summarization v3
+    summarization_v3_ecs_cluster_id = aws_ecs_cluster.cluster.id
+    summarization_v3_ecs_task_defn_arn = var.summarization_v3_ecs_task_defn_arn
+    summarization_v3_ecs_container_name = var.summarization_v3_ecs_container_name
+    summarization_v3_vpc_private_subnet = var.private_subnets[0]
+    summarization_v3_ecs_endpoint = var.summarization_v3_ecs_endpoint
     # ECS NGrams
     ngrams_ecs_cluster_id     = aws_ecs_cluster.cluster.id
     ngrams_ecs_task_defn_arn  = var.ngrams_ecs_task_defn_arn
