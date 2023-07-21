@@ -80,6 +80,11 @@ variable "summarization_v2_ecs_task_defn_arn" {}
 variable "summarization_v2_ecs_container_name" {}
 variable "summarization_v2_ecs_endpoint" {}
 
+# Summarization v3
+variable "summarization_v3_ecs_task_defn_arn" {}
+variable "summarization_v3_ecs_container_name" {}
+variable "summarization_v3_ecs_endpoint" {}
+
 # NGrams
 variable "ngrams_ecs_task_defn_arn" {}
 variable "ngrams_container_name" {}

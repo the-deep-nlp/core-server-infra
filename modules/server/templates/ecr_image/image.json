@@ -132,12 +132,36 @@
           "value": "${summarization_v2_ecs_task_defn_arn}"
         },
         {
+          "name": "SUMMARIZATION_V2_ECS_CONTAINER_NAME",
+          "value": "${summarization_v2_ecs_container_name}"
+        },
+        {
           "name": "SUMMARIZATION_V2_PRIVATE_SUBNET",
           "value": "${summarization_v2_vpc_private_subnet}"
         },
         {
           "name": "SUMMARIZATION_V2_ECS_ENDPOINT",
           "value": "${summarization_v2_ecs_endpoint}"
+        },
+        {
+          "name": "SUMMARIZATION_V3_ECS_CLUSTER_ID",
+          "value": "${summarization_v3_ecs_cluster_id}"
+        },
+        {
+          "name": "SUMMARIZATION_V3_TASK_DEFN_ARN",
+          "value": "${summarization_v3_ecs_task_defn_arn}"
+        },
+        {
+          "name": "SUMMARIZATION_V3_ECS_CONTAINER_NAME",
+          "value": "${summarization_v3_ecs_container_name}"
+        },
+        {
+          "name": "SUMMARIZATION_V3_PRIVATE_SUBNET",
+          "value": "${summarization_v3_vpc_private_subnet}"
+        },
+        {
+          "name": "SUMMARIZATION_V3_ECS_ENDPOINT",
+          "value": "${summarization_v3_ecs_endpoint}"
         },
         {
           "name": "NGRAMS_ECS_CLUSTER_ID",
