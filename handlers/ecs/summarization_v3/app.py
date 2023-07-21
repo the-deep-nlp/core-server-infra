@@ -190,29 +190,20 @@ class Summarization:
             )
         return chain.run(docs) # summary
 
-    def use_summ_checker_chain(self, texts):
-        """ Use in-built summarization checker chain """
-        checker_chain = LLMSummarizationCheckerChain(
-            llm=self.llm,
-            verbose=False,
-            max_checks=2
-        )
-        return checker_chain.run(texts)
-
 
 class ReportsGeneratorHandler:
     """
     Summarization class to generate summary of the excerpts
     """
     def __init__(self):
-        self.repgenerator = None
-
         self.signed_url_expiry_secs = os.environ.get("SIGNED_URL_EXPIRY_SECS", 86400) # 1 day
         self.bucket_name = os.environ.get("S3_BUCKET_NAME", None)
 
         self.headers = {
             "Content-Type": "application/json"
         }
+
+        self.llm_summarizer = Summarization()
 
         # db
         self.db_config = {
@@ -229,7 +220,7 @@ class ReportsGeneratorHandler:
         if not self.db_table_name:
             logging.error("Database table name is not found.")
 
-    def download_prepare_entries(self, entries_url):
+    def download_prepare_entries(self, entries_url: str):
         """
         The json format (*.json) in the link file should be
         [
@@ -249,7 +240,14 @@ class ReportsGeneratorHandler:
                 logging.error("Error occurred: %s", str(exc))
         return None
 
-    def dispatch_results(self, client_id, summarization_id, callback_url, status, presigned_url=None):
+    def dispatch_results(
+        self,
+        client_id: str,
+        summarization_id: str,
+        callback_url: str,
+        status: int,
+        presigned_url: Optional[str]=None
+    ):
         """
         Dispatch results to callback url or write to database
         """
@@ -303,10 +301,10 @@ class ReportsGeneratorHandler:
             self.dispatch_results(client_id, summarization_id, callback_url, status=StateHandler.INPUT_URL_PROCESS_FAILED.value)
             return
 
-        if self.repgenerator:
-            docs = llm_summarizer.create_docs(" ".join(entries))
-            prompt = llm_summarizer.generate_prompt()
-            summary = llm_summarizer.generate_summary(docs, prompt)
+        if self.llm_summarizer:
+            docs = self.llm_summarizer.create_docs(" ".join(entries))
+            prompt = self.llm_summarizer.generate_prompt()
+            summary = self.llm_summarizer.generate_summary(docs, prompt)
             date_today = date.today().isoformat()
             presigned_url = upload_to_s3(
                 contents=summary,
@@ -324,8 +322,7 @@ class ReportsGeneratorHandler:
                 self.dispatch_results(client_id, summarization_id, callback_url, status=StateHandler.FAILED.value)
         else:
             self.dispatch_results(client_id, summarization_id, callback_url, status=StateHandler.FAILED.value)
-            logging.warning("Summarization models could not be loaded.")
+            logging.warning("Summarization LLM could not be loaded.")
 
 
 reports_generator_handler = ReportsGeneratorHandler()
-llm_summarizer = Summarization()
