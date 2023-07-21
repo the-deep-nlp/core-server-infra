@@ -61,3 +61,7 @@ output "ssm_sentry_dsn_url_arn" {
 output "ssm_geoname_api_user_arn" {
   value = data.aws_ssm_parameter.geoname_api_user.arn
 }
+
+output "ssm_openai_api_key_arn" {
+  value = data.aws_ssm_parameter.openai_api_key.arn
+}
