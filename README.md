@@ -10,8 +10,10 @@ To begin with the architecture design, Elastic Container Service(ECS) is chosen 
 
 There are many other AWS services being used which are the integral part of the NLP architecture such as VPC for private network, S3 for cloud storage, Route53 for domain management, ALB for sharing the load, Sagemaker for running the classification model etc.
 
-The NLP Server is the main entry point to access all the above mentioned services as it exposes several endpoints which are REST based. Those endpoints are protected with token based authentication. Upon request, the server administrator can create a token which can be used in requests to access the services. This server is written in Python and Django based which is a popular and powerful framework.
+## NLP Server
+The NLP Server is the main entry point to access all the above mentioned services as it exposes several endpoints which are REST based. Those endpoints are protected with token based authentication. Upon request, the server administrator can create a token which can be used in requests to access the services. This server is written in Django which is a popular and powerful Python framework.
 
+## Requests to NLP Server
 The NLP Server is capable of accepting two types of requests from external services(e.g. DEEP)
 - Callback url based
 - Polling based
@@ -21,6 +23,7 @@ In a Callback based request, the client must include a callback url so that when
 In a Polling based request, the client receives an unique id in the acknowledgement response from the server. Then, the client needs to keep on sending the request along with that unique id to keep track of the completion of the job. Also note that all the status are written and updated in the database. Once the job is done, the client will receive the payload(result) in one of the latter responses.
 
 
+### Request/Task Status
 The NLP Server sets four types of task status which is being maintained during the processing of the requests.
 - INITIATED (id: 1)
 - SUCCESS (id: 2)
