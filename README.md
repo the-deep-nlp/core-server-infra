@@ -36,8 +36,18 @@ For some reason if the request on the callback url fails (maybe the client’s l
 
 Please find below the NLP Infrastructure and Sequence Diagrams of the deployed system.
 
-![NLP Infrastructure in AWS](image.png)
+![NLP Infrastructure in AWS](images/nlp_infra.png)
 
-![Sequence Diagram](image-1.png)
+![Sequence Diagram](images/seq_diag.png)
+
+# Deployment in AWS
+
+In order to deploy in AWS, we simply run the following commands for staging and production env. deployments. In our case, the production env. deployment is automated using the github actions workflow.
+
+## Staging
+$ terraform apply -var-file=staging.tfvars
+
+## Production
+$ terraform apply -var-file=prod.tfvars
 
 
