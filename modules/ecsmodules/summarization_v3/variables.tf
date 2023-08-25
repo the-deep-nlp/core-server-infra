@@ -14,7 +14,7 @@ variable "fargate_memory" {
 }
 
 variable "app_count" {
-  default = 1
+  default = 0
 }
 
 variable "ecs_security_group_id" {}
@@ -74,11 +74,11 @@ variable "ssm_openai_api_key_arn" {}
 
 # autoscaling
 variable "summarization_scaling_max_capacity" {
-  default = 2
+  default = 0
 }
 
 variable "summarization_scaling_min_capacity" {
-  default = 1
+  default = 0
 }
 
 variable "summarization_cpu_target_value" {
