@@ -58,7 +58,7 @@ variable "cron_deep_fetch_minute" {
   default = 0
 }
 variable "cron_deep_fetch_hour" {
-  default = "*"
+  default = "11,22"
 }
 variable "cron_create_indices_minute" {
   default = 0
