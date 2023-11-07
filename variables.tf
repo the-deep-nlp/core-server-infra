@@ -43,6 +43,9 @@ variable "geolocations_app_image_name" {}
 # text extraction ecs
 variable "textextraction_app_image_name" {}
 
+# entry extraction ecs
+variable "entryextraction_app_image_name" {}
+
 # db table
 variable "db_table_name" {}
 variable "db_table_callback_tracker" {}

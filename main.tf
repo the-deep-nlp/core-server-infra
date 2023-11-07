@@ -478,3 +478,49 @@ module "deepex" {
   private_dns_namespace_id = module.cloudmap.private_dns_namespace_id
   private_dns_namespace_local_domain = module.cloudmap.private_dns_namespace_local_domain
 }
+
+# Entry Extraction and Classification
+module "entryextraction" {
+  source = "./modules/ecsmodules/entryextraction"
+
+  environment = var.environment
+  aws_region  = var.aws_region
+
+  # ecs
+  ecs_cluster_id = module.nlp_server.ecs_cluster_id
+
+  # security grp
+  ecs_security_group_id = module.nlp_server.ecs_security_group_id
+
+  # vpc
+  vpc_id          = module.nlp_vpc.aws_vpc_id
+  private_subnets = module.nlp_vpc.private_subnets
+  public_subnets  = module.nlp_vpc.public_subnets
+
+  iam_task_execution_role_arn       = module.nlp_server.iam_task_execution_role_arn
+  iam_ecs_task_arn                  = module.nlp_server.iam_ecs_task_arn
+  iam_ecs_task_execution_policy_arn = module.nlp_server.iam_ecs_task_execution_policy_arn
+
+  # ecr
+  app_image_name = var.entryextraction_app_image_name
+
+  # secrets
+  rds_instance_endpoint  = module.nlp_database.rds_instance_endpoint
+  ssm_db_name_arn        = module.secrets.ssm_db_name_arn
+  ssm_db_username_arn    = module.secrets.ssm_db_username_arn
+  ssm_db_password_arn    = module.secrets.ssm_db_password_arn
+  ssm_db_port_arn        = module.secrets.ssm_db_port_arn
+  ssm_sentry_dsn_url_arn = module.secrets.ssm_sentry_dsn_url_arn
+
+  # db table
+  db_table_name             = var.db_table_name
+  db_table_callback_tracker = var.db_table_callback_tracker
+
+  # s3
+  s3_bucketname_task_results = module.s3.task_results_bucket_name
+  nlp_docs_conversion_bucket_name = module.s3.nlp_docs_conversion_bucket_name
+
+  # cloudmap
+  private_dns_namespace_id = module.cloudmap.private_dns_namespace_id
+  private_dns_namespace_local_domain = module.cloudmap.private_dns_namespace_local_domain
+}
