@@ -122,6 +122,11 @@ module "nlp_server" {
   textextraction_ecs_task_defn_arn = module.deepex.textextraction_ecs_task_defn_arn
   textextraction_ecs_container_name = module.deepex.textextraction_container_name
   textextraction_ecs_endpoint = module.deepex.aws_service_discovery_service_endpoint
+
+  # Entry Extraction
+  entryextraction_ecs_task_defn_arn = module.entryextraction.entryextraction_ecs_task_defn_arn
+  entryextraction_ecs_container_name = module.entryextraction.entryextraction_container_name
+  entryextraction_ecs_endpoint = module.entryextraction.aws_service_discovery_service_endpoint
 }
 
 module "redis" {

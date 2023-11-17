@@ -214,6 +214,26 @@
         {
           "name": "TEXTEXTRACTION_ECS_ENDPOINT",
           "value": "${textextraction_ecs_endpoint}"
+        },
+        {
+          "name": "ENTRYEXTRACTION_ECS_CLUSTER_ID",
+          "value": "${entryextraction_ecs_cluster_id}"
+        },
+        {
+          "name": "ENTRYEXTRACTION_ECS_TASK_DEFN_ARN",
+          "value": "${entryextraction_ecs_task_defn_arn}"
+        },
+        {
+          "name": "ENTRYEXTRACTION_ECS_CONTAINER_NAME",
+          "value": "${entryextraction_ecs_container_name}"
+        },
+        {
+          "name": "ENTRYEXTRACTION_VPC_PRIVATE_SUBNET",
+          "value": "${entryextraction_vpc_private_subnet}"
+        },
+        {
+          "name": "ENTRYEXTRACTION_ECS_ENDPOINT",
+          "value": "${entryextraction_ecs_endpoint}"
         }
       ],
       "secrets": [

@@ -468,6 +468,16 @@ class ThirdLevel(Enum):
         parent_id=getattr(SecondLevel.LogisticsTag.value, "id"),
         alias="Supply Chain",
     )
+
+    CommunicationTag = ThirdLevelCategories(
+        id="1402",
+        key="Communication",
+        version=version,
+        has_parent=True,
+        parent_id=getattr(SecondLevel.LogisticsTag.value, "id"),
+        alias="Communication",
+    )
+
     # Shelter - 105
     DomesticLivingSpaceTag = ThirdLevelCategories(
         id="1501",
@@ -479,11 +489,11 @@ class ThirdLevel(Enum):
     )
     DwellingEnvelopeTag = ThirdLevelCategories(
         id="1502",
-        key="Dwelling envelope",
+        key="Dwelling enveloppe",
         version=version,
         has_parent=True,
         parent_id=getattr(SecondLevel.ShelterTag.value, "id"),
-        alias="Dwelling Envelope",
+        alias="Dwelling Enveloppe",
     )
     # Nutrition - 106
     NutritionGoodsAndServicesTag = ThirdLevelCategories(
@@ -1722,6 +1732,7 @@ class ThirdLevel(Enum):
                 ThirdLevel.IncomeTag,
                 ThirdLevel.SkillsAndQualificationsTag,
                 ThirdLevel.SupplyChainTag,  # 104
+                ThirdLevel.CommunicationTag,
                 ThirdLevel.DomesticLivingSpaceTag,  # 105
                 ThirdLevel.DwellingEnvelopeTag,
                 ThirdLevel.NutritionGoodsAndServicesTag,  # 106
