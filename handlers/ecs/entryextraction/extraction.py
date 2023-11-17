@@ -205,7 +205,6 @@ class EntryExtractionModel:
     PERCENTAGE: str = "percentage"
     PERCENTILE: str = "percentile"
     STANDARD_DEVIATION: str = "standard_deviation"
-    
 
     def __init__(
         self, 
@@ -227,7 +226,6 @@ class EntryExtractionModel:
         self.method = method
     
     def predict(self, document):
-
             
         if isinstance(document, list):
             document = reformat_old_output(document)    
@@ -249,8 +247,7 @@ class EntryExtractionModel:
             except Exception as e:
                 print(e)
                 continue
-        
-        
+
         results = rebuild(results)
         res_for_doc = [get_results_one_row(c, 
                                             thresholds=results[self.THRESHOLDS],
@@ -285,12 +282,10 @@ class EntryExtractionModel:
             output=document,
             classification_results=results
         )
-        
-    
 
 entry_extraction_model = EntryExtractionModel(
     selected_tags=OPTIMIZED_PARAMETERS["selected_tags"],
     method=OPTIMIZED_PARAMETERS["method"],
-    length_weight=OPTIMIZED_PARAMETERS["lenght_weight"],
+    length_weight=OPTIMIZED_PARAMETERS["length_weight"],
     std_multiplier=OPTIMIZED_PARAMETERS["std_multiplier"]
 )

@@ -17,6 +17,6 @@ class InputStructure(BaseModel):
 
     client_id: str
     url: AnyUrl = None
-    textextraction_id = None
+    textextraction_id: str = None
     entryextraction_id: str = None
     callback_url: Optional[str] = None

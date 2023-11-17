@@ -37,7 +37,7 @@ geolocations_app_image_name = "geolocations_model_staging"
 # ecs text extraction
 textextraction_app_image_name = "deepex_text_extraction_staging"
 # ecs entry extraction
-entryextraction_app_image_name = "deepex_text_extraction_staging" # replace this
+entryextraction_app_image_name = "entry_extraction_staging"
 
 # s3
 s3_bucketname_task_results = "nlp-tasks-processed-results"
