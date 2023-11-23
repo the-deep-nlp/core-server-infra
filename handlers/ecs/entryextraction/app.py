@@ -58,17 +58,17 @@ async def extract_texts(item: InputStructure, background_tasks: BackgroundTasks)
     """Generate reports"""
     client_id = item.client_id
     url = item.url
-    textextraction_id = item.textextraction_id
-    entryextraction_id = item.entryextraction_id
+    text_extraction_id = item.text_extraction_id
+    entry_extraction_id = item.entryextraction_id
     callback_url = item.callback_url
 
     background_tasks.add_task(
         entry_extraction_handler,
         client_id,
-        entryextraction_id,
+        entry_extraction_id,
         callback_url,
         url,
-        textextraction_id,
+        text_extraction_id,
     )
 
     return {
@@ -77,7 +77,7 @@ async def extract_texts(item: InputStructure, background_tasks: BackgroundTasks)
 
 
 class EntryExtractionHandler:
-
+    """ Entry extraction handler """
     def __init__(self):
 
         self.signed_url_expiry_secs = os.environ.get("SIGNED_URL_EXPIRY_SECS", 86400)
@@ -91,7 +91,6 @@ class EntryExtractionHandler:
             "port": os.environ.get("DB_PORT")
         }
 
-        
         self.headers = {
             "Content-Type": "application/json",
             "user-agent": ("Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.1 (KHTML, like Gecko) Chrome/14.0.835.163 Safari/535.1")
@@ -107,84 +106,84 @@ class EntryExtractionHandler:
     def _handler(self):
         pass
 
-    def __call__(self, 
-                 client_id, 
-                 entryextraction_id, 
-                 callback_url, 
-                 url = None, 
-                 text_extraction_id = None, 
-                 filename = "extracted_text.json"):
-
+    def __call__(self,
+        client_id,
+        entry_extraction_id,
+        callback_url,
+        url = None,
+        text_extraction_id = None,
+        filename = "extracted_text.json"
+    ):
+        structured_text = None
         try:
             if url:
-                structured_text = json.loads(requests.get(url).content)
-            
+                structured_text = json.loads(requests.get(url, timeout=30).content)
+
             elif text_extraction_id:
                 response = s3_client.get_object(
-                    Bucket=self.bucket_name, 
+                    Bucket=self.bucket_name,
                     Key=f"textextraction/structured/{text_extraction_id}/{filename}"
                     )
                 structured_text = json.loads(response['Body'].read())
-            
             else:
-                logging.error("Input document is not provided: %s", str(exc), exc_info=True)
+                logging.error("The url or text_extraction_id is missing. Extraction failed.")
                 self.dispatch_results(
                     client_id=client_id,
-                    entryextraction_id=entryextraction_id,
+                    entry_extraction_id=entry_extraction_id,
                     callback_url=callback_url,
                     status=StateHandler.FAILED.value
                 )
-                
-        
         except Exception as exc:
             logging.error("Fail getting input data: %s", str(exc), exc_info=True)
             self.dispatch_results(
                 client_id=client_id,
-                entryextraction_id=entryextraction_id,
+                entry_extraction_id=entry_extraction_id,
                 callback_url=callback_url,
                 status=StateHandler.FAILED.value
             )
 
         try:
-            entry_extraction = entry_extraction_model.predict(document=structured_text)
-            entry_extraction_presigned_url = upload_to_s3(
+            if structured_text:
+                entry_extraction = entry_extraction_model.predict(document=structured_text)
+                entry_extraction_presigned_url = upload_to_s3(
                     contents=json.dumps(entry_extraction),
                     contents_type="application/json",
                     bucket_name=self.bucket_name,
-                    key=f"entryextraction/{date.today().isoformat()}/{entryextraction_id}/entry_extraction.json",
+                    key=f"entryextraction/{date.today().isoformat()}/{entry_extraction_id}/entry_extraction.json",
                     aws_region=AWS_REGION,
                     s3_client=s3_client_presigned_url,
                     signed_url_expiry_secs=self.signed_url_expiry_secs
                 )
-            
-            self.dispatch_results(
-                client_id,
-                textextraction_id=text_extraction_id,
-                entryextraction_id=entryextraction_id,
-                entry_extraction_presigned_url=entry_extraction_presigned_url,
-                callback_url=callback_url,
-                status=StateHandler.SUCCESS.value,
-            )
+
+                self.dispatch_results(
+                    client_id,
+                    text_extraction_id=text_extraction_id,
+                    entry_extraction_id=entry_extraction_id,
+                    entry_extraction_presigned_url=entry_extraction_presigned_url,
+                    callback_url=callback_url,
+                    status=StateHandler.SUCCESS.value,
+                )
+            else:
+                logging.error("The structured text was not retrieved from s3.")
 
         except Exception as exc:
             logging.error("Entry extraction failed: %s", str(exc), exc_info=True)
             self.dispatch_results(
                 client_id=client_id,
-                entryextraction_id=entryextraction_id,
+                entry_extraction_id=entry_extraction_id,
                 callback_url=callback_url,
                 status=StateHandler.FAILED.value
             )
             return
-        
 
 
     def dispatch_results(
         self,
         client_id,
-        entryextraction_id,
+        entry_extraction_id,
         callback_url,
         status,
-        textextraction_id=None, # text_extraction_id can also be not present
+        text_extraction_id=None, # text_extraction_id can also be not present
         entry_extraction_presigned_url=None
     ):
         """
@@ -192,9 +191,9 @@ class EntryExtractionHandler:
         """
         response_data = {
             "client_id": client_id,
-            "entry_extraction_id": entryextraction_id,
-            "text_extraction_id": textextraction_id, 
-            "entry_extraction_classification_presigned_url": entry_extraction_presigned_url,
+            "entry_extraction_id": entry_extraction_id,
+            "text_extraction_id": text_extraction_id, 
+            "entry_extraction_classification_path": entry_extraction_presigned_url,
             "status": status
         }
 
@@ -210,7 +209,7 @@ class EntryExtractionHandler:
                 update_db_table_callback_retry(
                     db_conn,
                     db_cursor,
-                    entryextraction_id,
+                    entry_extraction_id,
                     self.db_table_callback_tracker
                 )
         # Setup database connections
@@ -219,7 +218,7 @@ class EntryExtractionHandler:
 
         if entry_extraction_presigned_url and self.db_table_name: # update for presigned url
             sql_statement = prepare_sql_statement_success(
-                entryextraction_id,
+                entry_extraction_id,
                 self.db_table_name,
                 status,
                 response_data
@@ -229,7 +228,7 @@ class EntryExtractionHandler:
         elif self.db_table_name:
             # Presigned url generation failed
             sql_statement = prepare_sql_statement_failure(
-                entryextraction_id,
+                entry_extraction_id,
                 self.db_table_name,
                 status
             )
