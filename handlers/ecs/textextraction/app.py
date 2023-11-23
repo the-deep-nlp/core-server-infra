@@ -150,7 +150,7 @@ class TextExtractionHandler:
             s3_client=s3_client_presigned_url,
             signed_url_expiry_secs=self.signed_url_expiry_secs
         )
-        
+
         # the idea is to push another format of the same text in a structured format. 
         # the problem is that the text/plain version can't be reversed in its original 
         # structured format. Another thing: the {date_today} create a problem in retrieving 
@@ -168,7 +168,7 @@ class TextExtractionHandler:
         )
 
         # during text extraction, also the structured version is stored on s3
-        # and sent to the database with a "structured_text_presigned_url"   
+        # and sent to the database with a "structured_text_presigned_url"
         if text_presigned_url:
             self.dispatch_results(
                 client_id,
@@ -329,7 +329,8 @@ class TextExtractionHandler:
             "images_path": [],
             "total_pages": total_pages,
             "total_words_count": total_words_count,
-            "status": status
+            "status": status,
+            "text_extraction_id": textextraction_id
         }
         if callback_url:
             callback_response = send_request_on_callback(
