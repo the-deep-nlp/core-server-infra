@@ -145,6 +145,12 @@ class EntryExtractionHandler:
         try:
             if structured_text:
                 entry_extraction = entry_extraction_model.predict(document=structured_text)
+                # Add more meta info
+                entry_extraction.update({
+                    "client_id": client_id,
+                    "entry_extraction_id": entry_extraction_id,
+                    "text_extraction_id": text_extraction_id
+                })
                 entry_extraction_presigned_url = upload_to_s3(
                     contents=json.dumps(entry_extraction),
                     contents_type="application/json",

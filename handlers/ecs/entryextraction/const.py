@@ -28,3 +28,6 @@ OPTIMIZED_PARAMETERS = {
     "length_weight": 0,
     "std_multiplier": 0.727764
 }
+
+CLASSIFICATION_MODEL_NAME = "all_tags_model_24112023"
+CLASSIFICATION_MODEL_VERSION = "1.0.0"
