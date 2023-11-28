@@ -5,7 +5,9 @@ import numpy as np
 import pandas as pd
 from botocore.exceptions import ClientError
 
-from tags import total_tags
+#from tags import total_tags
+from tags_to_ids import get_model_tags_mappings
+from postprocess_tags import convert_current_dict_to_previous_one
 from utils import get_words_count
 from const import (
     HIGH_LEVEL_TAG_GROUPS,
@@ -14,13 +16,12 @@ from const import (
     CLASSIFICATION_MODEL_VERSION
 )
 
-
 logging.getLogger().setLevel(logging.INFO)
 client = boto3.session.Session().client("sagemaker-runtime", region_name="us-east-1")
 
 
 def get_outputs_from_endpoint_text(document: str, endpoint_name: str):
-    
+    """ Send request to sagemaker endpoint to get the tag predictions """
     inputs = pd.DataFrame(document, columns=["excerpt"])
     inputs["return_type"] = "default_analyis"
     inputs["analyis_framework_id"] = "all"
@@ -127,48 +128,48 @@ def reformat_old_output(output: list):
     return reformat
 
 
-def get_tag_ids(total_tags, taglist, idx=0):
-    """
-    Retrieves the tag IDs
-    """
-    for tag in total_tags[idx]:
-        if tag["key"] == taglist[idx]:
-            if idx >= len(total_tags) - 1:
-                return [tag.get("id", None)]
-            else:
-                return [tag.get("id", None)] + get_tag_ids(
-                    total_tags, taglist, idx=idx + 1
-                )
-    return [None]
+# def get_tag_ids(total_tags, taglist, idx=0):
+#     """
+#     Retrieves the tag IDs
+#     """
+#     for tag in total_tags[idx]:
+#         if tag["key"] == taglist[idx]:
+#             if idx >= len(total_tags) - 1:
+#                 return [tag.get("id", None)]
+#             else:
+#                 return [tag.get("id", None)] + get_tag_ids(
+#                     total_tags, taglist, idx=idx + 1
+#                 )
+#     return [None]
 
 
 
-def convert_prediction(pred, thresholds):
+# def convert_prediction(pred, thresholds):
     
-    tag_preds = {}
-    for label, prob in pred.items():
-        firstlabel, secondlabel, thirdlabel = get_tag_ids(
-            total_tags, label.split("->")
-        )
-        if not (firstlabel and secondlabel and thirdlabel):
-            continue
-        if firstlabel not in tag_preds:
-            tag_preds[firstlabel] = {}
-        if secondlabel not in tag_preds[firstlabel]:
-            tag_preds[firstlabel][secondlabel] = {}
-        if thirdlabel not in tag_preds[firstlabel][secondlabel]:
-            tag_preds[firstlabel][secondlabel][thirdlabel] = {
-                "prediction": prob,
-                "threshold": thresholds[label],
-                "is_selected": prob > thresholds[label],
-            }
+#     tag_preds = {}
+#     for label, prob in pred.items():
+#         firstlabel, secondlabel, thirdlabel = get_tag_ids(
+#             total_tags, label.split("->")
+#         )
+#         if not (firstlabel and secondlabel and thirdlabel):
+#             continue
+#         if firstlabel not in tag_preds:
+#             tag_preds[firstlabel] = {}
+#         if secondlabel not in tag_preds[firstlabel]:
+#             tag_preds[firstlabel][secondlabel] = {}
+#         if thirdlabel not in tag_preds[firstlabel][secondlabel]:
+#             tag_preds[firstlabel][secondlabel][thirdlabel] = {
+#                 "prediction": prob,
+#                 "threshold": thresholds[label],
+#                 "is_selected": prob > thresholds[label],
+#             }
     
-    return tag_preds
+#     return tag_preds
 
 
 
 def create_final_output(output: dict, classification_results: dict):
-    
+    """ Generate the final output """
     blocks = output["blocks"]
     true_indexes = classification_results["predictions"]==1
     selected = np.array(classification_results["indexes"])[true_indexes]
@@ -178,16 +179,18 @@ def create_final_output(output: dict, classification_results: dict):
         if block.get("type") == "text":
             block.update({
                 "relevant": False,
-                "classification": None
+                "prediction_status": False,
+                "classification": {}
             })
 
     for i, j in zip(selected, pred_vector):
-
         block = blocks[i]
-        pred = convert_prediction(classification_results["raw_predictions"][j], 
-                                  classification_results["thresholds"])
+        tags_pred = convert_current_dict_to_previous_one(classification_results["raw_predictions"][j])
+        tags_threshold = convert_current_dict_to_previous_one(classification_results["thresholds"])
+        pred = get_model_tags_mappings(tags_pred, tags_threshold)
         block.update({
             "relevant": True,
+            "prediction_status": True,
             "classification": pred
         })
 
@@ -219,7 +222,7 @@ class EntryExtractionModel:
         std_multiplier: float=None,
         length_weight: float=None,
     ):
-        
+
         self.model_endpoint = model_endpoint
         self.selected_tags = selected_tags
         self.mean_percentage = mean_percentage
@@ -279,7 +282,7 @@ class EntryExtractionModel:
         thres = thres+self.length_weight*np.log(len(document))
         prediction[np.where(means>=thres)] = 1
         results.update({"predictions": prediction})
-        
+
         return create_final_output(
             output=document,
             classification_results=results

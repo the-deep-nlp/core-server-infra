@@ -49,3 +49,12 @@ def generate_presigned_url(
         return None
     return url
 
+def convert_to_lowercase(data):
+    """ Converts the dict keys to lowercase """
+    res = dict()
+    for key in data.keys():
+        if isinstance(data[key], dict):
+            res[key.lower()] = convert_to_lowercase(data[key])
+        else:
+            res[key.lower()] = data[key]
+    return res
