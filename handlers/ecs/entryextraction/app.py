@@ -25,12 +25,15 @@ from nlp_modules_utils import (
 from models import InputStructure
 from extraction import entry_extraction_model
 
+from geolocation import get_geolocations
+
 
 logging.getLogger().setLevel(logging.INFO)
 
 SENTRY_DSN = os.environ.get("SENTRY_DSN")
 ENVIRONMENT = os.environ.get("ENVIRONMENT")
 AWS_REGION = os.environ.get("AWS_REGION", "us-east-1")
+GEONAME_API_USER = os.environ.get("GEONAME_API_USER", None)
 
 sentry_sdk.init(SENTRY_DSN, environment=ENVIRONMENT, attach_stacktrace=True, traces_sample_rate=1.0)
 
@@ -145,6 +148,15 @@ class EntryExtractionHandler:
         try:
             if structured_text:
                 entry_extraction = entry_extraction_model.predict(document=structured_text)
+                excerpts = [
+                    block["text"] if block["relevant"] else ""
+                    for block in entry_extraction["blocks"]
+                ]
+                geolocations = get_geolocations(excerpts, GEONAME_API_USER)
+                for idx, block in enumerate(entry_extraction["blocks"]):
+                    block.update({
+                        "geolocations": geolocations[idx]["locations"]
+                    })
                 # Add more meta info
                 entry_extraction.update({
                     "client_id": client_id,
