@@ -86,3 +86,9 @@ variable "entryextraction_cpu_target_value" {
 variable "entryextraction_mem_target_value" {
   default = 60
 }
+
+# efs
+variable "efs_volume_id" {}
+
+# ssm
+variable "ssm_geoname_api_user_arn" {}
