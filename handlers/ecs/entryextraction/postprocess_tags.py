@@ -135,21 +135,31 @@ def convert_current_dict_to_previous_one(
     # sec tags
     secondary_tags_results = {
         "Age": {},
+        "age": {},
         "Gender": {},
+        "gender": {},
         "affected_groups": {},
         "specific_needs_groups": {},
         "severity": {},
-        "Displaced": {}, ##
+        "Displaced": {}, 
         "Non displaced": {}
     }
 
+    # these assertions can't work because there are some differences between 
+    # the tags fo the models. For now, I cast everything at lower (as in the tags_to_ids.py method)
+    # in order to avoid the assertion error
+
+    _pillars_1d_tags = [x.lower() for x in pillars_1d_tags]
+    _pillars_2d_tags = [x.lower() for x in pillars_2d_tags]
+    _secondary_tags = [x.lower() for x in secondary_tags]
+    
     for tag, number in ratios_one_entry.items():
         tag_levels = tag.split("->")
         if tag_levels[0].startswith("subpillars"): #"subpillars" == tag_levels[0]:
+            
+            assert tag_levels[1].lower() in _pillars_1d_tags or tag_levels[1].lower() in _pillars_2d_tags
 
-            assert tag_levels[1] in pillars_1d_tags or tag_levels[1] in pillars_2d_tags
-
-            if tag_levels[1] in pillars_1d_tags:
+            if tag_levels[1].lower() in _pillars_1d_tags:
                 subpillar_name = "subpillars_1d"
             else:
                 subpillar_name = "subpillars_2d"
@@ -157,8 +167,9 @@ def convert_current_dict_to_previous_one(
             primary_tags_results[subpillar_name]["->".join(tag_levels[1:])] = number
 
         elif "secondary_tags" == tag_levels[0]:
-            assert tag_levels[1] in secondary_tags
 
+            assert tag_levels[1].lower() in _secondary_tags
+            
             secondary_tags_results[tag_levels[1]][tag_levels[2]] = number
 
         else:

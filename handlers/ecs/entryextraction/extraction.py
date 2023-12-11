@@ -13,7 +13,8 @@ from const import (
     HIGH_LEVEL_TAG_GROUPS,
     OPTIMIZED_PARAMETERS,
     CLASSIFICATION_MODEL_NAME,
-    CLASSIFICATION_MODEL_VERSION
+    CLASSIFICATION_MODEL_VERSION,
+    MAP_OLD_SUBPILLARS
 )
 
 logging.getLogger().setLevel(logging.INFO)
@@ -57,13 +58,21 @@ def get_outputs_from_endpoint_text(document: str, endpoint_name: str):
 
 
 
-def get_results_one_row(ss, thresholds, tags):
+def get_results_one_row(ss, thresholds, tags, model_endpoint = "main-model-cpu"):
     
     results = {}
     for k, v in ss.items():
 
         s = k.split("->")
-        main_group = s[0] if s[0] in HIGH_LEVEL_TAG_GROUPS else s[1]
+        #main_group = s[0] if s[0] in HIGH_LEVEL_TAG_GROUPS[model_endpoint] else s[1]
+        first_level, second_level, _ = k.split("->")
+        if second_level in HIGH_LEVEL_TAG_GROUPS[model_endpoint]:
+            main_group = second_level
+        elif first_level == "subpillars":
+            main_group = MAP_OLD_SUBPILLARS.get(second_level)
+        else:
+            main_group==first_level
+        
         if not main_group in results.keys():
             results[main_group] = {"tags": [], "o_tags": [], "pred": [], "clf_thres": []}
 
@@ -214,7 +223,7 @@ class EntryExtractionModel:
 
     def __init__(
         self,
-        model_endpoint: str = "main-model-cpu-new-test",
+        model_endpoint: str = "main-model-cpu",
         selected_tags: list = None,
         method: str = None,
         mean_percentage: float=None,
@@ -232,12 +241,14 @@ class EntryExtractionModel:
         self.method = method
 
     def predict(self, document):
+
         if isinstance(document, list):
             document = reformat_old_output(document)
         indexes, text = zip(*[(i, c[self.TEXT])
             for i, c in enumerate(document[self.BLOCKS])
             if c[self.TYPE]==self.TEXT]
         )
+
         results = []
         for idx, batch in zip(divide_into_batches(indexes),
                                 divide_into_batches(text)):
@@ -288,9 +299,10 @@ class EntryExtractionModel:
             classification_results=results
         )
 
+parameters = OPTIMIZED_PARAMETERS["main-model-cpu"]
 entry_extraction_model = EntryExtractionModel(
-    selected_tags=OPTIMIZED_PARAMETERS["selected_tags"],
-    method=OPTIMIZED_PARAMETERS["method"],
-    length_weight=OPTIMIZED_PARAMETERS["length_weight"],
-    std_multiplier=OPTIMIZED_PARAMETERS["std_multiplier"]
+    selected_tags=parameters["selected_tags"],
+    method=parameters["method"],
+    length_weight=parameters["length_weight"],
+    std_multiplier=parameters["std_multiplier"]
 )
