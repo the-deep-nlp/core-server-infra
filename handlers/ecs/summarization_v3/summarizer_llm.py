@@ -1,6 +1,7 @@
 from enum import Enum
 
 from langchain import OpenAI, PromptTemplate
+from langchain.chat_models import ChatOpenAI
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.docstore.document import Document
 
@@ -18,12 +19,18 @@ class Summarization:
         self,
         temperature: float = 0.1,
         max_tokens: int = 512,
-        model_name: str = "text-davinci-003"
+        model_name: str = "gpt-3.5-turbo"
     ):
-        self.llm = OpenAI(
+        #self.llm = OpenAI(
+        #    temperature=temperature,
+        #    model=model_name,
+        #    max_tokens=max_tokens,
+        #)
+
+        self.llm = ChatOpenAI(
             temperature=temperature,
             model=model_name,
-            max_tokens=max_tokens,
+            max_tokens=max_tokens,            
         )
 
     def textsplitter(self):
