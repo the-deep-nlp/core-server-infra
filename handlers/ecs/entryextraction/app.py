@@ -153,10 +153,17 @@ class EntryExtractionHandler:
                     for block in entry_extraction["blocks"]
                 ]
                 geolocations = get_geolocations(excerpts, GEONAME_API_USER)
-                for idx, block in enumerate(entry_extraction["blocks"]):
-                    block.update({
-                        "geolocations": geolocations[idx]["locations"]
-                    })
+                if geolocations:
+                    for idx, block in enumerate(entry_extraction["blocks"]):
+                        block.update({
+                            "geolocations": geolocations[idx]["locations"]
+                        })
+                else:
+                    logging.error("Geolocations cannot be retrieved due to API error.")
+                    for idx, block in enumerate(entry_extraction["blocks"]):
+                        block.update({
+                            "geolocations": []
+                        })
                 # Add more meta info
                 entry_extraction.update({
                     "client_id": client_id,
