@@ -56,7 +56,7 @@ variable "db_table_callback_tracker" {}
 
 # s3
 variable "s3_bucketname_task_results" {}
-variable "nlp_docs_conversion_bucket_name" {} 
+variable "nlp_docs_conversion_bucket_name" {}
 
 variable "private_dns_namespace_id" {}
 variable "private_dns_namespace_local_domain" {}

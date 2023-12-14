@@ -58,17 +58,17 @@ data "template_file" "config" {
     summarization_ecs_container_name = var.summarization_ecs_container_name
     summarization_vpc_private_subnet = var.private_subnets[0]
     # ECS Summarization v2
-    summarization_v2_ecs_cluster_id = aws_ecs_cluster.cluster.id
-    summarization_v2_ecs_task_defn_arn = var.summarization_v2_ecs_task_defn_arn
+    summarization_v2_ecs_cluster_id     = aws_ecs_cluster.cluster.id
+    summarization_v2_ecs_task_defn_arn  = var.summarization_v2_ecs_task_defn_arn
     summarization_v2_ecs_container_name = var.summarization_v2_ecs_container_name
     summarization_v2_vpc_private_subnet = var.private_subnets[0]
-    summarization_v2_ecs_endpoint = var.summarization_v2_ecs_endpoint
+    summarization_v2_ecs_endpoint       = var.summarization_v2_ecs_endpoint
     # ECS Summarization v3
-    summarization_v3_ecs_cluster_id = aws_ecs_cluster.cluster.id
-    summarization_v3_ecs_task_defn_arn = var.summarization_v3_ecs_task_defn_arn
+    summarization_v3_ecs_cluster_id     = aws_ecs_cluster.cluster.id
+    summarization_v3_ecs_task_defn_arn  = var.summarization_v3_ecs_task_defn_arn
     summarization_v3_ecs_container_name = var.summarization_v3_ecs_container_name
     summarization_v3_vpc_private_subnet = var.private_subnets[0]
-    summarization_v3_ecs_endpoint = var.summarization_v3_ecs_endpoint
+    summarization_v3_ecs_endpoint       = var.summarization_v3_ecs_endpoint
     # ECS NGrams
     ngrams_ecs_cluster_id     = aws_ecs_cluster.cluster.id
     ngrams_ecs_task_defn_arn  = var.ngrams_ecs_task_defn_arn
@@ -81,17 +81,17 @@ data "template_file" "config" {
     geo_vpc_private_subnet = var.private_subnets[0]
     # ECS Text Extraction
     # Text Extraction
-    textextraction_ecs_cluster_id = aws_ecs_cluster.cluster.id
-    textextraction_ecs_task_defn_arn = var.textextraction_ecs_task_defn_arn
+    textextraction_ecs_cluster_id     = aws_ecs_cluster.cluster.id
+    textextraction_ecs_task_defn_arn  = var.textextraction_ecs_task_defn_arn
     textextraction_ecs_container_name = var.textextraction_ecs_container_name
     textextraction_vpc_private_subnet = var.private_subnets[0]
-    textextraction_ecs_endpoint = var.textextraction_ecs_endpoint
+    textextraction_ecs_endpoint       = var.textextraction_ecs_endpoint
     # Entry Extraction
-    entryextraction_ecs_cluster_id = aws_ecs_cluster.cluster.id
-    entryextraction_ecs_task_defn_arn = var.entryextraction_ecs_task_defn_arn
+    entryextraction_ecs_cluster_id     = aws_ecs_cluster.cluster.id
+    entryextraction_ecs_task_defn_arn  = var.entryextraction_ecs_task_defn_arn
     entryextraction_ecs_container_name = var.entryextraction_ecs_container_name
     entryextraction_vpc_private_subnet = var.private_subnets[0]
-    entryextraction_ecs_endpoint = var.entryextraction_ecs_endpoint
+    entryextraction_ecs_endpoint       = var.entryextraction_ecs_endpoint
     # Sentry
     sentry_dsn_url = var.ssm_sentry_dsn_url_arn
     # s3

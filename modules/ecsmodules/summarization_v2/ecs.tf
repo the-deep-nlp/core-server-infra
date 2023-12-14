@@ -126,16 +126,16 @@ resource "aws_ecs_service" "service" {
     var.iam_ecs_task_execution_policy_arn
   ]
   service_registries {
-    registry_arn = "${aws_service_discovery_service.subdomain.arn}"
+    registry_arn = aws_service_discovery_service.subdomain.arn
   }
 }
 
 resource "aws_service_discovery_service" "subdomain" {
   name = "${var.local_sub_domain}-${var.environment}"
   dns_config {
-    namespace_id = "${var.private_dns_namespace_id}"
+    namespace_id = var.private_dns_namespace_id
     dns_records {
-      ttl = 10
+      ttl  = 10
       type = "A"
     }
     routing_policy = "MULTIVALUE"

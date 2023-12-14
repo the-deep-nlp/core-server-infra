@@ -96,14 +96,14 @@ module "nlp_server" {
   summarization_ecs_container_name = module.summarization.s_ecs_container_name
 
   # Summarization v2
-  summarization_v2_ecs_task_defn_arn = module.summarization_v2.summarization_v2_ecs_task_defn_arn
+  summarization_v2_ecs_task_defn_arn  = module.summarization_v2.summarization_v2_ecs_task_defn_arn
   summarization_v2_ecs_container_name = module.summarization_v2.summarization_v2_container_name
-  summarization_v2_ecs_endpoint = module.summarization_v2.aws_service_discovery_service_endpoint
+  summarization_v2_ecs_endpoint       = module.summarization_v2.aws_service_discovery_service_endpoint
 
   # Summarization v3
-  summarization_v3_ecs_task_defn_arn = module.summarization_v3.summarization_v3_ecs_task_defn_arn
+  summarization_v3_ecs_task_defn_arn  = module.summarization_v3.summarization_v3_ecs_task_defn_arn
   summarization_v3_ecs_container_name = module.summarization_v3.summarization_v3_container_name
-  summarization_v3_ecs_endpoint = module.summarization_v3.aws_service_discovery_service_endpoint
+  summarization_v3_ecs_endpoint       = module.summarization_v3.aws_service_discovery_service_endpoint
 
   # NGrams
   ngrams_ecs_task_defn_arn = module.ngrams.ngrams_ecs_task_defn_arn
@@ -119,14 +119,14 @@ module "nlp_server" {
   s3_bucketname_task_results_arn = module.s3.task_results_bucket_arn
 
   # Text Extraction
-  textextraction_ecs_task_defn_arn = module.deepex.textextraction_ecs_task_defn_arn
+  textextraction_ecs_task_defn_arn  = module.deepex.textextraction_ecs_task_defn_arn
   textextraction_ecs_container_name = module.deepex.textextraction_container_name
-  textextraction_ecs_endpoint = module.deepex.aws_service_discovery_service_endpoint
+  textextraction_ecs_endpoint       = module.deepex.aws_service_discovery_service_endpoint
 
   # Entry Extraction
-  entryextraction_ecs_task_defn_arn = module.entryextraction.entryextraction_ecs_task_defn_arn
+  entryextraction_ecs_task_defn_arn  = module.entryextraction.entryextraction_ecs_task_defn_arn
   entryextraction_ecs_container_name = module.entryextraction.entryextraction_container_name
-  entryextraction_ecs_endpoint = module.entryextraction.aws_service_discovery_service_endpoint
+  entryextraction_ecs_endpoint       = module.entryextraction.aws_service_discovery_service_endpoint
 }
 
 module "redis" {
@@ -380,7 +380,7 @@ module "summarization_v2" {
   efs_volume_id = module.efilesystem.efs_volume_id
 
   # cloudmap
-  private_dns_namespace_id = module.cloudmap.private_dns_namespace_id
+  private_dns_namespace_id           = module.cloudmap.private_dns_namespace_id
   private_dns_namespace_local_domain = module.cloudmap.private_dns_namespace_local_domain
 }
 
@@ -427,12 +427,12 @@ module "summarization_v3" {
   efs_volume_id = module.efilesystem.efs_volume_id
 
   # cloudmap
-  private_dns_namespace_id = module.cloudmap.private_dns_namespace_id
+  private_dns_namespace_id           = module.cloudmap.private_dns_namespace_id
   private_dns_namespace_local_domain = module.cloudmap.private_dns_namespace_local_domain
 }
 
 module "cloudmap" {
-  source = "./modules/cloudmap"
+  source      = "./modules/cloudmap"
   environment = var.environment
   # vpc
   vpc_id = module.nlp_vpc.aws_vpc_id
@@ -476,11 +476,11 @@ module "deepex" {
   db_table_callback_tracker = var.db_table_callback_tracker
 
   # s3
-  s3_bucketname_task_results = module.s3.task_results_bucket_name
+  s3_bucketname_task_results      = module.s3.task_results_bucket_name
   nlp_docs_conversion_bucket_name = module.s3.nlp_docs_conversion_bucket_name
 
   # cloudmap
-  private_dns_namespace_id = module.cloudmap.private_dns_namespace_id
+  private_dns_namespace_id           = module.cloudmap.private_dns_namespace_id
   private_dns_namespace_local_domain = module.cloudmap.private_dns_namespace_local_domain
 }
 
@@ -510,12 +510,12 @@ module "entryextraction" {
   app_image_name = var.entryextraction_app_image_name
 
   # secrets
-  rds_instance_endpoint  = module.nlp_database.rds_instance_endpoint
-  ssm_db_name_arn        = module.secrets.ssm_db_name_arn
-  ssm_db_username_arn    = module.secrets.ssm_db_username_arn
-  ssm_db_password_arn    = module.secrets.ssm_db_password_arn
-  ssm_db_port_arn        = module.secrets.ssm_db_port_arn
-  ssm_sentry_dsn_url_arn = module.secrets.ssm_sentry_dsn_url_arn
+  rds_instance_endpoint    = module.nlp_database.rds_instance_endpoint
+  ssm_db_name_arn          = module.secrets.ssm_db_name_arn
+  ssm_db_username_arn      = module.secrets.ssm_db_username_arn
+  ssm_db_password_arn      = module.secrets.ssm_db_password_arn
+  ssm_db_port_arn          = module.secrets.ssm_db_port_arn
+  ssm_sentry_dsn_url_arn   = module.secrets.ssm_sentry_dsn_url_arn
   ssm_geoname_api_user_arn = module.secrets.ssm_geoname_api_user_arn
 
   # db table
@@ -523,11 +523,11 @@ module "entryextraction" {
   db_table_callback_tracker = var.db_table_callback_tracker
 
   # s3
-  s3_bucketname_task_results = module.s3.task_results_bucket_name
+  s3_bucketname_task_results      = module.s3.task_results_bucket_name
   nlp_docs_conversion_bucket_name = module.s3.nlp_docs_conversion_bucket_name
 
   # cloudmap
-  private_dns_namespace_id = module.cloudmap.private_dns_namespace_id
+  private_dns_namespace_id           = module.cloudmap.private_dns_namespace_id
   private_dns_namespace_local_domain = module.cloudmap.private_dns_namespace_local_domain
 
   # efs
