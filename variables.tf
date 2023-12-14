@@ -52,3 +52,11 @@ variable "db_table_callback_tracker" {}
 
 # s3
 variable "s3_bucketname_task_results" {}
+
+# Model info
+variable "classification_model_id" {}
+variable "classification_model_version" {}
+variable "geolocation_model_id" {}
+variable "geolocation_model_version" {}
+variable "reliability_model_id" {}
+variable "reliability_model_version" {}

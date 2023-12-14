@@ -120,3 +120,11 @@ variable "textextraction_ecs_endpoint" {}
 variable "entryextraction_ecs_task_defn_arn" {}
 variable "entryextraction_ecs_container_name" {}
 variable "entryextraction_ecs_endpoint" {}
+
+# Model info
+variable "classification_model_id" {}
+variable "classification_model_version" {}
+variable "geolocation_model_id" {}
+variable "geolocation_model_version" {}
+variable "reliability_model_id" {}
+variable "reliability_model_version" {}

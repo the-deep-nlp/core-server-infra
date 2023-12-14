@@ -234,6 +234,30 @@
         {
           "name": "ENTRYEXTRACTION_ECS_ENDPOINT",
           "value": "${entryextraction_ecs_endpoint}"
+        },
+        {
+          "name": "CLASSIFICATION_MODEL_ID",
+          "value": "${classification_model_id}"
+        },
+        {
+          "name": "CLASSIFICATION_MODEL_VERSION",
+          "value": "${classification_model_version}"
+        },
+        {
+          "name": "GEOLOCATION_MODEL_ID",
+          "value": "${geolocation_model_id}"
+        },
+        {
+          "name": "GEOLOCATION_MODEL_VERSION",
+          "value": "${geolocation_model_version}"
+        },
+        {
+          "name": "RELIABILITY_MODEL_ID",
+          "value": "${reliability_model_id}"
+        },
+        {
+          "name": "RELIABILITY_MODEL_VERSION",
+          "value": "${reliability_model_version}"
         }
       ],
       "secrets": [

@@ -127,6 +127,14 @@ module "nlp_server" {
   entryextraction_ecs_task_defn_arn  = module.entryextraction.entryextraction_ecs_task_defn_arn
   entryextraction_ecs_container_name = module.entryextraction.entryextraction_container_name
   entryextraction_ecs_endpoint       = module.entryextraction.aws_service_discovery_service_endpoint
+
+  # Model info
+  classification_model_id      = var.classification_model_id
+  classification_model_version = var.classification_model_version
+  geolocation_model_id         = var.geolocation_model_id
+  geolocation_model_version    = var.geolocation_model_version
+  reliability_model_id         = var.reliability_model_id
+  reliability_model_version    = var.reliability_model_version
 }
 
 module "redis" {
