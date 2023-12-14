@@ -46,6 +46,9 @@ class GeoLocationGeneratorHandler:
 
         self.entries = self._download_prepare_entries()
 
+        if self.callback_url.lower() == "none":
+            self.callback_url = None
+
         self.headers = {
             "Content-Type": "application/json"
         }

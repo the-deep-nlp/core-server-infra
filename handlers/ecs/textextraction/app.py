@@ -1,5 +1,6 @@
 import os
 import uuid
+import json
 import base64
 import logging
 import requests
@@ -132,10 +133,12 @@ class TextExtractionHandler:
         """
         Common doc handler for pdf and webpages
         """
+
         entries_list = [item for sublist in entries for item in sublist]
         extracted_text = "\n".join(entries_list)
         extracted_text = preprocess_extracted_texts(extracted_text)
         total_words_count = get_words_count(extracted_text)
+        total_pages = len(entries)
         date_today = date.today().isoformat()
 
         text_presigned_url = upload_to_s3(
@@ -148,6 +151,24 @@ class TextExtractionHandler:
             signed_url_expiry_secs=self.signed_url_expiry_secs
         )
 
+        # the idea is to push another format of the same text in a structured format. 
+        # the problem is that the text/plain version can't be reversed in its original 
+        # structured format. Another thing: the {date_today} create a problem in retrieving 
+        # the document with only the textextraction_id, so it's tricky to known where it's located without the date,
+        # so i prefer to save every structured text in the same directory, considering that textextraction_id
+        # is a uuid.
+        structured_text_presigned_url = upload_to_s3(
+            contents=json.dumps(entries),
+            contents_type="application/json",
+            bucket_name=self.bucket_name,
+            key=f"textextraction/structured/{textextraction_id}/extracted_text.json",
+            aws_region=AWS_REGION,
+            s3_client=s3_client_presigned_url,
+            signed_url_expiry_secs=self.signed_url_expiry_secs
+        )
+
+        # during text extraction, also the structured version is stored on s3
+        # and sent to the database with a "structured_text_presigned_url"
         if text_presigned_url:
             self.dispatch_results(
                 client_id,
@@ -155,6 +176,7 @@ class TextExtractionHandler:
                 callback_url,
                 status=StateHandler.SUCCESS.value,
                 text_presigned_url=text_presigned_url,
+                structured_text_presigned_url=structured_text_presigned_url,
                 total_pages=total_pages,
                 total_words_count=total_words_count
             )
@@ -293,6 +315,7 @@ class TextExtractionHandler:
         callback_url,
         status,
         text_presigned_url=None,
+        structured_text_presigned_url=None,
         total_pages=None,
         total_words_count=None
     ):
@@ -302,10 +325,12 @@ class TextExtractionHandler:
         response_data = {
             "client_id": client_id,
             "text_path": text_presigned_url,
+            "structured_text_path": structured_text_presigned_url,
             "images_path": [],
             "total_pages": total_pages,
             "total_words_count": total_words_count,
-            "status": status
+            "status": status,
+            "text_extraction_id": textextraction_id
         }
         if callback_url:
             callback_response = send_request_on_callback(

@@ -115,3 +115,8 @@ variable "s3_bucketname_task_results_arn" {}
 variable "textextraction_ecs_task_defn_arn" {}
 variable "textextraction_ecs_container_name" {}
 variable "textextraction_ecs_endpoint" {}
+
+# Entry Extraction
+variable "entryextraction_ecs_task_defn_arn" {}
+variable "entryextraction_ecs_container_name" {}
+variable "entryextraction_ecs_endpoint" {}
