@@ -96,6 +96,13 @@ data "template_file" "config" {
     sentry_dsn_url = var.ssm_sentry_dsn_url_arn
     # s3
     nlp_server_bucket_static_name = var.nlp_server_bucket_static_name
+    # Model info
+    classification_model_id      = var.classification_model_id
+    classification_model_version = var.classification_model_version
+    geolocation_model_id         = var.geolocation_model_id
+    geolocation_model_version    = var.geolocation_model_version
+    reliability_model_id         = var.reliability_model_id
+    reliability_model_version    = var.reliability_model_version
   }
 }
 

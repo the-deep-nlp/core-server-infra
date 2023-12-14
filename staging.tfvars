@@ -45,3 +45,11 @@ s3_bucketname_task_results = "nlp-tasks-processed-results"
 # db table 
 db_table_name             = "event_status_tracker"
 db_table_callback_tracker = "failed_callback_tracker"
+
+# model info
+classification_model_id      = "classification_model"
+classification_model_version = "1.0.0"
+geolocation_model_id         = "geolocation_model"
+geolocation_model_version    = "1.0.0"
+reliability_model_id         = "reliability_model"
+reliability_model_version    = "1.0.0"
