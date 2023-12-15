@@ -188,6 +188,25 @@ class TextExtractionHandler:
                 status=StateHandler.FAILED.value
             )
 
+    def handle_pdf_text_from_url(self, url, client_id, textextraction_id, callback_url):
+        """ Extract texts from url link which is a pdf document """
+        try:
+            document = TextFromFile(stream=None, ext="pdf", from_web=True, url=url)
+            entries, _ = document.extract_text(output_format="list")
+        except Exception as exc:
+            logging.error("Extraction failed: %s", str(exc), exc_info=True)
+            self.dispatch_results(
+                client_id,
+                textextraction_id,
+                callback_url,
+                status=StateHandler.FAILED.value
+            )
+            return
+
+        total_pages = len(entries)
+        self._common_doc_handler(entries, client_id, textextraction_id, callback_url, total_pages=total_pages)
+
+
     def handle_pdf_text(self, file_path, file_name, client_id, textextraction_id, callback_url):
         """ Extract texts from pdf documents """
         try:
@@ -207,7 +226,6 @@ class TextExtractionHandler:
             return
         
         total_pages = len(entries)
-
         self._common_doc_handler(entries, client_id, textextraction_id, callback_url, total_pages=total_pages)
 
     def handle_html_text(self, url, file_name, client_id, textextraction_id, callback_url):
@@ -231,12 +249,7 @@ class TextExtractionHandler:
         content_type = self.extract_content_type.get_content_type(url, self.headers)
 
         if content_type == UrlTypes.PDF.value:  # assume it is http/https pdf weblink
-            response = requests.get(url, headers=self.headers, stream=True, timeout=30)
-            tempf = create_tempfile(response)
-
-            self.handle_pdf_text(
-                tempf.name, file_name, client_id, textextraction_id, callback_url
-            )
+            self.handle_pdf_text_from_url(url, client_id, textextraction_id, callback_url)
         elif content_type == UrlTypes.HTML.value:  # assume it is a static webpage
             self.handle_html_text(
                 url, file_name, client_id, textextraction_id, callback_url
