@@ -53,3 +53,5 @@ geolocation_model_id         = "geolocation_model"
 geolocation_model_version    = "1.0.0"
 reliability_model_id         = "reliability_model"
 reliability_model_version    = "1.0.0"
+
+ecr_image_reliability_name = "reliability"

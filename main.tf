@@ -541,3 +541,13 @@ module "entryextraction" {
   # efs
   efs_volume_id = module.efilesystem.efs_volume_id
 }
+
+module "reliability" {
+  source = "./modules/lambda/reliability"
+
+  environment = var.environment
+  aws_region = var.aws_region
+
+  # ecr
+  ecr_image_name = var.ecr_image_reliability_name
+}
