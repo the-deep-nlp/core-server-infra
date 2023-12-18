@@ -17,7 +17,7 @@ terraform {
 }
 
 provider "aws" {
-  region  = var.aws_region
+  region = var.aws_region
   #profile = var.aws_profile
   #shared_credentials_files = ["~/.aws/credentials"]
 }
@@ -546,7 +546,7 @@ module "reliability" {
   source = "./modules/lambda/reliability"
 
   environment = var.environment
-  aws_region = var.aws_region
+  aws_region  = var.aws_region
 
   # ecr
   ecr_image_name = var.ecr_image_reliability_name
