@@ -60,3 +60,6 @@ variable "geolocation_model_id" {}
 variable "geolocation_model_version" {}
 variable "reliability_model_id" {}
 variable "reliability_model_version" {}
+
+# reliability ecr image name
+variable "ecr_image_reliability_name" {}
