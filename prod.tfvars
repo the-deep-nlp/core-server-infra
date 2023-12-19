@@ -36,6 +36,8 @@ topicmodel_app_image_name = "topicmodeling_model"
 geolocations_app_image_name = "geolocations_model"
 # ecs text extraction
 textextraction_app_image_name = "deepex_text_extraction"
+# ecs entry extraction
+entryextraction_app_image_name = "entry_extraction"
 
 # s3
 s3_bucketname_task_results = "nlp-tasks-processed-results"
@@ -43,3 +45,13 @@ s3_bucketname_task_results = "nlp-tasks-processed-results"
 # db table 
 db_table_name             = "event_status_tracker"
 db_table_callback_tracker = "failed_callback_tracker"
+
+# model info
+classification_model_id      = "classification_model"
+classification_model_version = "1.0.0"
+geolocation_model_id         = "geolocation_model"
+geolocation_model_version    = "1.0.0"
+reliability_model_id         = "reliability_model"
+reliability_model_version    = "1.0.0"
+
+ecr_image_reliability_name = "reliability"
