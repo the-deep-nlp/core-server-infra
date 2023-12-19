@@ -5,6 +5,7 @@ import base64
 import logging
 import requests
 import boto3
+import copy
 import sentry_sdk
 from pathlib import Path
 from datetime import date
@@ -122,23 +123,36 @@ class TextExtractionHandler:
         if not self.db_table_name:
             logging.error("Database table name is not found.")
 
+    def _add_page_info(self, entries_lst):
+        entries_with_page_info = copy.deepcopy(entries_lst)
+        try:
+            for idx, item in enumerate(entries_with_page_info):
+                item.insert(0, f"********* [PAGE {idx + 1} START] *********")
+                item.append(f"********* [PAGE {idx + 1} END] *********")
+            return entries_with_page_info
+        except Exception as exc:
+            logging.error(f"Error occurred {exc}. Returning the source entries list", exc_info=True)
+            return entries_lst
+
     def _common_doc_handler(
         self,
         entries,
         client_id,
         textextraction_id,
         callback_url,
-        total_pages=1
+        webpage_extraction=False
     ):
         """
         Common doc handler for pdf and webpages
         """
+        entries_with_page_info = self._add_page_info(entries)
+        entries_list = [item for sublist in entries_with_page_info for item in sublist]
 
-        entries_list = [item for sublist in entries for item in sublist]
-        extracted_text = "\n".join(entries_list)
+        extracted_text = "\n\n".join(entries_list)
         extracted_text = preprocess_extracted_texts(extracted_text)
         total_words_count = get_words_count(extracted_text)
-        total_pages = len(entries)
+
+        total_pages = 1 if webpage_extraction else len(entries)
         date_today = date.today().isoformat()
 
         text_presigned_url = upload_to_s3(
@@ -203,8 +217,8 @@ class TextExtractionHandler:
             )
             return
 
-        total_pages = len(entries)
-        self._common_doc_handler(entries, client_id, textextraction_id, callback_url, total_pages=total_pages)
+        #total_pages = len(entries)
+        self._common_doc_handler(entries, client_id, textextraction_id, callback_url)
 
 
     def handle_pdf_text(self, file_path, file_name, client_id, textextraction_id, callback_url):
@@ -225,8 +239,8 @@ class TextExtractionHandler:
             )
             return
         
-        total_pages = len(entries)
-        self._common_doc_handler(entries, client_id, textextraction_id, callback_url, total_pages=total_pages)
+        #total_pages = len(entries)
+        self._common_doc_handler(entries, client_id, textextraction_id, callback_url)
 
     def handle_html_text(self, url, file_name, client_id, textextraction_id, callback_url):
         """ Extract html texts """
@@ -243,7 +257,7 @@ class TextExtractionHandler:
             )
             return
 
-        self._common_doc_handler(entries, client_id, textextraction_id, callback_url)
+        self._common_doc_handler(entries, client_id, textextraction_id, callback_url, webpage_extraction=True)
 
     def __call__(self, client_id, url, textextraction_id, callback_url, file_name="extract_text.txt"):
         content_type = self.extract_content_type.get_content_type(url, self.headers)
