@@ -39,6 +39,8 @@ jobs:
             ecr_repo: TEXTEXTRACTION_REPO_NAME
           - image: ./handlers/ecs/topicmodeling/
             ecr_repo: TOPICMODELING_REPO_NAME
+          - image: ./handlers/lambda/reliability
+            ecr_repo: RELIABILITY_REPO_NAME
 
     if: github.ref == 'refs/heads/release'
     steps:
