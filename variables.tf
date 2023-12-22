@@ -63,3 +63,17 @@ variable "reliability_model_version" {}
 
 # reliability ecr image name
 variable "ecr_image_reliability_name" {}
+
+# ecs capacity
+variable "text_extraction_fargate_cpu" {}
+variable "text_extraction_fargate_memory" {}
+variable "summarization_v2_fargate_cpu" {}
+variable "summarization_v2_fargate_memory" {}
+variable "entry_extraction_fargate_cpu" {}
+variable "entry_extraction_fargate_memory" {}
+variable "geolocations_fargate_cpu" {}
+variable "geolocations_fargate_memory" {}
+variable "ngrams_fargate_cpu" {}
+variable "ngrams_fargate_memory" {}
+variable "topicmodeling_fargate_cpu" {}
+variable "topicmodeling_fargate_memory" {}

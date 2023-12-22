@@ -46,6 +46,20 @@ s3_bucketname_task_results = "nlp-tasks-processed-results"
 db_table_name             = "event_status_tracker"
 db_table_callback_tracker = "failed_callback_tracker"
 
+# ecs capacity
+text_extraction_fargate_cpu = "2048"
+text_extraction_fargate_memory = "4096"
+summarization_v2_fargate_cpu = "2048"
+summarization_v2_fargate_memory = "8192"
+entry_extraction_fargate_cpu = "1024"
+entry_extraction_fargate_memory = "2048"
+geolocations_fargate_cpu = "512"
+geolocations_fargate_memory = "2048"
+ngrams_fargate_cpu = "512"
+ngrams_fargate_memory = "1024"
+topicmodeling_fargate_cpu = "1024"
+topicmodeling_fargate_memory = "4096"
+
 # model info
 classification_model_id      = "classification_model"
 classification_model_version = "1.0.0"

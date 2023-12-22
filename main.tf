@@ -198,6 +198,10 @@ module "topicmodel" {
 
   # s3
   s3_bucketname_task_results = module.s3.task_results_bucket_name
+
+  # ecs capacity
+  fargate_cpu = var.topicmodeling_fargate_cpu
+  fargate_memory = var.topicmodeling_fargate_memory
 }
 
 module "ngrams" {
@@ -238,6 +242,10 @@ module "ngrams" {
 
   # s3
   s3_bucketname_task_results = module.s3.task_results_bucket_name
+
+  # ecs capacity
+  fargate_cpu = var.ngrams_fargate_cpu
+  fargate_memory = var.ngrams_fargate_memory
 }
 
 module "summarization" {
@@ -325,6 +333,10 @@ module "geolocations" {
 
   # s3
   s3_bucketname_task_results = module.s3.task_results_bucket_name
+
+  # ecs capacity
+  fargate_cpu = var.geolocations_fargate_cpu
+  fargate_memory = var.geolocations_fargate_memory
 }
 
 module "efilesystem" {
@@ -390,6 +402,10 @@ module "summarization_v2" {
   # cloudmap
   private_dns_namespace_id           = module.cloudmap.private_dns_namespace_id
   private_dns_namespace_local_domain = module.cloudmap.private_dns_namespace_local_domain
+
+  # ecs capacity
+  fargate_cpu = var.summarization_v2_fargate_cpu
+  fargate_memory = var.summarization_v2_fargate_memory
 }
 
 module "summarization_v3" {
@@ -490,6 +506,10 @@ module "deepex" {
   # cloudmap
   private_dns_namespace_id           = module.cloudmap.private_dns_namespace_id
   private_dns_namespace_local_domain = module.cloudmap.private_dns_namespace_local_domain
+
+  # ecs capacity
+  fargate_cpu = var.text_extraction_fargate_cpu
+  fargate_memory = var.text_extraction_fargate_memory
 }
 
 # Entry Extraction and Classification
@@ -540,6 +560,10 @@ module "entryextraction" {
 
   # efs
   efs_volume_id = module.efilesystem.efs_volume_id
+
+  # ecs capacity
+  fargate_cpu = var.entry_extraction_fargate_cpu
+  fargate_memory = var.entry_extraction_fargate_memory
 }
 
 module "reliability" {
