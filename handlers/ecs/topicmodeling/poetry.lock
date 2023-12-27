@@ -479,8 +479,8 @@ requests = "2.31.0"
 [package.source]
 type = "git"
 url = "https://github.com/the-deep-nlp/nlp-modules-utils.git"
-reference = "addb414"
-resolved_reference = "addb4144be70cd6a89b82fb6b71d6232079a171d"
+reference = "68c61bb"
+resolved_reference = "68c61bb9b981ac5287b54e1aeebf1b4eb04f58f5"
 
 [[package]]
 name = "nltk"
@@ -1780,4 +1780,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8"
-content-hash = "28e1a2abb61847803b1bb8ac5030257eeac9fd695ccda0f6acfa6aeb65f77902"
+content-hash = "0974eb0eb727f8be619f8ca79608d29662d69eb0b5864d32c1e09e193c08eeed"

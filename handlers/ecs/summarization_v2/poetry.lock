@@ -394,9 +394,9 @@ extra = ["lxml (>=4.6)", "pydot (>=1.4.2)", "pygraphviz (>=1.10)", "sympy (>=1.1
 test = ["codecov (>=2.1)", "pytest (>=7.2)", "pytest-cov (>=4.0)"]
 
 [[package]]
-name = "nlp-modules-utils"
+name = "nlp_modules_utils"
 version = "0.1"
-description = "Helper utils functions"
+description = ""
 category = "main"
 optional = false
 python-versions = "*"
@@ -411,8 +411,8 @@ requests = "2.31.0"
 [package.source]
 type = "git"
 url = "https://github.com/the-deep-nlp/nlp-modules-utils.git"
-reference = "addb414"
-resolved_reference = "addb4144be70cd6a89b82fb6b71d6232079a171d"
+reference = "68c61bb"
+resolved_reference = "68c61bb9b981ac5287b54e1aeebf1b4eb04f58f5"
 
 [[package]]
 name = "numpy"
@@ -1571,4 +1571,4 @@ standard = ["colorama (>=0.4)", "httptools (>=0.5.0)", "python-dotenv (>=0.13)",
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8"
-content-hash = "294ef9e5442191b2ed6367ae36c13c588c9fa3a3c73bf066ca59f2bcb8f43b91"
+content-hash = "67f49189e1305fa9e118e85d846d90856028c3ba72b3abf07cf642afe41e5ae7"

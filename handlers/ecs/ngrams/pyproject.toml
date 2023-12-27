@@ -8,7 +8,7 @@ authors = ["dev <dev@togglecorp.com>"]
 python = ">=3.8"
 ngrams_generator = { git = "https://github.com/the-deep-nlp/ngrams-generator.git", rev = "92d9ebb", branch = "main" }
 sentry-sdk = "==1.5.8"
-nlp_modules_utils = { git = "https://github.com/the-deep-nlp/nlp-modules-utils.git", rev = "addb414", branch = "main" }
+nlp_modules_utils = { git = "https://github.com/the-deep-nlp/nlp-modules-utils.git", rev = "68c61bb", branch = "main" }
 
 [tool.poetry.dev-dependencies]
 

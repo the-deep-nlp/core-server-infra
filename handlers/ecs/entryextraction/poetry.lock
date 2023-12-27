@@ -405,8 +405,8 @@ transformers = ["transformers"]
 [package.source]
 type = "git"
 url = "https://github.com/the-deep-nlp/geolocation-generator.git"
-reference = "8d70ccf"
-resolved_reference = "8d70ccff01190f46533c133e27a96831129fc8a9"
+reference = "a19d621"
+resolved_reference = "a19d6210582985a3f1814976fad4e87ba37e7ce7"
 
 [[package]]
 name = "greenlet"
@@ -665,9 +665,9 @@ files = [
 ]
 
 [[package]]
-name = "nlp-modules-utils"
+name = "nlp_modules_utils"
 version = "0.1"
-description = "Helper utils functions"
+description = ""
 category = "main"
 optional = false
 python-versions = "*"
@@ -682,8 +682,8 @@ requests = "2.31.0"
 [package.source]
 type = "git"
 url = "https://github.com/the-deep-nlp/nlp-modules-utils.git"
-reference = "addb414"
-resolved_reference = "addb4144be70cd6a89b82fb6b71d6232079a171d"
+reference = "68c61bb"
+resolved_reference = "68c61bb9b981ac5287b54e1aeebf1b4eb04f58f5"
 
 [[package]]
 name = "nltk"
@@ -1877,4 +1877,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8"
-content-hash = "5ae19799229bcf7c6b836e7408f60a688fe2b96e5b434329b52d4ba0d4c5e891"
+content-hash = "18cebcdcab365e8523018fa64d64f61b84fbf6300f3f7ad838fc683853954076"
