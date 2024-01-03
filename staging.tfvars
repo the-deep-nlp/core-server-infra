@@ -61,7 +61,8 @@ topicmodeling_fargate_cpu       = "1024"
 topicmodeling_fargate_memory    = "4096"
 
 # ecs tasks count
-text_extraction_task_count = 2
+text_extraction_task_count  = 2
+entry_extraction_task_count = 2
 
 # model info
 classification_model_id      = "classification_model"

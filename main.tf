@@ -126,7 +126,7 @@ module "nlp_server" {
   # Entry Extraction
   entryextraction_ecs_task_defn_arn  = module.entryextraction.entryextraction_ecs_task_defn_arn
   entryextraction_ecs_container_name = module.entryextraction.entryextraction_container_name
-  entryextraction_ecs_endpoint       = module.entryextraction.aws_service_discovery_service_endpoint
+  entryextraction_ecs_endpoint       = module.entryextraction.application_endpoint
 
   # Model info
   classification_model_id      = var.classification_model_id
@@ -567,6 +567,9 @@ module "entryextraction" {
   # ecs capacity
   fargate_cpu    = var.entry_extraction_fargate_cpu
   fargate_memory = var.entry_extraction_fargate_memory
+
+  # ecs task count
+  app_count = var.entry_extraction_task_count
 }
 
 module "reliability" {
