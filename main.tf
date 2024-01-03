@@ -121,7 +121,7 @@ module "nlp_server" {
   # Text Extraction
   textextraction_ecs_task_defn_arn  = module.deepex.textextraction_ecs_task_defn_arn
   textextraction_ecs_container_name = module.deepex.textextraction_container_name
-  textextraction_ecs_endpoint       = module.deepex.aws_service_discovery_service_endpoint
+  textextraction_ecs_endpoint       = module.deepex.application_endpoint
 
   # Entry Extraction
   entryextraction_ecs_task_defn_arn  = module.entryextraction.entryextraction_ecs_task_defn_arn
@@ -200,7 +200,7 @@ module "topicmodel" {
   s3_bucketname_task_results = module.s3.task_results_bucket_name
 
   # ecs capacity
-  fargate_cpu = var.topicmodeling_fargate_cpu
+  fargate_cpu    = var.topicmodeling_fargate_cpu
   fargate_memory = var.topicmodeling_fargate_memory
 }
 
@@ -244,7 +244,7 @@ module "ngrams" {
   s3_bucketname_task_results = module.s3.task_results_bucket_name
 
   # ecs capacity
-  fargate_cpu = var.ngrams_fargate_cpu
+  fargate_cpu    = var.ngrams_fargate_cpu
   fargate_memory = var.ngrams_fargate_memory
 }
 
@@ -335,7 +335,7 @@ module "geolocations" {
   s3_bucketname_task_results = module.s3.task_results_bucket_name
 
   # ecs capacity
-  fargate_cpu = var.geolocations_fargate_cpu
+  fargate_cpu    = var.geolocations_fargate_cpu
   fargate_memory = var.geolocations_fargate_memory
 }
 
@@ -404,7 +404,7 @@ module "summarization_v2" {
   private_dns_namespace_local_domain = module.cloudmap.private_dns_namespace_local_domain
 
   # ecs capacity
-  fargate_cpu = var.summarization_v2_fargate_cpu
+  fargate_cpu    = var.summarization_v2_fargate_cpu
   fargate_memory = var.summarization_v2_fargate_memory
 }
 
@@ -508,8 +508,11 @@ module "deepex" {
   private_dns_namespace_local_domain = module.cloudmap.private_dns_namespace_local_domain
 
   # ecs capacity
-  fargate_cpu = var.text_extraction_fargate_cpu
+  fargate_cpu    = var.text_extraction_fargate_cpu
   fargate_memory = var.text_extraction_fargate_memory
+
+  # ecs task count
+  app_count = var.text_extraction_task_count
 }
 
 # Entry Extraction and Classification
@@ -562,7 +565,7 @@ module "entryextraction" {
   efs_volume_id = module.efilesystem.efs_volume_id
 
   # ecs capacity
-  fargate_cpu = var.entry_extraction_fargate_cpu
+  fargate_cpu    = var.entry_extraction_fargate_cpu
   fargate_memory = var.entry_extraction_fargate_memory
 }
 
