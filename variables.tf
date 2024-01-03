@@ -77,3 +77,6 @@ variable "ngrams_fargate_cpu" {}
 variable "ngrams_fargate_memory" {}
 variable "topicmodeling_fargate_cpu" {}
 variable "topicmodeling_fargate_memory" {}
+
+# ecs task count
+variable "text_extraction_task_count" {}

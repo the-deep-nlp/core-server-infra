@@ -110,29 +110,14 @@ resource "aws_ecs_service" "service" {
     assign_public_ip = false
   }
 
-  #   load_balancer {
-  #     target_group_arn = aws_alb_target_group.tg.arn
-  #     container_name   = "backend-server-${var.environment}"
-  #     container_port   = var.app_port
-  #   }
+  load_balancer {
+    target_group_arn = aws_alb_target_group.tg.arn
+    container_name   = "${var.ecs_container_name}-${var.environment}"
+    container_port   = var.app_port
+  }
 
   depends_on = [
-    #aws_alb_listener.app_listener,
+    aws_alb_listener.app_listener,
     var.iam_ecs_task_execution_policy_arn
   ]
-  service_registries {
-    registry_arn = aws_service_discovery_service.name.arn
-  }
-}
-
-resource "aws_service_discovery_service" "name" {
-  name = "${var.local_sub_domain}-${var.environment}"
-  dns_config {
-    namespace_id = var.private_dns_namespace_id
-    dns_records {
-      ttl  = 10
-      type = "A"
-    }
-    routing_policy = "MULTIVALUE"
-  }
 }
