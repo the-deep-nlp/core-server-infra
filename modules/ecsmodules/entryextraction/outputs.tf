@@ -6,6 +6,6 @@ output "entryextraction_container_name" {
   value = var.ecs_container_name
 }
 
-output "aws_service_discovery_service_endpoint" {
-  value = "http://${var.local_sub_domain}-${var.environment}.${var.private_dns_namespace_local_domain}:${var.app_port}"
+output "application_endpoint" {
+  value = "http://${aws_alb.alb.dns_name}:${var.app_port}"
 }

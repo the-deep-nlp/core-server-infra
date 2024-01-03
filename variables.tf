@@ -80,3 +80,4 @@ variable "topicmodeling_fargate_memory" {}
 
 # ecs task count
 variable "text_extraction_task_count" {}
+variable "entry_extraction_task_count" {}
