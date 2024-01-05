@@ -2,6 +2,7 @@ import boto3
 import json
 import numpy as np
 import pandas as pd
+from tqdm import tqdm
 from botocore.exceptions import ClientError
 
 from tags import total_tags
@@ -226,28 +227,29 @@ class EntryExtractionModel:
         self.method = method
     
     def predict(self, document):
-            
         if isinstance(document, list):
-            document = reformat_old_output(document)    
+            document = reformat_old_output(document)
         indexes, text = zip(*[(i, c[self.TEXT]) 
                                 for i, c in enumerate(document[self.BLOCKS]) 
                                 if c[self.TYPE]==self.TEXT]
                             )
         results = []
-        for idx, batch in zip(divide_into_batches(indexes), 
-                                divide_into_batches(text)):
-            try:
-                batch_results = json.loads(
-                    get_outputs_from_endpoint_text(
-                        batch, 
-                        endpoint_name=self.model_endpoint
+        with tqdm(total=len(text)) as progress_bar:
+            for idx, batch in zip(divide_into_batches(indexes), 
+                                    divide_into_batches(text)):
+                try:
+                    batch_results = json.loads(
+                        get_outputs_from_endpoint_text(
+                            batch, 
+                            endpoint_name=self.model_endpoint
+                        )
                     )
-                )
-                results.append((idx, batch_results))
-            except Exception as e:
-                print(e)
-                continue
+                    results.append((idx, batch_results))
 
+                except Exception as e:
+                    print(e)
+                    continue
+                progress_bar.update(len(batch))
         results = rebuild(results)
         res_for_doc = [get_results_one_row(c, 
                                             thresholds=results[self.THRESHOLDS],
