@@ -59,7 +59,8 @@ OPTIMIZED_PARAMETERS = {
             ],
         "method": "standard_deviation",
         "length_weight": 0,
-        "std_multiplier": 0.727764
+        "std_multiplier": 0.727764,
+        "min_sentence_length": 15
         },
     "main-model-cpu": {
         "selected_tags": [
@@ -72,7 +73,8 @@ OPTIMIZED_PARAMETERS = {
             ],
         "method": "standard_deviation",
         "length_weight": 0,
-        "std_multiplier": 0.4407837873398228
+        "std_multiplier": 0.4407837873398228,
+        "min_sentence_length": 15
     }   
 }
 

@@ -177,7 +177,7 @@ def reformat_old_output(output: list):
 
 
 
-def create_final_output(output: dict, classification_results: dict):
+def create_final_output(output: dict, classification_results: dict, min_length: int = 15):
     """ Generate the final output """
     blocks = output["blocks"]
     true_indexes = classification_results["predictions"]==1
@@ -193,6 +193,7 @@ def create_final_output(output: dict, classification_results: dict):
             })
 
     for i, j in zip(selected, pred_vector):
+        
         block = blocks[i]
         tags_pred = convert_current_dict_to_previous_one(classification_results["raw_predictions"][j])
         tags_threshold = convert_current_dict_to_previous_one(classification_results["thresholds"])
@@ -230,6 +231,7 @@ class EntryExtractionModel:
         mean_percentile: float=None,
         std_multiplier: float=None,
         length_weight: float=None,
+        min_length: int = 15
     ):
 
         self.model_endpoint = model_endpoint
@@ -239,14 +241,18 @@ class EntryExtractionModel:
         self.std_multiplier = std_multiplier
         self.length_weight = length_weight
         self.method = method
+        self.min_length = min_length
 
+    def check_length(self, sentence):
+        return True if len(sentence.split())>=self.min_length else False
+    
     def predict(self, document):
 
         if isinstance(document, list):
             document = reformat_old_output(document)
         indexes, text = zip(*[(i, c[self.TEXT])
             for i, c in enumerate(document[self.BLOCKS])
-            if c[self.TYPE]==self.TEXT]
+            if c[self.TYPE]==self.TEXT and self.check_length(c[self.TEXT])]
         )
 
         results = []
@@ -296,7 +302,8 @@ class EntryExtractionModel:
 
         return create_final_output(
             output=document,
-            classification_results=results
+            classification_results=results,
+            min_length=self.min_length
         )
 
 parameters = OPTIMIZED_PARAMETERS["main-model-cpu"]
@@ -304,5 +311,6 @@ entry_extraction_model = EntryExtractionModel(
     selected_tags=parameters["selected_tags"],
     method=parameters["method"],
     length_weight=parameters["length_weight"],
-    std_multiplier=parameters["std_multiplier"]
+    std_multiplier=parameters["std_multiplier"],
+    min_length=parameters["min_sentence_length"]
 )
