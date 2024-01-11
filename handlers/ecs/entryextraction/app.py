@@ -54,7 +54,7 @@ ecs_app = FastAPI()
 @ecs_app.get("/")
 def home():
     """Home page message for test"""
-    return "This is Text Extraction ECS Task"
+    return "This is Entry Extraction ECS Task"
 
 @ecs_app.post("/extract_entries")
 async def extract_texts(item: InputStructure, background_tasks: BackgroundTasks):
