@@ -42,6 +42,8 @@ variable "ecs_container_name" {
   default = "entryextraction-container"
 }
 
+variable "ecs_cluster_name" {}
+
 # db
 variable "rds_instance_endpoint" {}
 variable "ssm_db_name_arn" {}
@@ -72,19 +74,39 @@ variable "lambda_docs_conversion_fn" {
 
 # autoscaling
 variable "entryextraction_scaling_max_capacity" {
-  default = 2
+  default = 5
 }
 
 variable "entryextraction_scaling_min_capacity" {
-  default = 1
+  default = 2
 }
 
-variable "entryextraction_cpu_target_value" {
+variable "textextraction_max_cpu_target_value" {
+  default = 70
+}
+
+variable "textextraction_min_cpu_target_value" {
   default = 60
 }
 
-variable "entryextraction_mem_target_value" {
+variable "textextraction_max_mem_target_value" {
   default = 60
+}
+
+variable "textextraction_min_mem_target_value" {
+  default = 50
+}
+
+variable "monitoring_period" {
+  default = 30
+}
+
+variable "evaluation_period_max" {
+  default = 3
+}
+
+variable "evaluation_period_min" {
+  default = 8
 }
 
 # efs

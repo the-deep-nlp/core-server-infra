@@ -524,7 +524,8 @@ module "entryextraction" {
   aws_region  = var.aws_region
 
   # ecs
-  ecs_cluster_id = module.nlp_server.ecs_cluster_id
+  ecs_cluster_id   = module.nlp_server.ecs_cluster_id
+  ecs_cluster_name = module.nlp_server.ecs_cluster_name_shared
 
   # security grp
   ecs_security_group_id = module.nlp_server.ecs_security_group_id
