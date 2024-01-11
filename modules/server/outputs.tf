@@ -11,6 +11,10 @@ output "ecs_cluster_id" {
   value = aws_ecs_cluster.cluster.id
 }
 
+output "ecs_cluster_name_shared" {
+  value = "${var.ecs_cluster_name}-${var.environment}"
+}
+
 output "ecs_security_group_id" {
   value = aws_security_group.ecs_sg.id
 }
