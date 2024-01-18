@@ -46,6 +46,7 @@ class ReportsGeneratorHandler:
     def __init__(self):
         self.signed_url_expiry_secs = os.environ.get("SIGNED_URL_EXPIRY_SECS", 86400) # 1 day
         self.bucket_name = os.environ.get("S3_BUCKET_NAME", None)
+        self.environment = os.environ.get("ENVIRONMENT", "staging")
 
         self.headers = {
             "Content-Type": "application/json"
@@ -154,7 +155,7 @@ class ReportsGeneratorHandler:
             summary, summary_info = llm_summarizer.summarizer()
             # Adding the metric values
             for k, v in summary_info.items():
-                add_metric_data(cloudwatch_client, k, v)
+                add_metric_data(cloudwatch_client, k, v, environment=self.environment)
 
             date_today = date.today().isoformat()
             presigned_url = upload_to_s3(

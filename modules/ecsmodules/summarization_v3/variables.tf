@@ -14,7 +14,7 @@ variable "fargate_memory" {
 }
 
 variable "app_count" {
-  default = 0
+  default = 1
 }
 
 variable "ecs_security_group_id" {}
@@ -60,8 +60,6 @@ variable "s3_bucketname_task_results" {}
 variable "ecs_cluster_name" {
   default = "nlp-server-cluster"
 }
-
-variable "efs_volume_id" {}
 
 variable "private_dns_namespace_id" {}
 variable "private_dns_namespace_local_domain" {}

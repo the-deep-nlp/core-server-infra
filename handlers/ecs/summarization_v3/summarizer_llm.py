@@ -1,4 +1,5 @@
 import os
+import json
 from enum import Enum
 
 from langchain.chat_models import ChatOpenAI
@@ -50,6 +51,7 @@ class LLMSummarization(SummarizerBase):
 
     def summarizer(self, min_tokens: int=20):
         """ Summarization using Chain of Density prompt """
+        generated_summary = None
         tokens_count = max(int(self.get_tokens_size()/2), min_tokens)
 
         map_template = """
@@ -102,4 +104,5 @@ class LLMSummarization(SummarizerBase):
                 "total_cost": cb.total_cost
             }
 
-        return generated_summary, summary_info
+        final_summary = json.loads(generated_summary["text"])
+        return final_summary[-1]["Denser_Summary"], summary_info

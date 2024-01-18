@@ -447,8 +447,6 @@ module "summarization_v3" {
 
   # s3
   s3_bucketname_task_results = module.s3.task_results_bucket_name
-  # efs
-  efs_volume_id = module.efilesystem.efs_volume_id
 
   # cloudmap
   private_dns_namespace_id           = module.cloudmap.private_dns_namespace_id
