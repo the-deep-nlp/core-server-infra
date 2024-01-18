@@ -10,7 +10,8 @@ def add_metric_data(
     cw_client,
     metric_name: str,
     metric_value: float,
-    unit_type: str='None'
+    unit_type: str='None',
+    environment: str='staging'
 ):
     """ Add custom metric value to cloudwatch """
     time_now = datetime.datetime.now()
@@ -21,6 +22,10 @@ def add_metric_data(
                 {
                     'Name': 'Module',
                     'Value': 'Summarization'
+                },
+                {
+                    'Name': 'Environment',
+                    'Value': environment
                 }
             ],
             'Timestamp': datetime.datetime.timestamp(time_now),
