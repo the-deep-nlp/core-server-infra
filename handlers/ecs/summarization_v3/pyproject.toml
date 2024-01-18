@@ -12,7 +12,7 @@ langchain = ">=0.0.238"
 tiktoken = ">=0.4.0"
 fastapi = "^0.95.1"
 uvicorn = "^0.22.0"
-nlp_modules_utils = { git = "https://github.com/the-deep-nlp/nlp-modules-utils.git", rev = "74f3f2c", branch = "main" }
+nlp_modules_utils = { git = "https://github.com/the-deep-nlp/nlp-modules-utils.git", rev = "68c61bb", branch = "main" }
 
 [tool.poetry.dev-dependencies]
 

@@ -18,7 +18,8 @@ from nlp_modules_utils import (
     update_db_table_callback_retry
 )
 
-from summarizer_llm import Summarization
+from summarizer_llm import LLMSummarization
+from custom_metric import add_metric_data
 
 logging.getLogger().setLevel(logging.INFO)
 
@@ -33,6 +34,11 @@ s3_client = boto3.client(
     )
 )
 
+cloudwatch_client = boto3.client(
+    "cloudwatch",
+    region_name=os.environ.get("AWS_REGION", "us-east-1")
+)
+
 class ReportsGeneratorHandler:
     """
     Summarization class to generate summary of the excerpts
@@ -44,8 +50,6 @@ class ReportsGeneratorHandler:
         self.headers = {
             "Content-Type": "application/json"
         }
-
-        self.llm_summarizer = Summarization()
 
         # db
         self.db_config = {
@@ -62,7 +66,7 @@ class ReportsGeneratorHandler:
         if not self.db_table_name:
             logging.error("Database table name is not found.")
 
-    def download_prepare_entries(self, entries_url: str):
+    def download_prepare_entries(self, entries_url: str, req_timeout: int=30):
         """
         The json format (*.json) in the link file should be
         [
@@ -75,7 +79,7 @@ class ReportsGeneratorHandler:
         if entries_url:
             logging.info("The request url is %s", entries_url)
             try:
-                response = requests.get(entries_url, timeout=30)
+                response = requests.get(entries_url, timeout=req_timeout)
                 if response.status_code == 200:
                     return [x["excerpt"] for x in response.json()]
             except Exception as exc:
@@ -93,6 +97,7 @@ class ReportsGeneratorHandler:
         """
         Dispatch results to callback url or write to database
         """
+
         response_data = {
             "client_id": client_id,
             "presigned_s3_url": presigned_url,
@@ -143,10 +148,14 @@ class ReportsGeneratorHandler:
             self.dispatch_results(client_id, summarization_id, callback_url, status=StateHandler.INPUT_URL_PROCESS_FAILED.value)
             return
 
-        if self.llm_summarizer:
-            docs = self.llm_summarizer.create_docs(" ".join(entries))
-            prompt = self.llm_summarizer.generate_prompt()
-            summary = self.llm_summarizer.generate_summary(docs, prompt)
+        merged_entries = " ".join(entries)
+        llm_summarizer = LLMSummarization(texts=merged_entries)
+        if llm_summarizer:
+            summary, summary_info = llm_summarizer.summarizer()
+            # Adding the metric values
+            for k, v in summary_info.items():
+                add_metric_data(cloudwatch_client, k, v)
+
             date_today = date.today().isoformat()
             presigned_url = upload_to_s3(
                 contents=summary,
