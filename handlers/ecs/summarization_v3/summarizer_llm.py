@@ -2,10 +2,10 @@ import os
 import json
 from enum import Enum
 
-from langchain.chat_models import ChatOpenAI
+from langchain_openai.chat_models import ChatOpenAI
 from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
-from langchain.callbacks import get_openai_callback
+from langchain_community.callbacks import get_openai_callback
 
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 
@@ -35,7 +35,6 @@ class SummarizerBase:
 
     def get_tokens_size(self):
         """ Get the tokens size """
-        print(self.llm.get_num_tokens(self.texts))
         return self.llm.get_num_tokens(self.texts)
 
 class LLMSummarization(SummarizerBase):
@@ -92,7 +91,7 @@ class LLMSummarization(SummarizerBase):
         )
 
         with get_openai_callback() as cb:
-            generated_summary = summarize_chain({
+            generated_summary = summarize_chain.invoke({
                 "text": self.texts,
                 "steps_freq": 5,
                 "tokens_count": tokens_count

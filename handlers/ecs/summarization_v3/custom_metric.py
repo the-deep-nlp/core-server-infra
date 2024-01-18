@@ -38,6 +38,6 @@ def add_metric_data(
             MetricData = metricdata,
             Namespace = NAMESPACE
         )
-        logging.info("Successfully wrote the metric value to cloudwatch.")
+        logging.info(f"Successfully wrote for the metric {metric_name}={metric_value} to cloudwatch.")
     except ClientError as cexc:
         logging.error(f"Error occurred while writing metric value: {cexc}")
