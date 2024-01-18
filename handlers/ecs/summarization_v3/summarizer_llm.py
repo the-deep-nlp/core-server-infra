@@ -1,11 +1,12 @@
+import os
 from enum import Enum
 
-from langchain import OpenAI, PromptTemplate
 from langchain.chat_models import ChatOpenAI
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.docstore.document import Document
+from langchain.chains import LLMChain
+from langchain.prompts import PromptTemplate
+from langchain.callbacks import get_openai_callback
 
-from langchain.chains.summarize import load_summarize_chain
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 
 class ChainTypes(Enum):
     """ Chain Types """
@@ -13,104 +14,92 @@ class ChainTypes(Enum):
     MAP_REDUCE = 1
     REFINE = 2
 
-class Summarization:
-    """ Summarization Module """
-    def __init__(
-        self,
-        temperature: float = 0.1,
-        max_tokens: int = 512,
-        model_name: str = "gpt-3.5-turbo"
+class SummarizerBase:
+    """ Summarizer base class """
+    def __init__(self,
+        texts: str,
+        model_name: str,
+        temperature: float,
+        max_tokens: int,
+        max_retries: int
     ):
-        #self.llm = OpenAI(
-        #    temperature=temperature,
-        #    model=model_name,
-        #    max_tokens=max_tokens,
-        #)
-
+        """ Summarizer initializations """
+        self.texts = texts
         self.llm = ChatOpenAI(
+            model_name=model_name,
             temperature=temperature,
-            model=model_name,
-            max_tokens=max_tokens,            
+            max_tokens=max_tokens,
+            max_retries=max_retries
         )
 
-    def textsplitter(self):
-        """ Text Splitter """
-        return RecursiveCharacterTextSplitter(
-            chunk_size=200,
-            chunk_overlap=25,
-            separators=["\n\n", "\n", "\t"]
-        )
+    def get_tokens_size(self):
+        """ Get the tokens size """
+        print(self.llm.get_num_tokens(self.texts))
+        return self.llm.get_num_tokens(self.texts)
 
-    def create_docs(self, texts: str):
-        """ Create Docs """
-        text_splitter = self.textsplitter()
-        texts = text_splitter.split_text(texts)
-        docs = [Document(page_content=t) for t in texts]
-        return docs
+class LLMSummarization(SummarizerBase):
+    """ Summarization using LLM Chain """
+    def __init__(self,
+        texts: str,
+        model_name: str="gpt-3.5-turbo",
+        temperature: float=0.2,
+        max_tokens: int=1024,
+        max_retries: int=2
+    ):
+        super().__init__(texts, model_name, temperature, max_tokens, max_retries)
 
-    def generate_prompt(self):
-        """ Generate Prompts """
-        prompt_template = """You are a humanitarian analyst and has a strong domain knowledge.
-        Write a concise summary of the following including key points:
+    def summarizer(self, min_tokens: int=20):
+        """ Summarization using Chain of Density prompt """
+        tokens_count = max(int(self.get_tokens_size()/2), min_tokens)
 
-        {text}
+        map_template = """
+            Article: {text}
 
-        CONCISE SUMMARY:
+            You will generate an increasingly concise, entity-dense summaries of the above Article.
+
+            Repeat the following 2 steps 5 times.
+
+            Step 1. Identify 1-3 informative Entities ("; " delimited) from the Article which are missing from the previously generated summary.
+            Step 2. Write a new, denser summary of identical length which covers every entity and detail from the previous summary plus the Missing Entities.
+
+            A Missing Entity is:
+            - Relevant: to the main story.
+            - Specific: descriptive yet concise (5 words or fewer).
+            - Novel: not in the previous summary.
+            - Faithful: present in the Article.
+            - Anywhere: located anywhere in the Article.
+
+            Guidelines:
+            - The first summary should be long ({tokens_count} words) yet highly non-specific, containing little information beyond the entities marked as missing. Use overly verbose language and fillers (e.g., "this article discusses") to reach ~80 words.
+            - Make every word count: rewrite the previous summary to improve flow and make space for additional entities.
+            - Make space with fusion, compression, and removal of uninformative phrases like "the article discusses".
+            - The summaries should become highly dense and concise yet self-contained, e.g., easily understood without the Article.
+            - Missing entities can appear anywhere in the new summary.
+            - Never drop entities from the previous summary. If space cannot be made, add fewer new entities.
+
+            Remember, use the exact same number of words for each summary.
+
+            Answer in JSON. The JSON should be a list (length 5) of dictionaries whose keys are "Missing_Entities" and "Denser_Summary".
         """
 
-        prompt = PromptTemplate(
-            template=prompt_template,
-            input_variables=["text"]
-        )
-        return prompt
+        template_prompt = PromptTemplate.from_template(map_template)
 
-    def generate_refine_prompt(self):
-        """ Generate Refine Prompt """
-        refine_template = (
-            "Your job is to produce a final summary\n"
-            "We have provided an existing summary up to a certain point: {existing_answer}\n"
-            "We have the opportunity to refine the existing summary\n"
-            "(only if needed) with some more context below.\n"
-            "----------------\n"
-            "{text}\n"
-            "----------------\n"
-            "Given the new context, refine the original summary\n"
-            "If the context isn't useful, return the original summary"
+        summarize_chain = LLMChain(
+            llm=self.llm,
+            prompt=template_prompt
         )
-        refine_prompt = PromptTemplate(
-            template=refine_template,
-            input_variables=["existing_answer", "text"]
-        )
-        return refine_prompt
 
-    def generate_summary(
-        self,
-        docs,
-        prompt,
-        chain_type=ChainTypes.MAP_REDUCE,
-        verbose=False
-    ):
-        """ Generate Summary """
-        if chain_type==ChainTypes.MAP_REDUCE:
-            chain = load_summarize_chain(
-                llm=self.llm,
-                chain_type="map_reduce",
-                verbose=verbose,
-                map_prompt=prompt,
-                combine_prompt=prompt
-            )
-        elif chain_type==ChainTypes.REFINE:
-            chain = load_summarize_chain(
-                llm=self.llm,
-                chain_type="refine",
-                verbose=verbose,
-                question_prompt=prompt,
-                refine_prompt=self.generate_refine_prompt()
-            )
-        else:
-            chain = load_summarize_chain(
-                llm=self.llm,
-                chain_type=chain_type,
-                verbose=verbose
-            )
-        return chain.run(docs) # summary
+        with get_openai_callback() as cb:
+            generated_summary = summarize_chain({
+                "text": self.texts,
+                "steps_freq": 5,
+                "tokens_count": tokens_count
+            })
+            summary_info = {
+                "total_tokens": cb.total_tokens,
+                "prompt_tokens": cb.prompt_tokens,
+                "completion_tokens": cb.completion_tokens,
+                "total_cost": cb.total_cost
+            }
+
+        return generated_summary, summary_info

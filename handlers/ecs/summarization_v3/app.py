@@ -20,8 +20,8 @@ sentry_sdk.init(SENTRY_DSN, environment=ENVIRONMENT, attach_stacktrace=True, tra
 
 reports_generator_handler = ReportsGeneratorHandler()
 
-class InputStructure(BaseModel):
-    """Input Str"""
+class RequestSchema(BaseModel):
+    """ Request Schema """
     entries_url: Optional[str] = None
     client_id: Optional[str] = None
     callback_url: Optional[str] = None
@@ -32,11 +32,11 @@ ecs_app = FastAPI()
 @ecs_app.get("/")
 def home():
     """ Test endpoint """
-    return "Welcome to the ECS Task of Summarization Module v3."
+    return "Welcome to the ECS Task of Summarization Module using LLM."
 
 @ecs_app.post("/generate_report")
-async def gen_report(item: InputStructure, background_tasks: BackgroundTasks):
-    """Generate reports"""
+async def generate_summary(item: RequestSchema, background_tasks: BackgroundTasks):
+    """ Handler to generate the summaries"""
     entries_url = item.entries_url
     client_id = item.client_id
     callback_url = item.callback_url
