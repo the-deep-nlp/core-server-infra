@@ -22,7 +22,8 @@ class SummarizerBase:
         model_name: str,
         temperature: float,
         max_tokens: int,
-        max_retries: int
+        max_retries: int,
+        req_timeout: int=60
     ):
         """ Summarizer initializations """
         self.texts = texts
@@ -30,7 +31,8 @@ class SummarizerBase:
             model_name=model_name,
             temperature=temperature,
             max_tokens=max_tokens,
-            max_retries=max_retries
+            max_retries=max_retries,
+            request_timeout=req_timeout
         )
 
     def get_tokens_size(self):
@@ -100,7 +102,7 @@ class LLMSummarization(SummarizerBase):
                 "total_tokens": cb.total_tokens,
                 "prompt_tokens": cb.prompt_tokens,
                 "completion_tokens": cb.completion_tokens,
-                "total_cost": cb.total_cost
+                "total_cost": round(cb.total_cost, 4)
             }
 
         final_summary = json.loads(generated_summary["text"])
