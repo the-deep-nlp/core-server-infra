@@ -1,6 +1,5 @@
 import os
 import json
-from enum import Enum
 
 from langchain_openai.chat_models import ChatOpenAI
 from langchain.chains import LLMChain
@@ -8,12 +7,6 @@ from langchain.prompts import PromptTemplate
 from langchain_community.callbacks import get_openai_callback
 
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
-
-class ChainTypes(Enum):
-    """ Chain Types """
-    STUFF = 0
-    MAP_REDUCE = 1
-    REFINE = 2
 
 class SummarizerBase:
     """ Summarizer base class """
