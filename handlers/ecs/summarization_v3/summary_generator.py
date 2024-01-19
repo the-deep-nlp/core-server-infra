@@ -15,11 +15,11 @@ from nlp_modules_utils import (
     status_update_db,
     upload_to_s3,
     send_request_on_callback,
-    update_db_table_callback_retry
+    update_db_table_callback_retry,
+    add_metric_data
 )
 
 from summarizer_llm import LLMSummarization
-from custom_metric import add_metric_data
 
 logging.getLogger().setLevel(logging.INFO)
 
@@ -154,8 +154,15 @@ class ReportsGeneratorHandler:
         if llm_summarizer:
             summary, summary_info = llm_summarizer.summarizer()
             # Adding the metric values
-            for k, v in summary_info.items():
-                add_metric_data(cloudwatch_client, k, v, environment=self.environment)
+            for metric_name, metric_value in summary_info.items():
+                add_metric_data(
+                    cw_client=cloudwatch_client,
+                    metric_name=metric_name,
+                    metric_value=metric_value,
+                    dimension_name="Module",
+                    dimension_value="Summarization",
+                    environment=self.environment
+                )
 
             date_today = date.today().isoformat()
             presigned_url = upload_to_s3(
