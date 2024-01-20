@@ -14,7 +14,7 @@ variable "fargate_memory" {
 }
 
 variable "app_count" {
-  default = 1
+  default = 0
 }
 
 variable "ecs_security_group_id" {}
@@ -76,7 +76,7 @@ variable "summarization_scaling_max_capacity" {
 }
 
 variable "summarization_scaling_min_capacity" {
-  default = 1
+  default = 0
 }
 
 variable "summarization_cpu_target_value" {
