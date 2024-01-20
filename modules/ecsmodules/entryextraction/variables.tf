@@ -78,7 +78,7 @@ variable "entryextraction_scaling_max_capacity" {
 }
 
 variable "entryextraction_scaling_min_capacity" {
-  default = 2
+  default = 1
 }
 
 variable "textextraction_max_cpu_target_value" {
