@@ -103,7 +103,7 @@ module "nlp_server" {
   # Summarization v3
   summarization_v3_ecs_task_defn_arn  = module.summarization_v3.summarization_v3_ecs_task_defn_arn
   summarization_v3_ecs_container_name = module.summarization_v3.summarization_v3_container_name
-  summarization_v3_ecs_endpoint       = module.summarization_v3.aws_service_discovery_service_endpoint
+  summarization_v3_ecs_endpoint       = module.summarization_v3.application_endpoint
 
   # NGrams
   ngrams_ecs_task_defn_arn = module.ngrams.ngrams_ecs_task_defn_arn
@@ -415,7 +415,8 @@ module "summarization_v3" {
   aws_region  = var.aws_region
 
   # ecs
-  ecs_cluster_id = module.nlp_server.ecs_cluster_id
+  ecs_cluster_id   = module.nlp_server.ecs_cluster_id
+  ecs_cluster_name = module.nlp_server.ecs_cluster_name_shared
 
   # security grp
   ecs_security_group_id = module.nlp_server.ecs_security_group_id
@@ -439,7 +440,7 @@ module "summarization_v3" {
   ssm_db_password_arn    = module.secrets.ssm_db_password_arn
   ssm_db_port_arn        = module.secrets.ssm_db_port_arn
   ssm_sentry_dsn_url_arn = module.secrets.ssm_sentry_dsn_url_arn
-  ssm_openai_api_key_arn = module.secrets.ssm_openai_api_key_arn
+  ssm_openai_api_key_arn = var.environment == "staging" ? module.secrets.ssm_openai_api_key_staging_arn : module.secrets.ssm_openai_api_key_prod_arn
 
   # db table
   db_table_name             = var.db_table_name
@@ -451,6 +452,13 @@ module "summarization_v3" {
   # cloudmap
   private_dns_namespace_id           = module.cloudmap.private_dns_namespace_id
   private_dns_namespace_local_domain = module.cloudmap.private_dns_namespace_local_domain
+
+  # ecs capacity
+  fargate_cpu    = var.summarization_v3_fargate_cpu
+  fargate_memory = var.summarization_v3_fargate_memory
+
+  # ecs task count
+  app_count = var.summarization_v3_task_count
 }
 
 module "cloudmap" {
