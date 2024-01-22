@@ -1,4 +1,11 @@
-variable "environment" {}
+variable "environment" {
+  type        = string
+  description = "Deployment environment"
+  validation {
+    condition     = contains(["staging", "prod"], var.environment)
+    error_message = "Valid value is one of the following: staging, prod."
+  }
+}
 variable "aws_region" {}
 variable "aws_profile" {}
 
@@ -69,6 +76,8 @@ variable "text_extraction_fargate_cpu" {}
 variable "text_extraction_fargate_memory" {}
 variable "summarization_v2_fargate_cpu" {}
 variable "summarization_v2_fargate_memory" {}
+variable "summarization_v3_fargate_cpu" {}
+variable "summarization_v3_fargate_memory" {}
 variable "entry_extraction_fargate_cpu" {}
 variable "entry_extraction_fargate_memory" {}
 variable "geolocations_fargate_cpu" {}
@@ -81,3 +90,4 @@ variable "topicmodeling_fargate_memory" {}
 # ecs task count
 variable "text_extraction_task_count" {}
 variable "entry_extraction_task_count" {}
+variable "summarization_v3_task_count" {}
