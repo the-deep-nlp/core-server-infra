@@ -51,6 +51,8 @@ text_extraction_fargate_cpu     = "1024"
 text_extraction_fargate_memory  = "2048"
 summarization_v2_fargate_cpu    = "2048"
 summarization_v2_fargate_memory = "8192"
+summarization_v3_fargate_cpu    = "512"
+summarization_v3_fargate_memory = "1024"
 entry_extraction_fargate_cpu    = "1024"
 entry_extraction_fargate_memory = "3072"
 geolocations_fargate_cpu        = "512"
@@ -63,6 +65,7 @@ topicmodeling_fargate_memory    = "4096"
 # ecs tasks count
 text_extraction_task_count  = 2
 entry_extraction_task_count = 2
+summarization_v3_task_count = 2
 
 # model info
 classification_model_id      = "classification_model"
