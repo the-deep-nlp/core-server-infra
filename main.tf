@@ -449,10 +449,6 @@ module "summarization_v3" {
   # s3
   s3_bucketname_task_results = module.s3.task_results_bucket_name
 
-  # cloudmap
-  private_dns_namespace_id           = module.cloudmap.private_dns_namespace_id
-  private_dns_namespace_local_domain = module.cloudmap.private_dns_namespace_local_domain
-
   # ecs capacity
   fargate_cpu    = var.summarization_v3_fargate_cpu
   fargate_memory = var.summarization_v3_fargate_memory
