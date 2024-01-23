@@ -55,12 +55,6 @@ variable "db_table_callback_tracker" {}
 # s3
 variable "s3_bucketname_task_results" {}
 
-variable "private_dns_namespace_id" {}
-variable "private_dns_namespace_local_domain" {}
-
-variable "local_sub_domain" {
-  default = "summarizationv3"
-}
 # openai api key
 variable "ssm_openai_api_key_arn" {}
 
