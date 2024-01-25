@@ -57,8 +57,8 @@ s3_client_presigned_url = boto3.client(
 )
 lambda_client = boto3.client('lambda', region_name=AWS_REGION)
 
-class InputStructure(BaseModel):
-    """Input Structure """
+class RequestSchema(BaseModel):
+    """ Request Schema """
     client_id: str
     url: str
     textextraction_id: str
@@ -71,8 +71,13 @@ def home():
     """Home page message for test"""
     return "This is Text Extraction ECS Task"
 
+@ecs_app.get("/healthcheck")
+async def healthcheckup():
+    """ Health check up endpoint """
+    return "The task is ok and running."
+
 @ecs_app.post("/extract_document")
-async def extract_texts(item: InputStructure, background_tasks: BackgroundTasks):
+async def extract_texts(item: RequestSchema, background_tasks: BackgroundTasks):
     """Generate reports"""
     client_id = item.client_id
     url = item.url
