@@ -38,6 +38,8 @@ jobs:
             ecr_repo: NGRAMS_REPO_NAME
           - image: ./handlers/ecs/summarization_v2/
             ecr_repo: SUMMARIZATION_V2_REPO_NAME
+          - image: ./handlers/ecs/summarization_v3/
+            ecr_repo: SUMMARIZATION_V3_REPO_NAME
           - image: ./handlers/ecs/textextraction/
             ecr_repo: TEXTEXTRACTION_REPO_NAME
           - image: ./handlers/ecs/topicmodeling/
