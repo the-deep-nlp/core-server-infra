@@ -268,8 +268,8 @@ requests = "2.31.0"
 [package.source]
 type = "git"
 url = "https://github.com/the-deep-nlp/nlp-modules-utils.git"
-reference = "68c61bb"
-resolved_reference = "68c61bb9b981ac5287b54e1aeebf1b4eb04f58f5"
+reference = "bc82d18"
+resolved_reference = "bc82d18bf48f7d7aaa3cd3d013067ff74112246c"
 
 [[package]]
 name = "nltk"
@@ -609,4 +609,4 @@ socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8"
-content-hash = "f8c43d281215f2e39b3194fb153d2fcad6892113fe871a4f2c51d93c9dd6c971"
+content-hash = "efa5fc903cb326a84dcfbf97bd7917960227cf8e7283ca02cec0f74621989bf8"

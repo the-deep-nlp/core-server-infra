@@ -411,8 +411,8 @@ requests = "2.31.0"
 [package.source]
 type = "git"
 url = "https://github.com/the-deep-nlp/nlp-modules-utils.git"
-reference = "68c61bb"
-resolved_reference = "68c61bb9b981ac5287b54e1aeebf1b4eb04f58f5"
+reference = "bc82d18"
+resolved_reference = "bc82d18bf48f7d7aaa3cd3d013067ff74112246c"
 
 [[package]]
 name = "numpy"
@@ -1571,4 +1571,4 @@ standard = ["colorama (>=0.4)", "httptools (>=0.5.0)", "python-dotenv (>=0.13)",
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8"
-content-hash = "67f49189e1305fa9e118e85d846d90856028c3ba72b3abf07cf642afe41e5ae7"
+content-hash = "bf639fbd6658e89c3bda329b578377011a08b620dd56ef8821a1d37032dc882c"

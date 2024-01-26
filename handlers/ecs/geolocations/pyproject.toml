@@ -9,7 +9,7 @@ python = "^3.8"
 cloudpathlib= "==0.13.0"
 geolocation_generator = { git = "https://github.com/the-deep-nlp/geolocation-generator.git", rev = "a19d621", branch = "main" }
 sentry-sdk = "==1.5.8"
-nlp_modules_utils = { git = "https://github.com/the-deep-nlp/nlp-modules-utils.git", rev = "68c61bb", branch = "main" }
+nlp_modules_utils = { git = "https://github.com/the-deep-nlp/nlp-modules-utils.git", rev = "bc82d18", branch = "main" }
 
 [tool.poetry.dev-dependencies]
 

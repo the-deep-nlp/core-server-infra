@@ -540,8 +540,8 @@ requests = "2.31.0"
 [package.source]
 type = "git"
 url = "https://github.com/the-deep-nlp/nlp-modules-utils.git"
-reference = "68c61bb"
-resolved_reference = "68c61bb9b981ac5287b54e1aeebf1b4eb04f58f5"
+reference = "bc82d18"
+resolved_reference = "bc82d18bf48f7d7aaa3cd3d013067ff74112246c"
 
 [[package]]
 name = "numpy"
@@ -1348,4 +1348,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8"
-content-hash = "b67028e3097f4fdae8e510545f94afa00d37062e2342a9fac93ee76b43e112b5"
+content-hash = "1c88935cd3d8375f75a3e9b3257d9fe39b1214cffa867fe6ca62e665317f8ba7"
