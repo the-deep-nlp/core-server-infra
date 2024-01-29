@@ -5,10 +5,12 @@ description = ""
 authors = ["dev <nlp@thedeep.io>"]
 
 [tool.poetry.dependencies]
-python = "^3.8"
-cloudpathlib= "==0.13.0"
-geolocation_generator = { git = "https://github.com/the-deep-nlp/geolocation-generator.git", rev = "a19d621", branch = "main" }
+python = ">=3.8"
 sentry-sdk = "==1.5.8"
+fastapi = "^0.95.1"
+uvicorn = "^0.22.0"
+cloudpathlib= "==0.13.0"
+geolocation_generator = { git = "https://github.com/the-deep-nlp/geolocation-generator.git", rev = "ba2ced7", branch = "main" }
 nlp_modules_utils = { git = "https://github.com/the-deep-nlp/nlp-modules-utils.git", rev = "bc82d18", branch = "main" }
 
 [tool.poetry.dev-dependencies]
