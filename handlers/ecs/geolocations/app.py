@@ -1,15 +1,18 @@
 import os
 import json
 import logging
-import tarfile
-import gzip
-import shutil
+# import tarfile
+# import gzip
+# import shutil
 import requests
 import sentry_sdk
 import warnings
+from datetime import date
+from typing import Optional
 from pathlib import Path
 from cloudpathlib import CloudPath
-from datetime import date
+from fastapi import FastAPI, BackgroundTasks
+from pydantic import BaseModel
 from geolocation_generator import GeolocationGenerator
 from nlp_modules_utils import (
     Database,
@@ -30,24 +33,69 @@ SENTRY_DSN = os.environ.get("SENTRY_DSN")
 ENVIRONMENT = os.environ.get("ENVIRONMENT")
 sentry_sdk.init(SENTRY_DSN, environment=ENVIRONMENT, attach_stacktrace=True, traces_sample_rate=1.0)
 
+class RequestSchema(BaseModel):
+    """ Request Schema """
+    client_id: Optional[str]=None
+    url: str
+    geolocation_id: Optional[str]=None
+    callback_url: Optional[str]=None
+
+ecs_app = FastAPI()
+
+@ecs_app.get("/")
+def home():
+    """ Returns index page message """
+    return "This is Geolocation ECS Task page."
+
+@ecs_app.get("/healthcheck")
+async def healthcheckup():
+    """ Health checkup endpoint """
+    return "The instance is ok and running."
+
+@ecs_app.post("/get_geolocations")
+async def extract_geolocations(
+    item: RequestSchema,
+    background_tasks: BackgroundTasks
+):
+    """ Request handler """
+    client_id = item.client_id
+    url = item.url
+    geolocation_id = item.geolocation_id or None
+    callback_url = item.callback_url or None
+
+    geolocation_handler.entries = geolocation_handler.download_prepare_entries(url=url)
+    geolocation_handler.client_id = client_id
+    geolocation_handler.geolocation_id = geolocation_id
+    geolocation_handler.callback_url = callback_url
+
+    if not callback_url and not geolocation_id:
+        response_data = geolocation_handler(resources_info_dict)
+        logging.info("Sending the response data: %s", json.dumps(response_data))
+        return response_data
+
+    background_tasks.add_task(
+        geolocation_handler,
+        resources_info_dict
+    )
+    return {
+        "message": "Task received and running in background."
+    }
+
+
 class GeoLocationGeneratorHandler:
     """
     Geolocation class to extract geolocations from the excerpts
     """
     def __init__(self):
-        self.entries_url = os.environ.get("ENTRIES_URL", None)
-        self.client_id = os.environ.get("CLIENT_ID", None)
-        self.callback_url = os.environ.get("CALLBACK_URL", None)
-        self.geolocation_id = os.environ.get("GEOLOCATION_ID", None)
+        self.entries = None
+        self.client_id = None
+        self.callback_url = None
+        self.geolocation_id = None
+
         self.aws_region = os.environ.get("AWS_REGION", "us-east-1")
         self.signed_url_expiry_secs = os.environ.get("SIGNED_URL_EXPIRY_SECS", 86400) # 1 day
         self.bucket_name = os.environ.get("S3_BUCKET_NAME", None)
         self.geoname_api_user = os.environ.get("GEONAME_API_USER", None)
-
-        self.entries = self._download_prepare_entries()
-
-        if self.callback_url.lower() == "none":
-            self.callback_url = None
 
         self.headers = {
             "Content-Type": "application/json"
@@ -68,7 +116,7 @@ class GeoLocationGeneratorHandler:
         if not self.db_table_name:
             logging.error("Database table name is not found.")
 
-    def _download_prepare_entries(self):
+    def download_prepare_entries(self, url: str, req_timeout: int=30):
         """
         The json format (*.json) in the link file should be
         [
@@ -78,10 +126,10 @@ class GeoLocationGeneratorHandler:
             }
         ]
         """
-        if self.entries_url:
-            logging.info("The request url is %s", self.entries_url)
+        if url:
+            logging.info("The request url is %s", url)
             try:
-                response = requests.get(self.entries_url, timeout=30)
+                response = requests.get(url, timeout=req_timeout)
                 if response.status_code == 200:
                     return response.json()
             except Exception as exc:
@@ -90,7 +138,7 @@ class GeoLocationGeneratorHandler:
 
     def download_spacy_model(
         self,
-        s3_spacy_path = "s3://deep-geolocation-extraction/models/spacy_finetuned_100doc_5epochs/spacy_finetuned_100doc_5epochs",
+        s3_spacy_path: str="s3://deep-geolocation-extraction/models/spacy_finetuned_100doc_5epochs/spacy_finetuned_100doc_5epochs",
     ):
         """
         Downloads the spacy model and stores it in the EFS
@@ -124,66 +172,69 @@ class GeoLocationGeneratorHandler:
         return resources_info
 
 
-    def download_resources(
-        self,
-        s3_spacy_path = "s3://deep-geolocation-extraction/models/spacy_finetuned_100doc_5epochs/spacy_finetuned_100doc_5epochs",
-        s3_locationdata_path = "s3://deep-geolocation-extraction/geonames/locationdata.tsv.gz",
-        s3_locdictionary_path = "s3://deep-geolocation-extraction/geonames/locdictionary_unicode.json.gz",
-        s3_indexdir_path = "s3://deep-geolocation-extraction/geonames/indexdir.tar.gz"
+    # def download_resources(
+    #     self,
+    #     s3_spacy_path: str="s3://deep-geolocation-extraction/models/spacy_finetuned_100doc_5epochs/spacy_finetuned_100doc_5epochs",
+    #     s3_locationdata_path: str="s3://deep-geolocation-extraction/geonames/locationdata.tsv.gz",
+    #     s3_locdictionary_path: str="s3://deep-geolocation-extraction/geonames/locdictionary_unicode.json.gz",
+    #     s3_indexdir_path: str="s3://deep-geolocation-extraction/geonames/indexdir.tar.gz"
+    # ):
+    #     """
+    #     Downloads the resources and store them in the EFS
+    #     """
+    #     resources_info = {}
+    #     resources_path = Path("/geolocations")
+    #     resources_info_path = resources_path / "resources_info.json"
+
+    #     if not any(os.listdir(resources_path)):
+    #         logging.info("Downloading the geolocation resources.")
+    #         efs_spacy_path = resources_path / "models"
+    #         efs_locationdata_path = resources_path / "locationdata.tsv.gz"
+    #         efs_locdictionary_path = resources_path / "locdictionary_unicode.json.gz"
+    #         efs_locdictionary_path_final = resources_path / "locdictionary_unicode.json"
+    #         efs_indexdir_path = resources_path / "indexdir.tar.gz"
+    #         efs_indexdir_path_final = resources_path / "indexdir"
+
+    #         cloudpath_spacy = CloudPath(s3_spacy_path)
+    #         cloudpath_locationdata = CloudPath(s3_locationdata_path)
+    #         cloudpath_locdictionary = CloudPath(s3_locdictionary_path)
+    #         cloudpath_indexdir = CloudPath(s3_indexdir_path)
+
+    #         cloudpath_spacy.download_to(efs_spacy_path)
+    #         cloudpath_locationdata.download_to(efs_locationdata_path)
+    #         cloudpath_locdictionary.download_to(efs_locdictionary_path)
+    #         cloudpath_indexdir.download_to(efs_indexdir_path)
+
+    #         # Unzip file
+    #         with gzip.open(efs_locdictionary_path, "r") as f_in, open(efs_locdictionary_path_final, "wb") as f_out:
+    #             shutil.copyfileobj(f_in, f_out)
+
+    #         # Untar the file
+    #         with tarfile.open(efs_indexdir_path, "r:gz") as tar_f:
+    #             tar_f.extractall(path=resources_path)
+
+    #         resources_info = {
+    #             "spacy_path": str(efs_spacy_path),
+    #             "locationdata_path": str(efs_locationdata_path),
+    #             "locdictionary_path": str(efs_locdictionary_path_final),
+    #             "indexdir_path": str(efs_indexdir_path_final)
+    #         }
+    #         with open(resources_info_path, "w", encoding="utf-8") as resources_info_f:
+    #             json.dump(resources_info, resources_info_f)
+    #     else:
+    #         if os.path.exists(resources_info_path):
+    #             logging.info("Resources already exist in the EFS.")
+    #             with open(resources_info_path, "r", encoding="utf-8") as resources_info_f:
+    #                 resources_info = json.load(resources_info_f)
+    #                 logging.info(resources_info)
+    #         else:
+    #             return {}
+    #     return resources_info
+
+    def dispatch_results(self,
+        status: int,
+        presigned_url: str=None
     ):
-        """
-        Downloads the resources and store them in the EFS
-        """
-        resources_info = {}
-        resources_path = Path("/geolocations")
-        resources_info_path = resources_path / "resources_info.json"
-
-        if not any(os.listdir(resources_path)):
-            logging.info("Downloading the geolocation resources.")
-            efs_spacy_path = resources_path / "models"
-            efs_locationdata_path = resources_path / "locationdata.tsv.gz"
-            efs_locdictionary_path = resources_path / "locdictionary_unicode.json.gz"
-            efs_locdictionary_path_final = resources_path / "locdictionary_unicode.json"
-            efs_indexdir_path = resources_path / "indexdir.tar.gz"
-            efs_indexdir_path_final = resources_path / "indexdir"
-
-            cloudpath_spacy = CloudPath(s3_spacy_path)
-            cloudpath_locationdata = CloudPath(s3_locationdata_path)
-            cloudpath_locdictionary = CloudPath(s3_locdictionary_path)
-            cloudpath_indexdir = CloudPath(s3_indexdir_path)
-
-            cloudpath_spacy.download_to(efs_spacy_path)
-            cloudpath_locationdata.download_to(efs_locationdata_path)
-            cloudpath_locdictionary.download_to(efs_locdictionary_path)
-            cloudpath_indexdir.download_to(efs_indexdir_path)
-
-            # Unzip file
-            with gzip.open(efs_locdictionary_path, "r") as f_in, open(efs_locdictionary_path_final, "wb") as f_out:
-                shutil.copyfileobj(f_in, f_out)
-
-            # Untar the file
-            with tarfile.open(efs_indexdir_path, "r:gz") as tar_f:
-                tar_f.extractall(path=resources_path)
-
-            resources_info = {
-                "spacy_path": str(efs_spacy_path),
-                "locationdata_path": str(efs_locationdata_path),
-                "locdictionary_path": str(efs_locdictionary_path_final),
-                "indexdir_path": str(efs_indexdir_path_final)
-            }
-            with open(resources_info_path, "w", encoding="utf-8") as resources_info_f:
-                json.dump(resources_info, resources_info_f)
-        else:
-            if os.path.exists(resources_info_path):
-                logging.info("Resources already exist in the EFS.")
-                with open(resources_info_path, "r", encoding="utf-8") as resources_info_f:
-                    resources_info = json.load(resources_info_f)
-                    logging.info(resources_info)
-            else:
-                return {}
-        return resources_info
-
-    def dispatch_results(self, status, presigned_url=None):
         """
         Dispatch results to callback url or write to database
         """
@@ -207,7 +258,7 @@ class GeoLocationGeneratorHandler:
                     self.geolocation_id,
                     self.db_table_callback_tracker
                 )
-
+        
         # Setup database connections
         db_client = Database(**self.db_config)
         db_conn, db_cursor = db_client.db_connection()
@@ -234,7 +285,9 @@ class GeoLocationGeneratorHandler:
             logging.error("Callback url / presigned s3 url / Database table name are not found.")
 
 
-    def __call__(self, resources_info, use_search_engine=True):
+    def __call__(self, resources_info: dict, use_search_engine: bool=True):
+        processed_results = []
+
         if not self.entries:
             logging.error("Input data not available.")
             self.dispatch_results(status=StateHandler.INPUT_URL_PROCESS_FAILED.value)
@@ -254,12 +307,22 @@ class GeoLocationGeneratorHandler:
                 raw_data=[in_entries_dict["excerpt"] for in_entries_dict in self.entries],
                 geonames_username=self.geoname_api_user
             )
+        except Exception as exc:
+            logging.error("Geolocation processing failed. %s", str(exc))
+            geolocation_results = []
+
+        if geolocation_results:
             processed_results = [{
                 "entry_id": x["entry_id"],
                 "entities": y["entities"]
                 } for x, y in zip(self.entries, geolocation_results)
             ]
-            date_today = date.today().isoformat()
+        # If callback_url is not available, directly return the response data in ack response.
+        if not self.callback_url:
+            return processed_results
+
+        date_today = date.today().isoformat()
+        try:
             presigned_url = upload_to_s3(
                 contents=json.dumps(processed_results),
                 contents_type="application/json",
@@ -269,7 +332,7 @@ class GeoLocationGeneratorHandler:
                 signed_url_expiry_secs=self.signed_url_expiry_secs
             )
         except Exception as exc:
-            logging.error("Geolocation processing failed. %s", str(exc))
+            logging.error("Could not upload to s3 due to following error: %s", str(exc))
             processed_results = []
             presigned_url = None
 
@@ -278,6 +341,6 @@ class GeoLocationGeneratorHandler:
         else:
             self.dispatch_results(status=StateHandler.FAILED.value)
 
-geolocation_generator_handler = GeoLocationGeneratorHandler()
-resources_info_dict = geolocation_generator_handler.download_spacy_model()
-geolocation_generator_handler(resources_info=resources_info_dict)
+geolocation_handler = GeoLocationGeneratorHandler()
+resources_info_dict = geolocation_handler.download_spacy_model()
+#geolocation_handler(resources_info=resources_info_dict)
