@@ -36,9 +36,10 @@ sentry_sdk.init(SENTRY_DSN, environment=ENVIRONMENT, attach_stacktrace=True, tra
 class RequestSchema(BaseModel):
     """ Request Schema """
     client_id: Optional[str]=None
-    url: str
+    url: Optional[str]=None
     geolocation_id: Optional[str]=None
     callback_url: Optional[str]=None
+    entries_list: Optional[list]=None
 
 ecs_app = FastAPI()
 
@@ -60,10 +61,19 @@ async def extract_geolocations(
     """ Request handler """
     client_id = item.client_id
     url = item.url
-    geolocation_id = item.geolocation_id or None
-    callback_url = item.callback_url or None
+    geolocation_id = item.geolocation_id
+    callback_url = item.callback_url
+    entries_list = item.entries_list
 
-    geolocation_handler.entries = geolocation_handler.download_prepare_entries(url=url)
+    if not any([url, entries_list]):
+        logging.error("Request parameter either url or entries_list is missing.")
+        return "Cannot process the request", 422
+
+    if url:
+        geolocation_handler.entries = geolocation_handler.download_prepare_entries(url=url)
+    else:
+        geolocation_handler.entries = entries_list
+
     geolocation_handler.client_id = client_id
     geolocation_handler.geolocation_id = geolocation_id
     geolocation_handler.callback_url = callback_url
@@ -304,7 +314,10 @@ class GeoLocationGeneratorHandler:
             #     use_search_engine=use_search_engine
             # )
             geolocation_results = geolocation.get_geolocation_api(
-                raw_data=[in_entries_dict["excerpt"] for in_entries_dict in self.entries],
+                raw_data=[
+                    in_entries["excerpt"] if "excerpt" in in_entries else in_entries
+                    for in_entries in self.entries
+                ],
                 geonames_username=self.geoname_api_user
             )
         except Exception as exc:
@@ -312,8 +325,9 @@ class GeoLocationGeneratorHandler:
             geolocation_results = []
 
         if geolocation_results:
+            # Note: self.entries is either a dict or a list
             processed_results = [{
-                "entry_id": x["entry_id"],
+                **({"entry_id": x["entry_id"]} if "entry_id" in x else {"excerpt": x}),
                 "entities": y["entities"]
                 } for x, y in zip(self.entries, geolocation_results)
             ]
