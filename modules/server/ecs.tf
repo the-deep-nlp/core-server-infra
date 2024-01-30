@@ -79,6 +79,7 @@ data "template_file" "config" {
     geo_ecs_task_defn_arn  = var.geo_ecs_task_defn_arn
     geo_ecs_container_name = var.geo_ecs_container_name
     geo_vpc_private_subnet = var.private_subnets[0]
+    geo_ecs_endpoint       = var.geo_ecs_endpoint
     # ECS Text Extraction
     # Text Extraction
     textextraction_ecs_cluster_id     = aws_ecs_cluster.cluster.id

@@ -26,12 +26,21 @@ resource "aws_ecs_task_definition" "task-def" {
             "awslogs-stream-prefix": "ecs"
           }
       },
+      "portMappings": [
+        {
+          "containerPort": ${var.app_port},
+          "hostPort": ${var.app_port}
+        }
+      ],
       "essential": true,
       "mountPoints": [
           {
               "containerPath": "/models",
               "sourceVolume": "efs-volume"
           }
+      ],
+      "command": [
+        "uvicorn", "app:ecs_app", "--host", "0.0.0.0", "--port", "${var.app_port}"
       ],
       "name": "${var.ecs_container_name}-${var.environment}",
       "image": "${local.app_image_url}",
@@ -100,7 +109,7 @@ resource "aws_ecs_service" "service" {
   name            = "${var.ecs_service_name}-${var.environment}"
   cluster         = var.ecs_cluster_id
   task_definition = aws_ecs_task_definition.task-def.arn
-  desired_count   = 0
+  desired_count   = var.app_count
   launch_type     = "FARGATE"
 
   network_configuration {
@@ -111,14 +120,14 @@ resource "aws_ecs_service" "service" {
     assign_public_ip = false
   }
 
-  #   load_balancer {
-  #     target_group_arn = aws_alb_target_group.tg.arn
-  #     container_name   = "backend-server-${var.environment}"
-  #     container_port   = var.app_port
-  #   }
+  load_balancer {
+    target_group_arn = aws_alb_target_group.tg.arn
+    container_name   = "${var.ecs_container_name}-${var.environment}"
+    container_port   = var.app_port
+  }
 
   depends_on = [
-    #aws_alb_listener.app_listener,
+    aws_alb_listener.app_listener,
     var.iam_ecs_task_execution_policy_arn
   ]
 }
