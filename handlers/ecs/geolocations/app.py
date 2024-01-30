@@ -36,7 +36,7 @@ sentry_sdk.init(SENTRY_DSN, environment=ENVIRONMENT, attach_stacktrace=True, tra
 class RequestSchema(BaseModel):
     """ Request Schema """
     client_id: Optional[str]=None
-    url: Optional[str]=None
+    entries_url: Optional[str]=None
     geolocation_id: Optional[str]=None
     callback_url: Optional[str]=None
     entries_list: Optional[list]=None
@@ -60,7 +60,7 @@ async def extract_geolocations(
 ):
     """ Request handler """
     client_id = item.client_id
-    url = item.url
+    url = item.entries_url
     geolocation_id = item.geolocation_id
     callback_url = item.callback_url
     entries_list = item.entries_list
