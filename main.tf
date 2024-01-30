@@ -112,6 +112,7 @@ module "nlp_server" {
   # Geolocations
   geo_ecs_task_defn_arn  = module.geolocations.geo_ecs_task_defn_arn
   geo_ecs_container_name = module.geolocations.geo_ecs_container_name
+  geo_ecs_endpoint       = module.geolocations.application_endpoint
 
   # s3
   nlp_server_bucket_static_name  = module.s3.nlp_server_bucket_static_name
@@ -298,7 +299,8 @@ module "geolocations" {
   aws_region  = var.aws_region
 
   # ecs
-  ecs_cluster_id = module.nlp_server.ecs_cluster_id
+  ecs_cluster_id   = module.nlp_server.ecs_cluster_id
+  ecs_cluster_name = module.nlp_server.ecs_cluster_name_shared
 
   # security grp
   ecs_security_group_id = module.nlp_server.ecs_security_group_id
@@ -337,6 +339,9 @@ module "geolocations" {
   # ecs capacity
   fargate_cpu    = var.geolocations_fargate_cpu
   fargate_memory = var.geolocations_fargate_memory
+
+  # ecs task count
+  app_count = var.geolocations_task_count
 }
 
 module "efilesystem" {

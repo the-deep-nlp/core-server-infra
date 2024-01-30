@@ -92,6 +92,7 @@ variable "ngrams_container_name" {}
 # Geolocations
 variable "geo_ecs_task_defn_arn" {}
 variable "geo_ecs_container_name" {}
+variable "geo_ecs_endpoint" {}
 
 # secrets
 variable "ssm_django_secret_key_arn" {}

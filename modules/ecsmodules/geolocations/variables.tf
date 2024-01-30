@@ -4,7 +4,7 @@ variable "aws_region" {}
 variable "ecs_cluster_id" {}
 variable "app_image_name" {}
 variable "app_port" {
-  default = "80"
+  default = "9000"
 }
 variable "fargate_cpu" {
   default = "512"
@@ -42,6 +42,8 @@ variable "ecs_container_name" {
   default = "geolocations-container"
 }
 
+variable "ecs_cluster_name" {}
+
 variable "efs_volume_id" {}
 
 # db
@@ -61,3 +63,40 @@ variable "s3_bucketname_task_results" {}
 
 # geoname api user
 variable "ssm_geoname_api_user_arn" {}
+
+# autoscaling
+variable "geoloc_scaling_max_capacity" {
+  default = 5
+}
+
+variable "geoloc_scaling_min_capacity" {
+  default = 1
+}
+
+variable "geoloc_max_cpu_target_value" {
+  default = 70
+}
+
+variable "geoloc_min_cpu_target_value" {
+  default = 60
+}
+
+variable "geoloc_max_mem_target_value" {
+  default = 60
+}
+
+variable "geoloc_min_mem_target_value" {
+  default = 50
+}
+
+variable "monitoring_period" {
+  default = 30
+}
+
+variable "evaluation_period_max" {
+  default = 3
+}
+
+variable "evaluation_period_min" {
+  default = 8
+}

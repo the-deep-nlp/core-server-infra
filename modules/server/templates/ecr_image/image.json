@@ -196,6 +196,10 @@
           "value": "${geo_vpc_private_subnet}"
         },
         {
+          "name": "GEOLOCATION_ECS_ENDPOINT",
+          "value": "${geo_ecs_endpoint}"
+        },
+        {
           "name": "TEXTEXTRACTION_ECS_CLUSTER_ID",
           "value": "${textextraction_ecs_cluster_id}"
         },
