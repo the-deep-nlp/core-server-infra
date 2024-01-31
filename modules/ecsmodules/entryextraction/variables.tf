@@ -60,18 +60,6 @@ variable "db_table_callback_tracker" {}
 variable "s3_bucketname_task_results" {}
 variable "nlp_docs_conversion_bucket_name" {}
 
-variable "private_dns_namespace_id" {}
-variable "private_dns_namespace_local_domain" {}
-
-variable "local_sub_domain" {
-  default = "entryextraction"
-}
-
-# lambda
-variable "lambda_docs_conversion_fn" {
-  default = "libreoffice-dev-libreoffice"
-}
-
 # autoscaling
 variable "entryextraction_scaling_max_capacity" {
   default = 5
@@ -109,8 +97,8 @@ variable "evaluation_period_min" {
   default = 8
 }
 
-# efs
-variable "efs_volume_id" {}
-
 # ssm
 variable "ssm_geoname_api_user_arn" {}
+
+# endpoint
+variable "geo_ecs_endpoint" {}
