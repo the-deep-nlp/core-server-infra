@@ -142,8 +142,10 @@ class GeoLocationGeneratorHandler:
                 response = requests.get(url, timeout=req_timeout)
                 if response.status_code == 200:
                     return response.json()
-            except Exception as exc:
-                logging.error("Error occurred: %s", str(exc))
+            except requests.exceptions.Timeout as texc:
+                logging.error("Request timeout occurred: %s", str(texc))
+            except requests.exceptions.ConnectionError as cexc:
+                logging.error("Request connection failed: %s", str(cexc))
         return None
 
     def download_spacy_model(
@@ -294,6 +296,38 @@ class GeoLocationGeneratorHandler:
         else:
             logging.error("Callback url / presigned s3 url / Database table name are not found.")
 
+    def postprocess_data(self, data):
+        """ Restructure the results """
+        _final = []
+        for d in data:
+            _final_obj = {}
+            if "entry_id" in d:
+                _final_obj["entry_id"] = d["entry_id"]
+            else:
+                _final_obj["excerpt"] = d["excerpt"]
+            _final_obj["locations"] = []
+            for entity in d["entities"]:
+                meta_info = {}
+                meta_info = {
+                    "offset_start": entity["offset_start"],
+                    "offset_end": entity["offset_end"],
+                    "latitude": None,
+                    "longitude": None
+                }
+                for geoid in entity["geoids"]:
+                    if entity["ent"] == geoid["match"]:
+                        meta_info.update({
+                            "latitude": geoid["latitude"],
+                            "longitude": geoid["longitude"],
+                        })
+                        break
+                _final_obj["locations"].append({
+                    "entity": entity["ent"],
+                    "meta": meta_info
+                })
+            _final.append(_final_obj)
+        return _final
+
 
     def __call__(self, resources_info: dict, use_search_engine: bool=True):
         processed_results = []
@@ -331,14 +365,15 @@ class GeoLocationGeneratorHandler:
                 "entities": y["entities"]
                 } for x, y in zip(self.entries, geolocation_results)
             ]
+            postprocessed_results = self.postprocess_data(processed_results)
         # If callback_url is not available, directly return the response data in ack response.
         if not self.callback_url:
-            return processed_results
+            return postprocessed_results
 
         date_today = date.today().isoformat()
         try:
             presigned_url = upload_to_s3(
-                contents=json.dumps(processed_results),
+                contents=json.dumps(postprocessed_results),
                 contents_type="application/json",
                 bucket_name=self.bucket_name,
                 key=f"geolocations/{date_today}/{self.geolocation_id}/geolocation.json",
