@@ -13,7 +13,6 @@ numpy = "*"
 pandas = "*"
 cloudpathlib = "==0.13.0"
 nlp_modules_utils = { git = "https://github.com/the-deep-nlp/nlp-modules-utils.git", rev = "bc82d18", branch = "main" }
-geolocation_generator = { git = "https://github.com/the-deep-nlp/geolocation-generator.git", rev = "a19d621", branch = "main" }
 
 [tool.poetry.dev-dependencies]
 

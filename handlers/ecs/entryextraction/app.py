@@ -5,11 +5,11 @@ import boto3
 import json
 import sentry_sdk
 
+from typing import List
 from pathlib import Path
 from datetime import date
 from botocore.client import Config
 from fastapi import FastAPI, BackgroundTasks
-
 
 from nlp_modules_utils import (
     Database,
@@ -25,18 +25,15 @@ from nlp_modules_utils import (
 from models import InputStructure
 from extraction import entry_extraction_model
 
-from geolocation import get_geolocations
-
-
 logging.getLogger().setLevel(logging.INFO)
 
 SENTRY_DSN = os.environ.get("SENTRY_DSN")
 ENVIRONMENT = os.environ.get("ENVIRONMENT")
 AWS_REGION = os.environ.get("AWS_REGION", "us-east-1")
 GEONAME_API_USER = os.environ.get("GEONAME_API_USER", None)
+GEOLOCATION_ECS_ENDPOINT = os.environ.get("GEOLOCATION_ECS_ENDPOINT", None)
 
 sentry_sdk.init(SENTRY_DSN, environment=ENVIRONMENT, attach_stacktrace=True, traces_sample_rate=1.0)
-
 
 s3_client = boto3.client("s3", region_name=AWS_REGION)
 s3_client_presigned_url = boto3.client(
@@ -48,13 +45,17 @@ s3_client_presigned_url = boto3.client(
     )
 )
 
-
 ecs_app = FastAPI()
 
 @ecs_app.get("/")
 def home():
-    """Home page message for test"""
-    return "This is Entry Extraction ECS Task"
+    """ Returns index page message """
+    return "This is Entry Extraction ECS Task page."
+
+@ecs_app.get("/healthcheck")
+async def healthcheckup():
+    """ Health checkup endpoint """
+    return "The instance is ok and running."
 
 @ecs_app.post("/extract_entries")
 async def extract_texts(item: InputStructure, background_tasks: BackgroundTasks):
@@ -105,9 +106,28 @@ class EntryExtractionHandler:
         if not self.db_table_name:
             logging.error("Database table name is not found.")
 
-    
     def _handler(self):
         pass
+
+    def get_geolocations(self, excerpts: List[str], req_timeout: int=60):
+        """ Get geolocations from excerpts by requesting from geolocation module """
+        if not GEOLOCATION_ECS_ENDPOINT:
+            logging.error("The geolocation module endpoint not found.")
+            return None
+        data = {"entries_list": excerpts}
+        try:
+            response = requests.post(
+                GEOLOCATION_ECS_ENDPOINT + "/get_geolocations",
+                json=data,
+                timeout=req_timeout
+            )
+            return response.json()
+        except requests.exceptions.Timeout as terr:
+            logging.error("Request timeout to the geolocation endpoint. %s", str(terr))
+        except requests.exceptions.ConnectionError as cerr:
+            logging.error("Request connection error occurred. %s", str(cerr))
+        return None
+
 
     def __call__(self,
         client_id,
@@ -152,7 +172,7 @@ class EntryExtractionHandler:
                     block["text"] if block["relevant"] else ""
                     for block in entry_extraction["blocks"]
                 ]
-                geolocations = get_geolocations(excerpts, GEONAME_API_USER)
+                geolocations = self.get_geolocations(excerpts)
                 if geolocations:
                     for idx, block in enumerate(entry_extraction["blocks"]):
                         block.update({
