@@ -34,6 +34,11 @@ def home():
     """ Test endpoint """
     return "Welcome to the ECS Task of Summarization Module using LLM."
 
+@ecs_app.get("/healthcheck")
+async def healthcheckup():
+    """ Health checkup endpoint """
+    return "The instance is ok and running."
+
 @ecs_app.post("/generate_report")
 async def generate_summary(item: RequestSchema, background_tasks: BackgroundTasks):
     """ Handler to generate the summaries"""
