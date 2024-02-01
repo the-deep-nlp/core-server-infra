@@ -46,8 +46,12 @@ data "aws_ssm_parameter" "sentry_dsn_url" {
   name = "sentry_dsn_url"
 }
 
-data "aws_ssm_parameter" "geoname_api_user" {
-  name = "geoname_api_user"
+data "aws_ssm_parameter" "geonames_api_key_staging" {
+  name = "geonames_api_key_staging"
+}
+
+data "aws_ssm_parameter" "geonames_api_key_prod" {
+  name = "geonames_api_key_prod"
 }
 
 data "aws_ssm_parameter" "openai_api_key_staging" {
