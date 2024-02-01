@@ -18,7 +18,7 @@ resource "aws_alb_target_group" "tg" {
     timeout             = 30
     protocol            = "HTTP"
     matcher             = "200,301,302"
-    path                = "/"
+    path                = "/healthcheck"
     interval            = 60
   }
 }
