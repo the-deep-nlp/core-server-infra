@@ -5,12 +5,11 @@ resource "aws_alb" "alb" {
 }
 
 resource "aws_alb_target_group" "tg" {
-  name                          = "ent-ext-alb-target-grp-${var.environment}"
-  port                          = var.app_port
-  protocol                      = "HTTP"
-  target_type                   = "ip"
-  vpc_id                        = var.vpc_id
-  load_balancing_algorithm_type = "least_outstanding_requests"
+  name        = "ent-ext-alb-target-grp-${var.environment}"
+  port        = var.app_port
+  protocol    = "HTTP"
+  target_type = "ip"
+  vpc_id      = var.vpc_id
 
   health_check {
     port                = var.app_port
@@ -19,7 +18,7 @@ resource "aws_alb_target_group" "tg" {
     timeout             = 30
     protocol            = "HTTP"
     matcher             = "200,301,302"
-    path                = "/"
+    path                = "/healthcheck"
     interval            = 60
   }
 }

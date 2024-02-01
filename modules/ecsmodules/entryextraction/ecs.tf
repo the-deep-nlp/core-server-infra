@@ -33,12 +33,6 @@ resource "aws_ecs_task_definition" "task-def" {
         }
       ],
       "essential": true,
-      "mountPoints": [
-          {
-              "containerPath": "/models",
-              "sourceVolume": "efs-volume"
-          }
-      ],
       "command": [
         "uvicorn", "app:ecs_app", "--host", "0.0.0.0", "--port", "${var.app_port}"
       ],
@@ -66,12 +60,8 @@ resource "aws_ecs_task_definition" "task-def" {
           "value": "${var.environment}"
         },
         {
-          "name": "DOCS_CONVERSION_BUCKET_NAME",
-          "value": "${var.nlp_docs_conversion_bucket_name}"
-        },
-        {
-          "name": "DOCS_CONVERT_LAMBDA_FN_NAME",
-          "value": "${var.lambda_docs_conversion_fn}"
+          "name": "GEOLOCATION_ECS_ENDPOINT",
+          "value": "${var.geo_ecs_endpoint}"
         }
       ],
       "secrets": [
@@ -103,13 +93,6 @@ resource "aws_ecs_task_definition" "task-def" {
   }
 ]
 DEFINITION
-  volume {
-    name = "efs-volume"
-    efs_volume_configuration {
-      file_system_id = var.efs_volume_id
-      root_directory = "/"
-    }
-  }
 }
 
 resource "aws_ecs_service" "service" {

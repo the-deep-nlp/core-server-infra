@@ -566,12 +566,8 @@ module "entryextraction" {
   s3_bucketname_task_results      = module.s3.task_results_bucket_name
   nlp_docs_conversion_bucket_name = module.s3.nlp_docs_conversion_bucket_name
 
-  # cloudmap
-  private_dns_namespace_id           = module.cloudmap.private_dns_namespace_id
-  private_dns_namespace_local_domain = module.cloudmap.private_dns_namespace_local_domain
-
-  # efs
-  efs_volume_id = module.efilesystem.efs_volume_id
+  # endpoints
+  geo_ecs_endpoint = module.geolocations.application_endpoint
 
   # ecs capacity
   fargate_cpu    = var.entry_extraction_fargate_cpu
