@@ -55,10 +55,6 @@ async def healthcheckup():
 @ecs_app.post("/get_excerpt_clusters")
 async def excerpts_cluster(item: RequestSchema, background_tasks: BackgroundTasks):
     """ Request handler for topics generation """
-    logging.info(item.client_id)
-    logging.info(item.entries_url)
-    logging.info(item.callback_url)
-    logging.info(item.topicmodel_id)
     topicmodel_generator_handler.client_id = item.client_id
     topicmodel_generator_handler.entries_url = item.entries_url
     topicmodel_generator_handler.topicmodel_id = item.topicmodel_id
