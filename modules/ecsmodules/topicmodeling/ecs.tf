@@ -26,7 +26,16 @@ resource "aws_ecs_task_definition" "task-def" {
             "awslogs-stream-prefix": "ecs"
           }
       },
+      "portMappings": [
+        {
+          "containerPort": ${var.app_port},
+          "hostPort": ${var.app_port}
+        }
+      ],
       "essential": true,
+      "command": [
+        "uvicorn", "app:ecs_app", "--host", "0.0.0.0", "--port", "${var.app_port}"
+      ],
       "name": "${var.ecs_container_name}-${var.environment}",
       "image": "${local.app_image_url}",
       "environment": [
@@ -93,14 +102,14 @@ resource "aws_ecs_service" "service" {
     assign_public_ip = false
   }
 
-  #   load_balancer {
-  #     target_group_arn = aws_alb_target_group.tg.arn
-  #     container_name   = "backend-server-${var.environment}"
-  #     container_port   = var.app_port
-  #   }
+  load_balancer {
+    target_group_arn = aws_alb_target_group.tg.arn
+    container_name   = "${var.ecs_container_name}-${var.environment}"
+    container_port   = var.app_port
+  }
 
   depends_on = [
-    #aws_alb_listener.app_listener,
+    aws_alb_listener.app_listener,
     var.iam_ecs_task_execution_policy_arn
   ]
 }

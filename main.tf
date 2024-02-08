@@ -90,6 +90,7 @@ module "nlp_server" {
   # Topic Modeling
   topicmodel_ecs_task_defn_arn  = module.topicmodel.topicmodel_ecs_task_defn_arn
   topicmodel_ecs_container_name = module.topicmodel.topicmodel_container_name
+  topicmodel_ecs_endpoint       = module.topicmodel.application_endpoint
 
   # Summarization
   summarization_ecs_task_defn_arn  = module.summarization.s_ecs_task_defn_arn
@@ -168,7 +169,8 @@ module "topicmodel" {
   aws_region  = var.aws_region
 
   # ecs
-  ecs_cluster_id = module.nlp_server.ecs_cluster_id
+  ecs_cluster_id   = module.nlp_server.ecs_cluster_id
+  ecs_cluster_name = module.nlp_server.ecs_cluster_name_shared
 
   # security grp
   ecs_security_group_id = module.nlp_server.ecs_security_group_id
@@ -203,6 +205,9 @@ module "topicmodel" {
   # ecs capacity
   fargate_cpu    = var.topicmodeling_fargate_cpu
   fargate_memory = var.topicmodeling_fargate_memory
+
+  # ecs task count
+  app_count = var.topicmodeling_task_count
 }
 
 module "ngrams" {
