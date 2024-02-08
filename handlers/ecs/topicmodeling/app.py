@@ -4,10 +4,13 @@ import logging
 import requests
 import boto3
 import sentry_sdk
-import pandas as pd
-import numpy as np
+from typing import Optional
 from datetime import date
 from ast import literal_eval
+import pandas as pd
+import numpy as np
+from fastapi import FastAPI, BackgroundTasks
+from pydantic import BaseModel
 from botocore.exceptions import ClientError
 from topic_generator import TopicGenerator
 from nlp_modules_utils import (
@@ -27,27 +30,77 @@ SENTRY_DSN = os.environ.get("SENTRY_DSN")
 ENVIRONMENT = os.environ.get("ENVIRONMENT")
 sentry_sdk.init(SENTRY_DSN, environment=ENVIRONMENT, attach_stacktrace=True, traces_sample_rate=1.0)
 
+class RequestSchema(BaseModel):
+    """ Request Schema """
+    client_id: str
+    entries_url: str
+    topicmodel_id: str
+    callback_url: str
+    max_cluster_num: Optional[int] = 10
+    cluster_size: Optional[int] = 200
+    umap_components: Optional[int] = 24
+
+ecs_app = FastAPI()
+
+@ecs_app.get("/")
+def home():
+    """ Home page message for Topic Modeling """
+    return "This is Topic Modeling ECS Task page."
+
+@ecs_app.get("/healthcheck")
+async def healthcheckup():
+    """ Health check up endpoint """
+    return "The task is ok and running."
+
+@ecs_app.post("/get_excerpt_clusters")
+async def excerpts_cluster(item: RequestSchema, background_tasks: BackgroundTasks):
+    """ Request handler for topics generation """
+    logging.info(item.client_id)
+    logging.info(item.entries_url)
+    logging.info(item.callback_url)
+    logging.info(item.topicmodel_id)
+    topicmodel_generator_handler.client_id = item.client_id
+    topicmodel_generator_handler.entries_url = item.entries_url
+    topicmodel_generator_handler.topicmodel_id = item.topicmodel_id
+    topicmodel_generator_handler.callback_url = item.callback_url
+    topicmodel_generator_handler.max_cluster_num = item.max_cluster_num
+    topicmodel_generator_handler.cluster_size = item.cluster_size
+    topicmodel_generator_handler.umap_components = item.umap_components
+
+    topicmodel_generator_handler.initiation_tasks()
+
+    background_tasks.add_task(
+        topicmodel_generator_handler
+    )
+
+    return {
+        "message": "Task received and running in background."
+    }
+
 class TopicModelGeneratorHandler:
     """
     TopicModel class to generate clusters from the excerpts
     """
     def __init__(self):
-        self.entries_url = os.environ.get("ENTRIES_URL", None)
-        self.client_id = os.environ.get("CLIENT_ID", None)
-        self.callback_url = os.environ.get("CALLBACK_URL", None)
-        self.topicmodel_id = os.environ.get("TOPICMODEL_ID", None)
+        self.entries_url = None
+        self.client_id = None
+        self.callback_url = None
+        self.topicmodel_id = None
+
+        self.max_cluster_num = None
+        self.cluster_size = None
+        self.umap_components = None
+
+        self.entries_df = pd.DataFrame([], columns=["excerpts", "entry_id"])
+        self.embeddings = np.vstack([[]])
+
         self.aws_region = os.environ.get("AWS_REGION", "us-east-1")
         self.signed_url_expiry_secs = os.environ.get("SIGNED_URL_EXPIRY_SECS", 86400) # 1 day
         self.bucket_name = os.environ.get("S3_BUCKET_NAME", None)
 
-        self.max_cluster_num = int(os.environ.get("MAX_CLUSTERS_NUM", 10))
-        self.cluster_size = int(os.environ.get("CLUSTER_SIZE", 200))
-
         self.headers = {
             "Content-Type": "application/json"
         }
-
-        self.default_umap_components = os.environ.get("UMAP_COMPONENTS", 24)
 
         # db
         self.db_config = {
@@ -64,13 +117,15 @@ class TopicModelGeneratorHandler:
         if not self.db_table_name:
             logging.error("Database table name is not found.")
 
+    def initiation_tasks(self):
+        """ Execute initial tasks """
         self.entries_df = self._download_prepare_entries()
         if self.entries_df.empty:
             self.embeddings = np.array([])
         else:
             self.embeddings = self._get_embeddings(self.entries_df.Document)
 
-    def _download_prepare_entries(self):
+    def _download_prepare_entries(self, req_timeout: int=30):
         """
         The json format (*.json) in the link file should be
         [
@@ -83,21 +138,24 @@ class TopicModelGeneratorHandler:
         if self.entries_url:
             logging.info("The request url is %s", self.entries_url)
             try:
-                response = requests.get(self.entries_url, timeout=30)
+                response = requests.get(self.entries_url, timeout=req_timeout)
+
                 if response.status_code == 200:
                     df = pd.DataFrame(response.json())
                     self.rename_columns(df)
                     return df
-            except Exception as exc:
-                logging.error("Error occurred: %s", str(exc))
+            except requests.exceptions.Timeout as texc:
+                logging.error("Error occurred: %s", str(texc))
+            except requests.exceptions.ConnectionError as cexc:
+                logging.error("Request connection error: %s", str(cexc))
         return pd.DataFrame([], columns=["excerpts", "entry_id"])
 
     def _get_embeddings(
         self,
         excerpts: list,
         model_name: str = "main-model-cpu",
-        pooling_type: list = ["cls"],
-        finetuned_task: list = ["first_level_tags"],
+        pooling_type: str = "['cls']",
+        finetuned_task: str = "['first_level_tags']",
         return_type: str = "default_analyis",
         embeddings_return_type: str = "array",
         batch_size: int = 10
@@ -117,8 +175,8 @@ class TopicModelGeneratorHandler:
                 "output_backbone_embeddings": True,
                 "return_prediction_labels": False,
                 "interpretability": False,
-                "pooling_type": str(pooling_type),
-                "finetuned_task": str(finetuned_task),
+                "pooling_type": pooling_type,
+                "finetuned_task": finetuned_task,
                 "return_type": return_type,
                 "embeddings_return_type": embeddings_return_type
             }
@@ -130,8 +188,8 @@ class TopicModelGeneratorHandler:
                     ContentType="application/json; format=pandas-split",
                 )
             except ClientError as cexc:
-                self.dispatch_results(status=StateHandler.FAILED.value)
-                raise Exception(f"Error occurred while invoking sagemaker endpoint. {str(cexc)}")
+                logging.error("Error occurred while invoking sagemaker endpoint: %s", {str(cexc)})
+                return np.vstack([[]])
 
             output = literal_eval(response["Body"].read().decode("ascii"))
             total.append(output["output_backbone"])
@@ -236,8 +294,12 @@ class TopicModelGeneratorHandler:
                     entries,
                     self.embeddings,
                     n_topics=self.max_cluster_num,
-                    umap_n_compontens=self.default_umap_components
+                    umap_n_compontens=self.umap_components
                 )
+            except Exception as exc:
+                logging.error("Error occurred during processing of topics. %s", str(exc))
+
+            if not df_topics.empty:
                 df_merged = self.create_complete_df(self.entries_df, df_topics)
                 df_merged = self.exclude_topic_clusters(df_merged)
                 if df_merged.empty:
@@ -245,7 +307,10 @@ class TopicModelGeneratorHandler:
                     topics_dict = {}
                 else:
                     topics_dict = self.select_most_relevant_excerpts(df_merged)
-                date_today = date.today().isoformat()
+            else:
+                topics_dict = {}
+            date_today = date.today().isoformat()
+            try:
                 presigned_url = upload_to_s3(
                     contents=json.dumps(topics_dict),
                     contents_type="application/json",
@@ -254,8 +319,8 @@ class TopicModelGeneratorHandler:
                     aws_region=self.aws_region,
                     signed_url_expiry_secs=self.signed_url_expiry_secs
                 )
-            except Exception as exc:
-                logging.error("Some errors occurred during processing of topics. %s", str(exc))
+            except ClientError as exc:
+                logging.error("Error occurred while uploading data to s3. %s", str(exc))
                 presigned_url = None
 
             if presigned_url:
@@ -263,8 +328,7 @@ class TopicModelGeneratorHandler:
             else:
                 self.dispatch_results(status=StateHandler.FAILED.value)
         else:
-            logging.error("Some errors occurred. Could not generate embeddings of the excerpts")
+            logging.error("Excerpts embeddings are empty. The embedding model might not be available.")
             self.dispatch_results(status=StateHandler.FAILED.value)
 
 topicmodel_generator_handler = TopicModelGeneratorHandler()
-topicmodel_generator_handler()
