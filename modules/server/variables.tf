@@ -70,6 +70,7 @@ variable "cron_create_indices_hour" {
 # topicmodel
 variable "topicmodel_ecs_task_defn_arn" {}
 variable "topicmodel_ecs_container_name" {}
+variable "topicmodel_ecs_endpoint" {}
 
 # Summarization
 variable "summarization_ecs_task_defn_arn" {}

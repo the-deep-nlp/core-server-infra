@@ -52,6 +52,7 @@ data "template_file" "config" {
     topicmodel_ecs_task_defn_arn  = var.topicmodel_ecs_task_defn_arn
     topicmodel_ecs_container_name = var.topicmodel_ecs_container_name
     topicmodel_vpc_private_subnet = var.private_subnets[0]
+    topicmodel_ecs_endpoint       = var.topicmodel_ecs_endpoint
     # ECS Summarization
     summarization_ecs_cluster_id     = aws_ecs_cluster.cluster.id
     summarization_ecs_task_defn_arn  = var.summarization_ecs_task_defn_arn

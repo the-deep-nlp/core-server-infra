@@ -104,6 +104,10 @@
           "value": "${topicmodel_vpc_private_subnet}"
         },
         {
+          "name": "TOPICMODEL_ECS_ENDPOINT",
+          "value": "${topicmodel_ecs_endpoint}"
+        },
+        {
           "name": "ECS_CLUSTER_NAME",
           "value": "${ecs_cluster_name}"
         },

@@ -92,3 +92,4 @@ variable "text_extraction_task_count" {}
 variable "entry_extraction_task_count" {}
 variable "summarization_v3_task_count" {}
 variable "geolocations_task_count" {}
+variable "topicmodeling_task_count" {}
