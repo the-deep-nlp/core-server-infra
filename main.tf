@@ -332,7 +332,8 @@ module "geolocations" {
   ssm_db_password_arn      = module.secrets.ssm_db_password_arn
   ssm_db_port_arn          = module.secrets.ssm_db_port_arn
   ssm_sentry_dsn_url_arn   = module.secrets.ssm_sentry_dsn_url_arn
-  ssm_geoname_api_user_arn = var.environment == "staging" ? module.secrets.ssm_geonames_api_key_staging_arn : module.secrets.ssm_geonames_api_key_prod_arn
+  ssm_geonames_api_user_arn = var.environment == "staging" ? module.secrets.ssm_geonames_api_key_staging_arn : module.secrets.ssm_geonames_api_key_prod_arn
+  ssm_geonames_api_token_arn = var.environment == "staging" ? module.secrets.ssm_geonames_api_token_staging_arn : module.secrets.ssm_geonames_api_token_prod_arn
 
   # db table
   db_table_name             = var.db_table_name

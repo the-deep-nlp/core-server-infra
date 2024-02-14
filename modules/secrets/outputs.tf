@@ -66,6 +66,14 @@ output "ssm_geonames_api_key_prod_arn" {
   value = data.aws_ssm_parameter.geonames_api_key_prod.arn
 }
 
+output "ssm_geonames_api_token_staging_arn" {
+  value = data.aws_ssm_parameter.geonames_api_token_staging.arn
+}
+
+output "ssm_geonames_api_token_prod_arn" {
+  value = data.aws_ssm_parameter.geonames_api_token_prod.arn
+}
+
 output "ssm_openai_api_key_staging_arn" {
   value = data.aws_ssm_parameter.openai_api_key_staging.arn
 }

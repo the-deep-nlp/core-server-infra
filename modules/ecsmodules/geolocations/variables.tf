@@ -62,7 +62,9 @@ variable "db_table_callback_tracker" {}
 variable "s3_bucketname_task_results" {}
 
 # geoname api user
-variable "ssm_geoname_api_user_arn" {}
+variable "ssm_geonames_api_user_arn" {}
+
+variable "ssm_geonames_api_token_arn" {}
 
 # autoscaling
 variable "geoloc_scaling_max_capacity" {

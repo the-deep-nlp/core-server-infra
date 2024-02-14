@@ -88,8 +88,12 @@ resource "aws_ecs_task_definition" "task-def" {
           "valueFrom": "${var.ssm_sentry_dsn_url_arn}"
         },
         {
-          "name": "GEONAME_API_USER",
-          "valueFrom": "${var.ssm_geoname_api_user_arn}"
+          "name": "GEONAMES_API_USER",
+          "valueFrom": "${var.ssm_geonames_api_user_arn}"
+        },
+        {
+          "name": "GEONAMES_API_TOKEN",
+          "valueFrom": "${var.ssm_geonames_api_token_arn}"
         }
       ]
   }
