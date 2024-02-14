@@ -54,6 +54,14 @@ data "aws_ssm_parameter" "geonames_api_key_prod" {
   name = "geonames_api_key_prod"
 }
 
+data "aws_ssm_parameter" "geonames_api_token_staging" {
+  name = "geonames_api_token_staging"
+}
+
+data "aws_ssm_parameter" "geonames_api_token_prod" {
+  name = "geonames_api_token_prod"
+}
+
 data "aws_ssm_parameter" "openai_api_key_staging" {
   name = "openai_api_key_staging"
 }
