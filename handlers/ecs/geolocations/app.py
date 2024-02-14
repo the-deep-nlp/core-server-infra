@@ -105,7 +105,8 @@ class GeoLocationGeneratorHandler:
         self.aws_region = os.environ.get("AWS_REGION", "us-east-1")
         self.signed_url_expiry_secs = os.environ.get("SIGNED_URL_EXPIRY_SECS", 86400) # 1 day
         self.bucket_name = os.environ.get("S3_BUCKET_NAME", None)
-        self.geoname_api_user = os.environ.get("GEONAME_API_USER", None)
+        self.geonames_api_user = os.environ.get("GEONAMES_API_USER", None)
+        self.geonames_api_token = os.environ.get("GEONAMES_API_TOKEN", None)
 
         self.headers = {
             "Content-Type": "application/json"
@@ -329,7 +330,7 @@ class GeoLocationGeneratorHandler:
         return _final
 
 
-    def __call__(self, resources_info: dict, use_search_engine: bool=True):
+    def __call__(self, resources_info: dict, use_search_engine: bool=True, premium_service: bool=True):
         processed_results = []
 
         if not self.entries:
@@ -352,7 +353,9 @@ class GeoLocationGeneratorHandler:
                     in_entries["excerpt"] if "excerpt" in in_entries else in_entries
                     for in_entries in self.entries
                 ],
-                geonames_username=self.geoname_api_user
+                geonames_username=self.geonames_api_user,
+                geonames_token=self.geonames_api_token,
+                premium_service=premium_service
             )
         except Exception as exc:
             logging.error("Geolocation processing failed. %s", str(exc))
