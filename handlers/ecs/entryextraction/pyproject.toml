@@ -11,7 +11,6 @@ fastapi = "^0.95.1"
 uvicorn = "^0.22.0"
 numpy = "*"
 pandas = "*"
-cloudpathlib = "==0.13.0"
 nlp_modules_utils = { git = "https://github.com/the-deep-nlp/nlp-modules-utils.git", rev = "bc82d18", branch = "main" }
 
 [tool.poetry.dev-dependencies]

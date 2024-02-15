@@ -1,5 +1,5 @@
 from pydantic import BaseModel, AnyUrl
-from typing import List, Union, Optional
+from typing import List, Optional
 
 
 class DocumentWithUrl(BaseModel):

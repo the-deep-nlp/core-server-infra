@@ -30,7 +30,6 @@ logging.getLogger().setLevel(logging.INFO)
 SENTRY_DSN = os.environ.get("SENTRY_DSN")
 ENVIRONMENT = os.environ.get("ENVIRONMENT")
 AWS_REGION = os.environ.get("AWS_REGION", "us-east-1")
-GEONAME_API_USER = os.environ.get("GEONAME_API_USER", None)
 GEOLOCATION_ECS_ENDPOINT = os.environ.get("GEOLOCATION_ECS_ENDPOINT", None)
 
 sentry_sdk.init(SENTRY_DSN, environment=ENVIRONMENT, attach_stacktrace=True, traces_sample_rate=1.0)

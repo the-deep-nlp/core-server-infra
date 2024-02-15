@@ -191,24 +191,6 @@ files = [
 colorama = {version = "*", markers = "platform_system == \"Windows\""}
 
 [[package]]
-name = "cloudpathlib"
-version = "0.13.0"
-description = "pathlib-style classes for cloud storage services"
-category = "main"
-optional = false
-python-versions = ">=3.7"
-files = [
-    {file = "cloudpathlib-0.13.0-py3-none-any.whl", hash = "sha256:817ae83f1b9630b9d914882f6249626680ccefcb4e45f2d27a195815f1099086"},
-    {file = "cloudpathlib-0.13.0.tar.gz", hash = "sha256:7135f975b28917348f3ca8feb85f83277c89ac9acf331d1b87d945ecdbe2dffb"},
-]
-
-[package.extras]
-all = ["azure-storage-blob (>=12)", "boto3", "google-cloud-storage"]
-azure = ["azure-storage-blob (>=12)"]
-gs = ["google-cloud-storage"]
-s3 = ["boto3"]
-
-[[package]]
 name = "colorama"
 version = "0.4.6"
 description = "Cross-platform colored terminal text."
@@ -752,4 +734,4 @@ standard = ["colorama (>=0.4)", "httptools (>=0.5.0)", "python-dotenv (>=0.13)",
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8"
-content-hash = "48b930924d77fd58cc36ba121a649aaa7be03faed0328a1e49ce5b104eec44c3"
+content-hash = "be4315153822c8fd69785c3608911bc89b4aeda9c75292a64a82b91ee3015fae"
