@@ -97,8 +97,5 @@ variable "evaluation_period_min" {
   default = 8
 }
 
-# ssm
-variable "ssm_geoname_api_user_arn" {}
-
 # endpoint
 variable "geo_ecs_endpoint" {}
