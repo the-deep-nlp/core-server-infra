@@ -16,7 +16,7 @@ resource "aws_appautoscaling_policy" "scale_up_policy" {
   scalable_dimension = aws_appautoscaling_target.ecs_target.scalable_dimension
   step_scaling_policy_configuration {
     adjustment_type         = "ChangeInCapacity"
-    cooldown                = 60
+    cooldown                = 30
     metric_aggregation_type = "Maximum"
     step_adjustment {
       metric_interval_lower_bound = 0
@@ -34,7 +34,7 @@ resource "aws_appautoscaling_policy" "scale_down_policy" {
   scalable_dimension = aws_appautoscaling_target.ecs_target.scalable_dimension
   step_scaling_policy_configuration {
     adjustment_type         = "ChangeInCapacity"
-    cooldown                = 60
+    cooldown                = 300
     metric_aggregation_type = "Maximum"
     step_adjustment {
       metric_interval_upper_bound = 0

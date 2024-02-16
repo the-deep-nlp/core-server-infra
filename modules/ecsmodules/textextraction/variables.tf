@@ -95,7 +95,7 @@ variable "monitoring_period" {
 }
 
 variable "evaluation_period_max" {
-  default = 3
+  default = 2
 }
 
 variable "evaluation_period_min" {
