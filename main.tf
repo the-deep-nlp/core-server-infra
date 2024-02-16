@@ -326,13 +326,13 @@ module "geolocations" {
   app_image_name = var.geolocations_app_image_name
 
   # secrets
-  rds_instance_endpoint    = module.nlp_database.rds_instance_endpoint
-  ssm_db_name_arn          = module.secrets.ssm_db_name_arn
-  ssm_db_username_arn      = module.secrets.ssm_db_username_arn
-  ssm_db_password_arn      = module.secrets.ssm_db_password_arn
-  ssm_db_port_arn          = module.secrets.ssm_db_port_arn
-  ssm_sentry_dsn_url_arn   = module.secrets.ssm_sentry_dsn_url_arn
-  ssm_geonames_api_user_arn = var.environment == "staging" ? module.secrets.ssm_geonames_api_key_staging_arn : module.secrets.ssm_geonames_api_key_prod_arn
+  rds_instance_endpoint      = module.nlp_database.rds_instance_endpoint
+  ssm_db_name_arn            = module.secrets.ssm_db_name_arn
+  ssm_db_username_arn        = module.secrets.ssm_db_username_arn
+  ssm_db_password_arn        = module.secrets.ssm_db_password_arn
+  ssm_db_port_arn            = module.secrets.ssm_db_port_arn
+  ssm_sentry_dsn_url_arn     = module.secrets.ssm_sentry_dsn_url_arn
+  ssm_geonames_api_user_arn  = var.environment == "staging" ? module.secrets.ssm_geonames_api_key_staging_arn : module.secrets.ssm_geonames_api_key_prod_arn
   ssm_geonames_api_token_arn = var.environment == "staging" ? module.secrets.ssm_geonames_api_token_staging_arn : module.secrets.ssm_geonames_api_token_prod_arn
 
   # db table
@@ -552,12 +552,12 @@ module "entryextraction" {
   app_image_name = var.entryextraction_app_image_name
 
   # secrets
-  rds_instance_endpoint    = module.nlp_database.rds_instance_endpoint
-  ssm_db_name_arn          = module.secrets.ssm_db_name_arn
-  ssm_db_username_arn      = module.secrets.ssm_db_username_arn
-  ssm_db_password_arn      = module.secrets.ssm_db_password_arn
-  ssm_db_port_arn          = module.secrets.ssm_db_port_arn
-  ssm_sentry_dsn_url_arn   = module.secrets.ssm_sentry_dsn_url_arn
+  rds_instance_endpoint  = module.nlp_database.rds_instance_endpoint
+  ssm_db_name_arn        = module.secrets.ssm_db_name_arn
+  ssm_db_username_arn    = module.secrets.ssm_db_username_arn
+  ssm_db_password_arn    = module.secrets.ssm_db_password_arn
+  ssm_db_port_arn        = module.secrets.ssm_db_port_arn
+  ssm_sentry_dsn_url_arn = module.secrets.ssm_sentry_dsn_url_arn
 
   # db table
   db_table_name             = var.db_table_name

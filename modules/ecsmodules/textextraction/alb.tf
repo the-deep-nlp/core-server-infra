@@ -5,11 +5,11 @@ resource "aws_alb" "alb" {
 }
 
 resource "aws_alb_target_group" "tg" {
-  name        = "te-alb-target-group-${var.environment}"
-  port        = var.app_port
-  protocol    = "HTTP"
-  target_type = "ip"
-  vpc_id      = var.vpc_id
+  name                          = "te-alb-target-group-${var.environment}"
+  port                          = var.app_port
+  protocol                      = "HTTP"
+  target_type                   = "ip"
+  vpc_id                        = var.vpc_id
   load_balancing_algorithm_type = "least_outstanding_requests"
 
   health_check {
