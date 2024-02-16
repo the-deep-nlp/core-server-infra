@@ -10,7 +10,7 @@ pillow = "==9.0.0"
 fastapi = "^0.95.1"
 uvicorn = "^0.22.0"
 sentry-sdk = "==1.5.8"
-topic_generator = { git = "https://github.com/the-deep-nlp/topic-generator", rev = "b63a87e", branch = "main" }
+topic_generator = { git = "https://github.com/the-deep-nlp/topic-generator", rev = "534d857", branch = "main" }
 nlp_modules_utils = { git = "https://github.com/the-deep-nlp/nlp-modules-utils.git", rev = "bc82d18", branch = "main" }
 
 [tool.poetry.dev-dependencies]

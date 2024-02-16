@@ -1732,8 +1732,8 @@ umap-learn = "*"
 [package.source]
 type = "git"
 url = "https://github.com/the-deep-nlp/topic-generator"
-reference = "b63a87e"
-resolved_reference = "b63a87e841da759852b25432d7094bc3f7f8ccbb"
+reference = "534d857"
+resolved_reference = "534d857640e12ab248e68f3dc263106f95cf0a70"
 
 [[package]]
 name = "torch"
@@ -1985,4 +1985,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8"
-content-hash = "2f2daac5564aadb14e5e2ee1f3e9b5bb2eddff564055073eca3dc74f8143edfd"
+content-hash = "54b6c51adbe824c64c277d834f1b9faa17846526e20220b299e0fd35ad9fb719"
