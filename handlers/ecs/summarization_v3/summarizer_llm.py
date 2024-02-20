@@ -113,7 +113,8 @@ class LLMSummarization(SummarizerBase):
                 "total_tokens": cb.total_tokens,
                 "prompt_tokens": cb.prompt_tokens,
                 "completion_tokens": cb.completion_tokens,
-                "total_cost": round(cb.total_cost, 4)
+                "total_cost": round(cb.total_cost, 4),
+                "request_count": cb.successful_requests
             }
 
         final_summary = generated_summary["text"]
