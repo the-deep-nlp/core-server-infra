@@ -1,7 +1,8 @@
 resource "aws_alb" "alb" {
   name            = "entry-ext-lb-${var.environment}"
-  subnets         = var.public_subnets
+  subnets         = var.private_subnets
   security_groups = [aws_security_group.alb_sg.id]
+  internal        = true
 }
 
 resource "aws_alb_target_group" "tg" {
