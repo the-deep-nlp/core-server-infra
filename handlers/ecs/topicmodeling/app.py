@@ -13,6 +13,7 @@ from fastapi import FastAPI, BackgroundTasks
 from pydantic import BaseModel
 from botocore.exceptions import ClientError
 from topic_generator import TopicGenerator
+from topic_generator_llm import TopicGenerationLLM
 from nlp_modules_utils import (
     Database,
     StateHandler,
@@ -223,9 +224,25 @@ class TopicModelGeneratorHandler:
         """
         Select only the most relevant excerpts if it exceeds the cluster size
         """
-        df.set_index("entry_id", inplace=True)
-        df_per_topic_nlargest = df.groupby("Topic")["Probability"].nlargest(self.cluster_size).reset_index()
-        return df_per_topic_nlargest.groupby("Topic")["entry_id"].apply(list).to_dict()
+        df_per_topic_nlargest = df.groupby("Topic").apply(pd.DataFrame.nlargest, n=self.cluster_size, columns='Probability').reset_index(drop=True)
+        df_per_topic_nlargest["Representation"] = df_per_topic_nlargest.Representation.apply(", ".join)
+        data_json = json.loads(
+            df_per_topic_nlargest.groupby("Topic")[["Document", "Representation", "entry_id"]]
+            .apply(lambda x: x.to_dict('list')).to_json()
+        )
+        for v in data_json.values():
+            v["Representation"] = " ".join(set(v["Representation"]))
+        new_df = pd.DataFrame.from_dict(data_json, orient="index")
+        new_df["label"] = new_df.apply(self.generate_llm_topic, axis=1)
+        new_df.drop(columns=["Representation", "Document"], inplace=True)
+        return new_df.to_dict(orient="index")
+
+    def generate_llm_topic(self, x: pd.DataFrame):
+        """
+        Generate the short topic using LLM based on keywords
+        """
+        topic_generation = TopicGenerationLLM(x["Document"], x["Representation"])
+        return topic_generation.topic_generator_handler()
 
     def dispatch_results(self, status, presigned_url=None):
         """
@@ -305,6 +322,7 @@ class TopicModelGeneratorHandler:
                     topics_dict = self.select_most_relevant_excerpts(df_merged)
             else:
                 topics_dict = {}
+
             date_today = date.today().isoformat()
             try:
                 presigned_url = upload_to_s3(
