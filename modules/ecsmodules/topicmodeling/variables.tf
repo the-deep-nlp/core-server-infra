@@ -51,6 +51,7 @@ variable "ssm_db_username_arn" {}
 variable "ssm_db_password_arn" {}
 variable "ssm_db_port_arn" {}
 variable "ssm_sentry_dsn_url_arn" {}
+variable "ssm_openai_api_key_arn" {}
 
 # db table
 variable "db_table_name" {}

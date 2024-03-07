@@ -69,3 +69,11 @@ data "aws_ssm_parameter" "openai_api_key_staging" {
 data "aws_ssm_parameter" "openai_api_key_prod" {
   name = "openai_api_key_prod"
 }
+
+data "aws_ssm_parameter" "topicmodel_openai_api_key_staging" {
+  name = "topicmodel_openai_api_key_staging"
+}
+
+data "aws_ssm_parameter" "topicmodel_openai_api_key_prod" {
+  name = "topicmodel_openai_api_key_prod"
+}

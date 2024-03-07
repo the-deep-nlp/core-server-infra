@@ -194,6 +194,7 @@ module "topicmodel" {
   ssm_db_password_arn    = module.secrets.ssm_db_password_arn
   ssm_db_port_arn        = module.secrets.ssm_db_port_arn
   ssm_sentry_dsn_url_arn = module.secrets.ssm_sentry_dsn_url_arn
+  ssm_openai_api_key_arn = var.environment == "staging" ? module.secrets.ssm_topicmodel_openai_api_key_staging_arn : module.secrets.ssm_topicmodel_openai_api_key_prod_arn
 
   # db table
   db_table_name             = var.db_table_name
