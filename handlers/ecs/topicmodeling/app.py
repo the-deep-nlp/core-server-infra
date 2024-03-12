@@ -39,7 +39,7 @@ class RequestSchema(BaseModel):
     callback_url: str
     max_cluster_num: Optional[int] = 10
     cluster_size: Optional[int] = 200
-    umap_components: Optional[int] = 24
+    umap_components: Optional[int] = 3
 
 ecs_app = FastAPI()
 
