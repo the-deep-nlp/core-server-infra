@@ -237,11 +237,12 @@ class TopicModelGeneratorHandler:
         new_df.drop(columns=["Representation", "Document"], inplace=True)
         return new_df.to_dict(orient="index")
 
-    def generate_llm_topic(self, x: pd.DataFrame):
+    def generate_llm_topic(self, x: pd.DataFrame, max_excerpts: int=20):
         """
         Generate the short topic using LLM based on keywords
+        The excerpts are restricted to first 20 (default)
         """
-        topic_generation = TopicGenerationLLM(x["Document"], x["Representation"])
+        topic_generation = TopicGenerationLLM(x["Document"][:max_excerpts], x["Representation"][:max_excerpts])
         return topic_generation.topic_generator_handler()
 
     def dispatch_results(self, status, presigned_url=None):

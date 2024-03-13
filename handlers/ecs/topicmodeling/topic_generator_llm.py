@@ -1,4 +1,5 @@
 import os
+import re
 import boto3
 from langchain_openai.chat_models import ChatOpenAI
 from langchain.chains import LLMChain
@@ -85,4 +86,8 @@ class TopicGenerationLLM:
                     dimension_value="TopicModel",
                     environment=ENVIRONMENT
                 )
-        return generated_summary["text"]
+        return self.postprocess(generated_summary["text"])
+
+    def postprocess(self, texts: str):
+        """ Postprocess the generated text """
+        return re.sub(r'^[^A-Za-z0-9]+|[^A-Za-z0-9]+$', '', texts)
