@@ -5,7 +5,7 @@ description = ""
 authors = ["dev <nlp@thedeep.io"]
 
 [tool.poetry.dependencies]
-python = ">=3.8.1,<4.0"
+python = ">=3.9,<4.0"
 pillow = "==9.0.0"
 fastapi = "^0.95.1"
 uvicorn = "^0.22.0"
@@ -14,8 +14,9 @@ openai = ">=0.27.8"
 langchain = ">=0.0.238"
 tiktoken = ">=0.4.0"
 langchain-openai = "^0.0.2.post1"
-topic_generator = { git = "https://github.com/the-deep-nlp/topic-generator", rev = "534d857", branch = "main" }
+topic_generator = { git = "https://github.com/the-deep-nlp/topic-generator", rev = "776fa01", branch = "main" }
 nlp_modules_utils = { git = "https://github.com/the-deep-nlp/nlp-modules-utils.git", rev = "bc82d18", branch = "main" }
+mapply = "^0.1.25"
 
 [tool.poetry.dev-dependencies]
 

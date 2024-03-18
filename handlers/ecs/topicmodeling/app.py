@@ -12,6 +12,7 @@ import numpy as np
 from fastapi import FastAPI, BackgroundTasks
 from pydantic import BaseModel
 from botocore.exceptions import ClientError
+import mapply
 from topic_generator import TopicGenerator
 from topic_generator_llm import TopicGenerationLLM
 from nlp_modules_utils import (
@@ -26,6 +27,7 @@ from nlp_modules_utils import (
 )
 
 logging.getLogger().setLevel(logging.INFO)
+mapply.init(chunk_size=1, progressbar=False)
 
 SENTRY_DSN = os.environ.get("SENTRY_DSN")
 ENVIRONMENT = os.environ.get("ENVIRONMENT")
@@ -155,7 +157,7 @@ class TopicModelGeneratorHandler:
         finetuned_task: str = "['first_level_tags']",
         return_type: str = "default_analyis",
         embeddings_return_type: str = "array",
-        batch_size: int = 10
+        batch_size: int = 25
     ):
         """
         Calculates the embeddings of the entries
@@ -233,7 +235,7 @@ class TopicModelGeneratorHandler:
         for v in data_json.values():
             v["Representation"] = " ".join(set(v["Representation"]))
         new_df = pd.DataFrame.from_dict(data_json, orient="index")
-        new_df["label"] = new_df.apply(self.generate_llm_topic, axis=1)
+        new_df["label"] = new_df.mapply(self.generate_llm_topic, axis=1)
         new_df.drop(columns=["Representation", "Document"], inplace=True)
         return new_df.to_dict(orient="index")
 
@@ -242,7 +244,7 @@ class TopicModelGeneratorHandler:
         Generate the short topic using LLM based on keywords
         The excerpts are restricted to first 20 (default)
         """
-        topic_generation = TopicGenerationLLM(x["Document"][:max_excerpts], x["Representation"][:max_excerpts])
+        topic_generation = TopicGenerationLLM(x["Document"][:max_excerpts], x["Representation"])
         return topic_generation.topic_generator_handler()
 
     def dispatch_results(self, status, presigned_url=None):
