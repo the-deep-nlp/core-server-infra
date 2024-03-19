@@ -14,7 +14,7 @@ openai = ">=0.27.8"
 langchain = ">=0.0.238"
 tiktoken = ">=0.4.0"
 langchain-openai = "^0.0.2.post1"
-topic_generator = { git = "https://github.com/the-deep-nlp/topic-generator", rev = "776fa01", branch = "main" }
+topic_generator = { git = "https://github.com/the-deep-nlp/topic-generator", rev = "b0d5d18", branch = "main" }
 nlp_modules_utils = { git = "https://github.com/the-deep-nlp/nlp-modules-utils.git", rev = "bc82d18", branch = "main" }
 mapply = "^0.1.25"
 

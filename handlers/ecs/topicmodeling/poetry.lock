@@ -2876,8 +2876,8 @@ umap-learn = "*"
 [package.source]
 type = "git"
 url = "https://github.com/the-deep-nlp/topic-generator"
-reference = "776fa01"
-resolved_reference = "776fa01a876dc0c46b83206860ff8efc01cc34d4"
+reference = "b0d5d18"
+resolved_reference = "b0d5d180147bcb0087a0438c29bbd43677418537"
 
 [[package]]
 name = "torch"
@@ -3203,4 +3203,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<4.0"
-content-hash = "f7dd841772f2bd47e1e09ab56979b4e5b6fa150446b883d2f2144dac5e155a4a"
+content-hash = "14ffe61140364791cc8ba1b0947f6cfecfd33056551ee1b463220b26ea31b0e3"
