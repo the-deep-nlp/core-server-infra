@@ -81,3 +81,11 @@ output "ssm_openai_api_key_staging_arn" {
 output "ssm_openai_api_key_prod_arn" {
   value = data.aws_ssm_parameter.openai_api_key_prod.arn
 }
+
+output "ssm_topicmodel_openai_api_key_staging_arn" {
+  value = data.aws_ssm_parameter.topicmodel_openai_api_key_staging.arn
+}
+
+output "ssm_topicmodel_openai_api_key_prod_arn" {
+  value = data.aws_ssm_parameter.topicmodel_openai_api_key_prod.arn
+}
