@@ -67,6 +67,7 @@ text_extraction_task_count  = 2
 entry_extraction_task_count = 2
 summarization_v3_task_count = 2
 geolocations_task_count     = 1
+topicmodeling_task_count    = 1
 
 # model info
 classification_model_id      = "classification_model"
