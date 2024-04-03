@@ -63,7 +63,7 @@ topicmodeling_fargate_cpu       = "1024"
 topicmodeling_fargate_memory    = "4096"
 
 # ecs tasks count
-text_extraction_task_count  = 2
+text_extraction_task_count  = 1
 entry_extraction_task_count = 1
 summarization_v3_task_count = 1
 geolocations_task_count     = 1
