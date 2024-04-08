@@ -51,6 +51,8 @@ class LLMSummarization(SummarizerBase):
         Act as a humanitarian evaluation analyst or journalist. Your main objective is to generate a concise summary,
         capturing the main points, key facts, issues and main takeaways. Incorporate relevant details and maintaining coherence.
         If possible provide the summary which includes context, needs and response. Do not include quotes.
+        Please generate the summary as in the input text. If the input language is English, provide the summary in English.
+        If the input language is Spanish, provide the summary in Spanish, and so on for French, Arabic etc.
         Try to maintain the length of that generated summary to be around {tokens_count} words.
 
         TEXT: {text}
