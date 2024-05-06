@@ -1,4 +1,4 @@
-FROM python:3.8-slim-buster
+FROM python:3.10-slim-buster
 
 LABEL maintainer="nlp@thedeep.io"
 
@@ -7,6 +7,7 @@ ENV PYTHONUNBUFFERED 1
 WORKDIR /code
 
 RUN apt-get update -y && \
+    apt-get install ffmpeg libsm6 libxext6 -y && \
     rm -rf /var/lib/apt/lists/*
 
 COPY pyproject.toml poetry.lock /code/
