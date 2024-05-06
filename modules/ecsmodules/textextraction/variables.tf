@@ -101,3 +101,6 @@ variable "evaluation_period_max" {
 variable "evaluation_period_min" {
   default = 8
 }
+
+# efs
+variable "efs_volume_id" {}

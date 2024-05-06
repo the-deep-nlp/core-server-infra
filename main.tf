@@ -524,6 +524,9 @@ module "deepex" {
 
   # ecs task count
   app_count = var.text_extraction_task_count
+
+  # efs
+  efs_volume_id = module.efilesystem.efs_volume_id
 }
 
 # Entry Extraction and Classification

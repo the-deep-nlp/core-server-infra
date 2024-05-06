@@ -33,6 +33,12 @@ resource "aws_ecs_task_definition" "task-def" {
         }
       ],
       "essential": true,
+      "mountPoints": [
+          {
+              "containerPath": "/ocr",
+              "sourceVolume": "efs-models-vol"
+          }
+      ],
       "command": [
         "uvicorn", "app:ecs_app", "--host", "0.0.0.0", "--port", "${var.app_port}"
       ],
@@ -93,6 +99,13 @@ resource "aws_ecs_task_definition" "task-def" {
   }
 ]
 DEFINITION
+  volume {
+    name = "efs-models-vol"
+    efs_volume_configuration {
+      file_system_id = var.efs_volume_id
+      root_directory = "/"
+    }
+  }
 }
 
 resource "aws_ecs_service" "service" {
