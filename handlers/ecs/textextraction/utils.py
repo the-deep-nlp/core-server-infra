@@ -1,8 +1,20 @@
+import os
 import re
 import json
 import tempfile
 import logging
+import tarfile
+import requests
+from PIL import Image
+from datetime import date
+from pathlib import Path
+import numpy as np
+from wget import download
 from botocore.exceptions import ClientError
+
+from ocr_extractor import OCRProcessor
+
+from nlp_modules_utils import generate_presigned_url
 
 logging.getLogger().setLevel(logging.INFO)
 
@@ -50,29 +62,29 @@ def download_file(s3_client, filename_s3, bucketname, filename_local):
         return False
     return True
 
-def generate_presigned_url(
-    s3_client_presigned_url,
-    bucket_name,
-    key,
-    signed_url_expiry_secs
-):
-    """
-    Generates a presigned url of the file stored in s3
-    """
-    # Note that the bucket and service(e.g. summarization) should run on the same aws region
-    try:
-        url = s3_client_presigned_url.generate_presigned_url(
-            ClientMethod="get_object",
-            Params={
-                "Bucket": bucket_name,
-                "Key": key
-            },
-            ExpiresIn=signed_url_expiry_secs
-        )
-    except ClientError as cexc:
-        logging.error("Error while generating presigned url %s", cexc)
-        return None
-    return url
+# def generate_presigned_url(
+#     s3_client_presigned_url,
+#     bucket_name,
+#     key,
+#     signed_url_expiry_secs
+# ):
+#     """
+#     Generates a presigned url of the file stored in s3
+#     """
+#     # Note that the bucket and service(e.g. summarization) should run on the same aws region
+#     try:
+#         url = s3_client_presigned_url.generate_presigned_url(
+#             ClientMethod="get_object",
+#             Params={
+#                 "Bucket": bucket_name,
+#                 "Key": key
+#             },
+#             ExpiresIn=signed_url_expiry_secs
+#         )
+#     except ClientError as cexc:
+#         logging.error("Error while generating presigned url %s", cexc)
+#         return None
+#     return url
 
 def invoke_conversion_lambda(
     lambda_client,
@@ -101,3 +113,160 @@ def invoke_conversion_lambda(
         docs_conversion_lambda_response["Payload"].read().decode("utf-8")
     )
     return docs_conversion_lambda_response_json
+
+
+def append_text(f):
+    def inner(main_txt, pgnum):
+        start_text = f"********* [PAGE {pgnum} START] *********"
+        end_text = f"********* [PAGE {pgnum} END] *********"
+        final_data = start_text + "\n" + main_txt + "\n" + end_text + "\n"
+        return f(final_data, pgnum)
+    return inner
+
+
+def append_ocr_text(f):
+    def inner(main_txt):
+        start_text = "********* [OCR CONTENT START] *********"
+        end_text = "********* [OCR CONTENT END]  *********"
+        final_data = start_text + "\n" + main_txt + "\n" + end_text + "\n"
+        return f(final_data)
+    return inner
+
+
+@append_text
+def beautify_extracted_text(text, pgnum):
+    return text
+
+@append_ocr_text
+def beautify_ocr_text(text):
+    return text
+
+def download_models():
+    model_urls = [
+        "https://paddleocr.bj.bcebos.com/PP-OCRv3/english/en_PP-OCRv3_det_infer.tar",
+        "https://paddleocr.bj.bcebos.com/PP-OCRv4/english/en_PP-OCRv4_rec_infer.tar",
+        "https://paddleocr.bj.bcebos.com/dygraph_v2.0/ch/ch_ppocr_mobile_v2.0_cls_infer.tar",
+        "https://paddleocr.bj.bcebos.com/ppstructure/models/slanet/en_ppstructure_mobile_v2.0_SLANet_infer.tar",
+        "https://paddleocr.bj.bcebos.com/ppstructure/models/layout/picodet_lcnet_x1_0_fgd_layout_infer.tar",
+        "https://paddle-model-ecology.bj.bcebos.com/model/layout-parser/ppyolov2_r50vd_dcn_365e_publaynet.tar"
+    ]
+
+    tar_files = [
+        "en_PP-OCRv3_det_infer.tar",
+        "en_PP-OCRv4_rec_infer.tar",
+        "ch_ppocr_mobile_v2.0_cls_infer.tar",
+        "en_ppstructure_mobile_v2.0_SLANet_infer.tar",
+        "picodet_lcnet_x1_0_fgd_layout_infer.tar",
+        "ppyolov2_r50vd_dcn_365e_publaynet.tar"
+    ]
+
+    file_paths = {
+        "det_model_dir": "/ocr/models/en_PP-OCRv3_det_infer",
+        "rec_model_dir": "/ocr/models/en_PP-OCRv4_rec_infer",
+        "cls_model_dir": "/ocr/models/ch_ppocr_mobile_v2.0_cls_infer",
+        "table_model_dir": "/ocr/models/en_ppstructure_mobile_v2.0_SLANet_infer",
+        "layout_model_dir": "/ocr/models/picodet_lcnet_x1_0_fgd_layout_infer"
+    }
+
+    models_path = "/ocr/models"
+    if not os.path.exists(models_path):
+        os.makedirs(models_path)
+
+        for url in model_urls:
+            logging.info("Downloading the model %s", url)
+            download(url=url, out=models_path)
+
+        for tar_file in tar_files:
+            with tarfile.open(f"{models_path}/{tar_file}") as tar:
+                tar.extractall(models_path)
+    else:
+        logging.info("OCR models path exist.")
+    return file_paths
+
+def filter_file_by_size(file_path: str, filesize:int=5_000):
+    """ Filters images/files based on the file size """
+    img = np.array(Image.open(file_path))
+    if img.size >= filesize:
+        return True
+    return False
+
+
+def handle_scanned_doc_or_image(
+    url: str,
+    is_image: bool,
+    s3_bucket_name: str,
+    textextraction_id: str,
+    headers: str,
+    req_timeout: int=30
+):
+    """ Handles complete scanned document or image """
+    model_filepath = download_models()
+
+    date_today = date.today().isoformat()
+    response = requests.get(url, headers=headers, stream=True, timeout=req_timeout)
+    tempf = create_tempfile(response)
+    try:
+        ocr_engine = OCRProcessor(
+            file_path=tempf.name,
+            extraction_type=3,
+            is_image=is_image,
+            show_log=False,
+            use_s3=True,
+            s3_bucket_name=s3_bucket_name,
+            s3_bucket_key=f"textextraction/{date_today}/{textextraction_id}/tables",
+            **model_filepath
+        )
+        results = ocr_engine.handler()
+    except Exception as exc:
+        logging.warning("Exception occurred while extracting contents %s", str(exc))
+        return "", [[]], []
+
+    tables = results["table"]
+    texts = ""
+    temp_texts = ""
+    structured_text = []
+    structured_text_temp = []
+    page_num = 0
+    for text_block in results["text"]:
+        if text_block["page_number"] == page_num:
+            temp_texts += text_block["content"] + "\n\n\n"
+            structured_text_temp.append(text_block["content"])
+        else:
+            temp_texts = beautify_ocr_text(temp_texts)
+            texts += beautify_extracted_text(temp_texts, page_num + 1)
+            temp_texts = ""
+            temp_texts += text_block["content"] + "\n\n\n"
+            structured_text.append(structured_text_temp)
+            structured_text_temp = []
+            structured_text_temp.append(text_block["content"])
+            page_num += 1
+    if texts or temp_texts:
+        temp_texts = beautify_ocr_text(temp_texts)
+        texts += beautify_extracted_text(temp_texts, page_num + 1)
+        structured_text.append(structured_text_temp)
+
+    return texts, structured_text, tables
+
+
+def uploadfile_s3(
+    filepath: str,
+    bucket_name: str,
+    textextraction_id: str,
+    s3_client
+):
+    """ Upload file in s3 """
+    date_today = date.today().isoformat()
+    filename = filepath.split("/")[-1]
+    with open(filepath, "rb") as f:
+        s3_client.put_object(
+            Bucket=bucket_name,
+            Key=f"textextraction/{date_today}/{textextraction_id}/images/{filename}",
+            Body=f,
+            ContentType="image/png"
+        )
+    image_presigned_url = generate_presigned_url(
+        bucket_name=bucket_name,
+        key=f"textextraction/{date_today}/{textextraction_id}/images/{filename}",
+        s3_client=s3_client
+    )
+    return image_presigned_url

@@ -11,7 +11,7 @@ fastapi = "^0.95.1"
 uvicorn = "^0.22.0"
 deep-parser = { git = "https://github.com/the-deep/deepex.git", rev="076d5d8", branch = "newformat2" }
 nlp_modules_utils = { git = "https://github.com/the-deep-nlp/nlp-modules-utils.git", rev = "bc82d18", branch = "main" }
-ocr_extractor = { git = "https://github.com/the-deep-nlp/ocr-extractor.git", rev = "b6b3afb", branch = "test-ver" }
+ocr_extractor = { git = "https://github.com/the-deep-nlp/ocr-extractor.git", rev = "141f06f", branch = "test-ver2" }
 lxml-html-clean = "^0.1.1"
 
 [tool.poetry.dev-dependencies]
