@@ -1590,8 +1590,8 @@ paddlepaddle = "2.6.0"
 [package.source]
 type = "git"
 url = "https://github.com/the-deep-nlp/ocr-extractor.git"
-reference = "141f06f"
-resolved_reference = "141f06facef43c476f4c1926fc7615b9bfb444b4"
+reference = "3c02e88"
+resolved_reference = "3c02e88ccf85d3187e8da62da6b4baa4df840c4d"
 
 [[package]]
 name = "opencv-contrib-python"
@@ -3229,4 +3229,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<4.0"
-content-hash = "a162483253f5cf2d052a5a0ae67ed4550d7ff796d04d0eac78563e4b7e0ad45c"
+content-hash = "0f2c238fa7ac283418e286b6224b27cbf1682b4ecad8e6f27adaf0043b2fb94c"

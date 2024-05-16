@@ -2,36 +2,25 @@ import os
 import uuid
 import json
 import logging
-import requests
-import boto3
 import copy
 import operator
 from enum import Enum
-import sentry_sdk
 from datetime import date
+from typing import Optional
+import asyncio
+import requests
+import boto3
+
+import sentry_sdk
+
 from botocore.client import Config
 
 from fastapi import FastAPI, BackgroundTasks
 from pydantic import BaseModel
-from typing import Optional
 
 from deep_parser import TextFromFile, TextFromWeb
 from deep_parser.helpers.errors import ScannedDocumentError
-from content_types import ExtractContentType, UrlTypes
 
-from s3handler import Storage
-from utils import (
-    create_tempfile,
-    get_words_count,
-    preprocess_extracted_texts,
-    invoke_conversion_lambda,
-    beautify_extracted_text,
-    beautify_ocr_text,
-    download_models,
-    filter_file_by_size,
-    handle_scanned_doc_or_image,
-    uploadfile_s3
-)
 from nlp_modules_utils import (
     Database,
     StateHandler,
@@ -46,6 +35,22 @@ from nlp_modules_utils import (
 
 from ocr_extractor import OCRProcessor
 
+from utils import (
+    create_tempfile,
+    get_words_count,
+    preprocess_extracted_texts,
+    invoke_conversion_lambda,
+    beautify_extracted_text,
+    beautify_ocr_text,
+    download_models,
+    filter_file_by_size,
+    handle_scanned_doc_or_image,
+    uploadfile_s3
+)
+
+from content_types import ExtractContentType, UrlTypes
+from s3handler import Storage
+
 logging.getLogger().setLevel(logging.INFO)
 
 SENTRY_DSN = os.environ.get("SENTRY_DSN")
@@ -55,7 +60,7 @@ AWS_REGION = os.environ.get("AWS_REGION", "us-east-1")
 sentry_sdk.init(SENTRY_DSN, environment=ENVIRONMENT, attach_stacktrace=True, traces_sample_rate=1.0)
 
 # Note: boto3 initialization outside class to make it thread safe.
-#s3_client = boto3.client("s3", region_name=AWS_REGION)
+
 s3_client_presigned_url = boto3.client(
     "s3",
     region_name=AWS_REGION,
@@ -66,14 +71,35 @@ s3_client_presigned_url = boto3.client(
 )
 lambda_client = boto3.client('lambda', region_name=AWS_REGION)
 
+class RequestType(Enum):
+    """ Request Types """
+    SYSTEM = 0
+    USER = 1
+
 class RequestSchema(BaseModel):
     """ Request Schema """
     client_id: str
     url: str
     textextraction_id: str
     callback_url: Optional[str] = None
+    request_type: int
 
 ecs_app = FastAPI()
+ecs_app.fifo_queue = asyncio.Queue(maxsize=-1)
+
+async def fifo_worker():
+    """ Handles the queue for non-priority requests """
+    logging.info("Starting the FIFO Worker")
+    while True:
+        handler, client_id, url, textextraction_id, callback_url = await ecs_app.fifo_queue.get()
+        logging.info("The size of the queue is %s", ecs_app.fifo_queue.qsize())
+        await handler(client_id, url, textextraction_id, callback_url)
+        asyncio.sleep(5)
+
+@ecs_app.on_event("startup")
+async def start_db():
+    """ Creates task during startup """
+    asyncio.create_task(fifo_worker())
 
 @ecs_app.get("/")
 def home():
@@ -92,14 +118,20 @@ async def extract_texts(item: RequestSchema, background_tasks: BackgroundTasks):
     url = item.url
     textextraction_id = item.textextraction_id
     callback_url = item.callback_url
+    request_type = item.request_type
 
-    background_tasks.add_task(
-        text_extraction_handler,
-        client_id,
-        url,
-        textextraction_id,
-        callback_url
-    )
+    if request_type == RequestType.SYSTEM.value:
+        logging.info("Queueing a non-priority request job.")
+
+        await ecs_app.fifo_queue.put((text_extraction_handler, client_id, url, textextraction_id, callback_url))
+    else:
+        background_tasks.add_task(
+            text_extraction_handler,
+            client_id,
+            url,
+            textextraction_id,
+            callback_url
+        )
 
     return {
         "message": "Task received and running in background."
@@ -298,14 +330,14 @@ class TextExtractionHandler:
         model_filepath = download_models()
         try:
             ocr_table_engine = OCRProcessor(
-                file_path=tempf.name,
-                is_image=False,
                 extraction_type=2,
+                show_log=False,
                 use_s3=True,
                 s3_bucket_name=self.bucket_name,
                 s3_bucket_key=f"textextraction/{date_today}/{textextraction_id}/tables",
                 **model_filepath
             )
+            ocr_table_engine.load_file(file_path=tempf.name, is_image=False)
             ocr_results = ocr_table_engine.handler()
             table_contents = ocr_results["table"]
             return table_contents
@@ -323,6 +355,14 @@ class TextExtractionHandler:
         structured_text = []
         structured_text_temp = []
         images_lst = []
+
+        model_filepath = download_models()
+        ocr_processor = OCRProcessor(
+            extraction_type=1,
+            show_log=False,
+            use_s3=False,
+            **model_filepath
+        )
         # Sort blocks by 'page', y0 and then x0
         block_items = sorted(blocks, key=operator.itemgetter("page", "y0", "x0"))
         for block in block_items:
@@ -342,14 +382,7 @@ class TextExtractionHandler:
                         )
                         if presigned_url:
                             images_lst.append(presigned_url)
-                        model_filepath = download_models()
-                        ocr_processor = OCRProcessor(
-                            file_path=imgfile_path,
-                            extraction_type=1,
-                            is_image=True,
-                            use_s3=False,
-                            **model_filepath
-                        )
+                        ocr_processor.load_file(file_path=imgfile_path, is_image=True)
                         ocr_results = ocr_processor.handler()
                         text_contents = ocr_results["text"]
                         ocr_texts = ""
@@ -424,7 +457,7 @@ class TextExtractionHandler:
         #TODO: use extract all to use blocks
         self._common_doc_handler(entries, client_id, textextraction_id, callback_url, webpage_extraction=True)
 
-    def __call__(self, client_id, url, textextraction_id, callback_url, file_name="extract_text.txt"):
+    async def __call__(self, client_id, url, textextraction_id, callback_url, file_name="extract_text.txt"):
         content_type = self.extract_content_type.get_content_type(url, self.headers)
 
         if content_type == UrlTypes.PDF.value:  # assume it is http/https pdf weblink
