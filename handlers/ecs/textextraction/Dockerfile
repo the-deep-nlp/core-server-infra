@@ -7,7 +7,7 @@ ENV PYTHONUNBUFFERED 1
 WORKDIR /code
 
 RUN apt-get update -y && \
-    apt-get install ffmpeg libsm6 libxext6 -y && \
+    apt-get install libgl1 libgomp1 libglib2.0-0 -y && \
     rm -rf /var/lib/apt/lists/*
 
 COPY pyproject.toml poetry.lock /code/
