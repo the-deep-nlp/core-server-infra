@@ -4,10 +4,10 @@ import json
 import tempfile
 import logging
 import tarfile
-import requests
-from PIL import Image
 from datetime import date
-from pathlib import Path
+from PIL import Image
+import httpx
+import aiofiles
 import numpy as np
 from wget import download
 from botocore.exceptions import ClientError
@@ -26,6 +26,17 @@ def create_tempfile(response):
     for chunk in response.iter_content(chunk_size=128):
         tempf.write(chunk)
     tempf.seek(0)
+    return tempf
+
+async def create_async_tempfile(url: str, headers: dict, timeout: int=30):
+    """ Creates a async tempfile """
+    client = httpx.AsyncClient()
+    tempf = tempfile.NamedTemporaryFile(mode="w+b")
+    async with client.stream("GET", url=url, headers=headers, timeout=timeout) as response:
+        async for chunk in response.aiter_bytes():
+            tempf.write(chunk)
+        tempf.seek(0)
+    await client.aclose()
     return tempf
 
 def get_words_count(text):
@@ -61,30 +72,6 @@ def download_file(s3_client, filename_s3, bucketname, filename_local):
         logging.error("Client error occurred. %s", str(cexc))
         return False
     return True
-
-# def generate_presigned_url(
-#     s3_client_presigned_url,
-#     bucket_name,
-#     key,
-#     signed_url_expiry_secs
-# ):
-#     """
-#     Generates a presigned url of the file stored in s3
-#     """
-#     # Note that the bucket and service(e.g. summarization) should run on the same aws region
-#     try:
-#         url = s3_client_presigned_url.generate_presigned_url(
-#             ClientMethod="get_object",
-#             Params={
-#                 "Bucket": bucket_name,
-#                 "Key": key
-#             },
-#             ExpiresIn=signed_url_expiry_secs
-#         )
-#     except ClientError as cexc:
-#         logging.error("Error while generating presigned url %s", cexc)
-#         return None
-#     return url
 
 def invoke_conversion_lambda(
     lambda_client,
@@ -191,7 +178,7 @@ def filter_file_by_size(file_path: str, filesize:int=5_000):
     return False
 
 
-def handle_scanned_doc_or_image(
+async def handle_scanned_doc_or_image(
     url: str,
     is_image: bool,
     s3_bucket_name: str,
@@ -201,22 +188,19 @@ def handle_scanned_doc_or_image(
 ):
     """ Handles complete scanned document or image """
     model_filepath = download_models()
-
     date_today = date.today().isoformat()
-    response = requests.get(url, headers=headers, stream=True, timeout=req_timeout)
-    tempf = create_tempfile(response)
+    tempf = await create_async_tempfile(url=url, headers=headers, timeout=req_timeout)
     try:
         ocr_engine = OCRProcessor(
-            file_path=tempf.name,
             extraction_type=3,
-            is_image=is_image,
             show_log=False,
             use_s3=True,
             s3_bucket_name=s3_bucket_name,
             s3_bucket_key=f"textextraction/{date_today}/{textextraction_id}/tables",
             **model_filepath
         )
-        results = ocr_engine.handler()
+        ocr_engine.load_file(file_path=tempf.name, is_image=is_image)
+        results = await ocr_engine.handler()
     except Exception as exc:
         logging.warning("Exception occurred while extracting contents %s", str(exc))
         return "", [[]], []
@@ -248,7 +232,7 @@ def handle_scanned_doc_or_image(
     return texts, structured_text, tables
 
 
-def uploadfile_s3(
+async def uploadfile_s3(
     filepath: str,
     bucket_name: str,
     textextraction_id: str,
@@ -257,11 +241,12 @@ def uploadfile_s3(
     """ Upload file in s3 """
     date_today = date.today().isoformat()
     filename = filepath.split("/")[-1]
-    with open(filepath, "rb") as f:
+    async with aiofiles.open(filepath, "rb") as f:
+        contents = await f.read()
         s3_client.put_object(
             Bucket=bucket_name,
             Key=f"textextraction/{date_today}/{textextraction_id}/images/{filename}",
-            Body=f,
+            Body=contents,
             ContentType="image/png"
         )
     image_presigned_url = generate_presigned_url(

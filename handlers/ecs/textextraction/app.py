@@ -8,7 +8,6 @@ from enum import Enum
 from datetime import date
 from typing import Optional
 import asyncio
-import requests
 import boto3
 
 import sentry_sdk
@@ -36,7 +35,7 @@ from nlp_modules_utils import (
 from ocr_extractor import OCRProcessor
 
 from utils import (
-    create_tempfile,
+    create_async_tempfile,
     get_words_count,
     preprocess_extracted_texts,
     invoke_conversion_lambda,
@@ -91,10 +90,9 @@ async def fifo_worker():
     """ Handles the queue for non-priority requests """
     logging.info("Starting the FIFO Worker")
     while True:
-        handler, client_id, url, textextraction_id, callback_url = await ecs_app.fifo_queue.get()
         logging.info("The size of the queue is %s", ecs_app.fifo_queue.qsize())
+        handler, client_id, url, textextraction_id, callback_url = await ecs_app.fifo_queue.get()
         await handler(client_id, url, textextraction_id, callback_url)
-        asyncio.sleep(5)
 
 @ecs_app.on_event("startup")
 async def start_db():
@@ -103,7 +101,7 @@ async def start_db():
 
 @ecs_app.get("/")
 def home():
-    """Home page message for test"""
+    """ Home page message for test """
     return "This is Text Extraction ECS Task"
 
 @ecs_app.get("/healthcheck")
@@ -156,7 +154,7 @@ class TextExtractionHandler:
 
         self.headers = {
             "Content-Type": "application/json",
-            "user-agent": ("Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.1 (KHTML, like Gecko) Chrome/14.0.835.163 Safari/535.1")
+            "User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.1 (KHTML, like Gecko) Chrome/14.0.835.163 Safari/535.1"
         }
 
         # db
@@ -322,11 +320,11 @@ class TextExtractionHandler:
                 status=StateHandler.FAILED.value
             )
 
-    def handle_table_elements(self, url, textextraction_id):
+    async def handle_table_elements(self, url, textextraction_id):
         """ Handle Table elements from the document """
         date_today = date.today().isoformat()
-        response = requests.get(url, headers=self.headers, stream=True, timeout=30)
-        tempf = create_tempfile(response)
+
+        tempf = await create_async_tempfile(url=url, headers=self.headers, timeout=30)
         model_filepath = download_models()
         try:
             ocr_table_engine = OCRProcessor(
@@ -338,7 +336,7 @@ class TextExtractionHandler:
                 **model_filepath
             )
             ocr_table_engine.load_file(file_path=tempf.name, is_image=False)
-            ocr_results = ocr_table_engine.handler()
+            ocr_results = await ocr_table_engine.handler()
             table_contents = ocr_results["table"]
             return table_contents
         except Exception as exc:
@@ -346,7 +344,7 @@ class TextExtractionHandler:
             return None
 
 
-    def handle_block_elements(self, blocks, images_dir, textextraction_id):
+    async def handle_block_elements(self, blocks, images_dir, textextraction_id):
         """ Handles block elements """
         page_num = 0
         final_text_contents = ""
@@ -374,7 +372,7 @@ class TextExtractionHandler:
                 if block["type"] == OCRContentTypes.IMAGE:
                     imgfile_path = f"{images_dir}/{block['imageLink']}"
                     if os.path.isfile(imgfile_path) and filter_file_by_size(imgfile_path):
-                        presigned_url = uploadfile_s3(
+                        presigned_url = await uploadfile_s3(
                             imgfile_path,
                             self.bucket_name,
                             textextraction_id,
@@ -383,7 +381,7 @@ class TextExtractionHandler:
                         if presigned_url:
                             images_lst.append(presigned_url)
                         ocr_processor.load_file(file_path=imgfile_path, is_image=True)
-                        ocr_results = ocr_processor.handler()
+                        ocr_results = await ocr_processor.handler()
                         text_contents = ocr_results["text"]
                         ocr_texts = ""
                         for item in text_contents:
@@ -407,7 +405,7 @@ class TextExtractionHandler:
         return final_text_contents, structured_text, images_lst
 
 
-    def handle_pdf_text_from_url(self, url, client_id, textextraction_id, callback_url):
+    async def handle_pdf_text_from_url(self, url, client_id, textextraction_id, callback_url):
         """ Extract texts from url link which is a pdf document """
         try:
             document = TextFromFile(stream=None, ext="pdf", from_web=True, url=url)
@@ -417,11 +415,11 @@ class TextExtractionHandler:
             deepex_op.save_pics(temp_img_dir)
             deepex_op = deepex_op.to_json()
             block_items = deepex_op["blocks"]
-            text_contents, structured_text, images_lst = self.handle_block_elements(block_items, temp_img_dir, textextraction_id)
-            table_contents = self.handle_table_elements(url, textextraction_id)
+            text_contents, structured_text, images_lst = await self.handle_block_elements(block_items, temp_img_dir, textextraction_id)
+            table_contents = await self.handle_table_elements(url, textextraction_id)
         except ScannedDocumentError:
             logging.warning("Scanned document found. Applying OCR on this document")
-            text_contents, structured_text, table_contents = handle_scanned_doc_or_image(
+            text_contents, structured_text, table_contents = await handle_scanned_doc_or_image(
                 url=url,
                 is_image=False,
                 s3_bucket_name=self.bucket_name,
@@ -458,10 +456,10 @@ class TextExtractionHandler:
         self._common_doc_handler(entries, client_id, textextraction_id, callback_url, webpage_extraction=True)
 
     async def __call__(self, client_id, url, textextraction_id, callback_url, file_name="extract_text.txt"):
-        content_type = self.extract_content_type.get_content_type(url, self.headers)
+        content_type = await self.extract_content_type.get_content_type(url, self.headers)
 
         if content_type == UrlTypes.PDF.value:  # assume it is http/https pdf weblink
-            self.handle_pdf_text_from_url(url, client_id, textextraction_id, callback_url)
+            await self.handle_pdf_text_from_url(url, client_id, textextraction_id, callback_url)
         elif content_type == UrlTypes.HTML.value:  # assume it is a static webpage
             self.handle_html_text(
                 url, file_name, client_id, textextraction_id, callback_url
@@ -477,10 +475,9 @@ class TextExtractionHandler:
             ext_type = content_type
             tmp_filename = f"{uuid.uuid4().hex}.{ext_type}"
             flag = False
-            response = requests.get(url, headers=self.headers, stream=True, timeout=60)
 
             s3_uploader = Storage(self.docs_conversion_bucket_name, "")
-            tempf = create_tempfile(response)
+            tempf = await create_async_tempfile(url=url, headers=self.headers, timeout=60)
             with open(tempf.name, "rb") as tmpf:
                 s3_uploader.upload(tmp_filename, tmpf)
                 # Converts docx, xlsx, doc, xls, ppt, pptx type files to pdf using lambda
@@ -503,7 +500,7 @@ class TextExtractionHandler:
                         s3_client=s3_client_presigned_url
                     )
                     if presigned_url:
-                        self.handle_pdf_text_from_url(
+                        await self.handle_pdf_text_from_url(
                             url=presigned_url,
                             client_id=client_id,
                             textextraction_id=textextraction_id,
@@ -523,7 +520,7 @@ class TextExtractionHandler:
                 )
         elif content_type == UrlTypes.IMG.value:
             logging.info("The input document is an image file. Applying OCR on this document.")
-            text_contents, structured_text, table_contents = handle_scanned_doc_or_image(
+            text_contents, structured_text, table_contents = await handle_scanned_doc_or_image(
                 url=url,
                 is_image=True,
                 s3_bucket_name=self.bucket_name,
@@ -562,7 +559,7 @@ class TextExtractionHandler:
             "text_path": text_presigned_url,
             "structured_text_path": structured_text_presigned_url,
             "images_path":  images_contents or [],
-            "table_path": table_contents if table_contents else [[]],
+            "tables_path": table_contents if table_contents else [],
             "total_pages": total_pages,
             "total_words_count": total_words_count,
             "status": status,

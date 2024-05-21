@@ -1,5 +1,6 @@
 import requests
 import logging
+import httpx
 from enum import Enum
 from wget import download
 
@@ -49,12 +50,13 @@ class ExtractContentType:
         self.content_types_xls = ('application/vnd.ms-excel')
         self.content_types_img = ('image/jpeg', 'image/gif', 'image/png', 'image/svg+xml', 'image/webp', 'image/bmp', 'image/tiff')
 
-    def get_content_type(self, url, req_headers):
+    async def get_content_type(self, url: str, req_headers: dict, timeout: int=30):
         """
         Retrieve the content type of the url
         """
         try:
-            response = requests.head(url, headers=req_headers, timeout=30)
+            async with httpx.AsyncClient() as httpx_client:
+                response = await httpx_client.head(url, headers=req_headers, timeout=timeout)
             content_type = response.headers['Content-Type']
 
             logging.info("The content type of %s is %s", url, content_type)
