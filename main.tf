@@ -527,6 +527,9 @@ module "deepex" {
 
   # efs
   efs_volume_id = module.efilesystem.efs_volume_id
+
+  # sqs
+  queue_url = module.sqs_queues.queue_url
 }
 
 # Entry Extraction and Classification
@@ -590,4 +593,11 @@ module "reliability" {
 
   # ecr
   ecr_image_name = var.ecr_image_reliability_name
+}
+
+module "sqs_queues" {
+  source = "./modules/sqs"
+
+  environment = var.environment
+  aws_region = var.aws_region
 }

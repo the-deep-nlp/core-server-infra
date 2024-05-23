@@ -72,6 +72,10 @@ resource "aws_ecs_task_definition" "task-def" {
         {
           "name": "DOCS_CONVERT_LAMBDA_FN_NAME",
           "value": "${var.lambda_docs_conversion_fn}"
+        },
+        {
+          "name": "SQS_QUEUE_URL",
+          "value": "${var.queue_url}"
         }
       ],
       "secrets": [

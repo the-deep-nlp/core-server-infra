@@ -104,3 +104,6 @@ variable "evaluation_period_min" {
 
 # efs
 variable "efs_volume_id" {}
+
+# sqs
+variable "queue_url" {}
