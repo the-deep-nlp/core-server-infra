@@ -10,7 +10,7 @@ import httpx
 import aiofiles
 import numpy as np
 from wget import download
-from botocore.exceptions import ClientError
+from botocore.exceptions import ClientError, ReadTimeoutError, ConnectTimeoutError
 
 from ocr_extractor import OCRProcessor
 
@@ -90,12 +90,18 @@ def invoke_conversion_lambda(
         "ext": ext_type,
         "fromS3": 1
     })
-
-    docs_conversion_lambda_response = lambda_client.invoke(
-        FunctionName=docs_convert_lambda_fn_name,
-        InvocationType="RequestResponse",
-        Payload=payload
-    )
+    try:
+        docs_conversion_lambda_response = lambda_client.invoke(
+            FunctionName=docs_convert_lambda_fn_name,
+            InvocationType="RequestResponse",
+            Payload=payload
+        )
+    except ClientError as cexc:
+        logging.error("Error occurred during lambda invocation. %s", str(cexc))
+        return {}
+    except (ReadTimeoutError, ConnectTimeoutError) as texc:
+        logging.error("Error occurred during lambda invocation. %s", str(texc))
+        return {}
     docs_conversion_lambda_response_json = json.loads(
         docs_conversion_lambda_response["Payload"].read().decode("utf-8")
     )

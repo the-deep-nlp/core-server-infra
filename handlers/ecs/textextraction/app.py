@@ -55,6 +55,7 @@ logging.getLogger().setLevel(logging.INFO)
 SENTRY_DSN = os.environ.get("SENTRY_DSN")
 ENVIRONMENT = os.environ.get("ENVIRONMENT")
 AWS_REGION = os.environ.get("AWS_REGION", "us-east-1")
+SQS_QUEUE_URL = os.environ.get("SQS_QUEUE_URL")
 
 sentry_sdk.init(SENTRY_DSN, environment=ENVIRONMENT, attach_stacktrace=True, traces_sample_rate=1.0)
 
@@ -68,7 +69,15 @@ s3_client_presigned_url = boto3.client(
         s3={"addressing_style": "path"}
     )
 )
-lambda_client = boto3.client('lambda', region_name=AWS_REGION)
+lambda_client = boto3.client(
+    'lambda',
+    region_name=AWS_REGION,
+    config=Config(
+        read_timeout=120,
+        connect_timeout=600,
+        tcp_keepalive=True
+    ))
+sqs_client = boto3.client("sqs", region_name=AWS_REGION)
 
 class RequestType(Enum):
     """ Request Types """
@@ -84,20 +93,48 @@ class RequestSchema(BaseModel):
     request_type: int
 
 ecs_app = FastAPI()
-ecs_app.fifo_queue = asyncio.Queue(maxsize=-1)
 
 async def fifo_worker():
     """ Handles the queue for non-priority requests """
     logging.info("Starting the FIFO Worker")
     while True:
-        logging.info("The size of the queue is %s", ecs_app.fifo_queue.qsize())
-        handler, client_id, url, textextraction_id, callback_url = await ecs_app.fifo_queue.get()
-        await handler(client_id, url, textextraction_id, callback_url)
+        sqs_response = sqs_client.receive_message(
+            QueueUrl=SQS_QUEUE_URL,
+            MessageAttributeNames = [
+                "url",
+                "client_id",
+                "textextraction_id",
+                "callback_url"
+            ],
+            MaxNumberOfMessages=1,
+            VisibilityTimeout=5,
+            WaitTimeSeconds=0
+        )
+        if "Messages" in sqs_response:
+            logging.info("Receiving the request message from the AWS Queue")
+
+            receipt_handle = sqs_response["Messages"][0]["ReceiptHandle"]
+            url = sqs_response["Messages"][0]["MessageAttributes"]["url"]["StringValue"]
+            callback_url = sqs_response["Messages"][0]["MessageAttributes"]["callback_url"]["StringValue"]
+            textextraction_id = sqs_response["Messages"][0]["MessageAttributes"]["textextraction_id"]["StringValue"]
+            client_id = sqs_response["Messages"][0]["MessageAttributes"]["client_id"]["StringValue"]
+
+            sqs_client.delete_message(
+                QueueUrl=SQS_QUEUE_URL,
+                ReceiptHandle=receipt_handle
+            )
+
+            await asyncio.ensure_future(text_extraction_handler(client_id, url, textextraction_id, callback_url))
+            await asyncio.sleep(0.5)
+        else:
+            await asyncio.sleep(300)
+
+
 
 @ecs_app.on_event("startup")
 async def start_db():
     """ Creates task during startup """
-    asyncio.create_task(fifo_worker())
+    asyncio.ensure_future(fifo_worker())
 
 @ecs_app.get("/")
 def home():
@@ -121,7 +158,31 @@ async def extract_texts(item: RequestSchema, background_tasks: BackgroundTasks):
     if request_type == RequestType.SYSTEM.value:
         logging.info("Queueing a non-priority request job.")
 
-        await ecs_app.fifo_queue.put((text_extraction_handler, client_id, url, textextraction_id, callback_url))
+        sqs_message_attributes = {
+            "url": {
+                "DataType": "String",
+                "StringValue": url
+            },
+            "client_id": {
+                "DataType": "String",
+                "StringValue": client_id
+            },
+            "textextraction_id": {
+                "DataType": "String",
+                "StringValue": textextraction_id
+            },
+            "callback_url": {
+                "DataType": "String",
+                "StringValue": callback_url
+            }
+        }
+
+        sqs_client.send_message(
+            QueueUrl=SQS_QUEUE_URL,
+            MessageBody=textextraction_id,
+            DelaySeconds=0,
+            MessageAttributes=sqs_message_attributes
+        )
     else:
         background_tasks.add_task(
             text_extraction_handler,
@@ -389,6 +450,7 @@ class TextExtractionHandler:
                         if ocr_texts:
                             temp_texts += beautify_ocr_text(ocr_texts)
                             structured_text_temp.append(ocr_texts)
+                        await asyncio.sleep(0)
             else:
                 flag = False
                 final_text_contents += beautify_extracted_text(temp_texts, page_num+1)
@@ -489,7 +551,8 @@ class TextExtractionHandler:
                     ext_type
                 )
 
-                if ("statusCode" in docs_conversion_lambda_response_json and
+                if (docs_conversion_lambda_response_json and
+                    "statusCode" in docs_conversion_lambda_response_json and
                         docs_conversion_lambda_response_json["statusCode"] == 200):
                     bucket_name = docs_conversion_lambda_response_json["bucket"]
                     file_path = docs_conversion_lambda_response_json["file"]
@@ -509,7 +572,6 @@ class TextExtractionHandler:
                     else:
                         flag = True
                 else:
-                    logging.error("Error occurred during file conversion. %s", docs_conversion_lambda_response_json['error'])
                     flag = True
             if flag:
                 self.dispatch_results(
