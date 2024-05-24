@@ -176,7 +176,7 @@ def download_models():
         logging.info("OCR models path exist.")
     return file_paths
 
-def filter_file_by_size(file_path: str, filesize:int=5_000):
+def filter_file_by_size(file_path: str, filesize:int=100_000):
     """ Filters images/files based on the file size """
     img = np.array(Image.open(file_path))
     if img.size >= filesize:

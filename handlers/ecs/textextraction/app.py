@@ -127,7 +127,7 @@ async def fifo_worker():
             await asyncio.ensure_future(text_extraction_handler(client_id, url, textextraction_id, callback_url))
             await asyncio.sleep(0.5)
         else:
-            await asyncio.sleep(300)
+            await asyncio.sleep(60)
 
 
 
@@ -471,7 +471,7 @@ class TextExtractionHandler:
         """ Extract texts from url link which is a pdf document """
         try:
             document = TextFromFile(stream=None, ext="pdf", from_web=True, url=url)
-            deepex_op = document.extract()
+            deepex_op = document.extract(consider_tables=False)
             temp_img_dir = os.path.join("/tmp", uuid.uuid4().hex)
             os.makedirs(temp_img_dir, exist_ok=True)
             deepex_op.save_pics(temp_img_dir)
