@@ -574,8 +574,8 @@ timeout-decorator = "*"
 [package.source]
 type = "git"
 url = "https://github.com/the-deep/deepex.git"
-reference = "076d5d8"
-resolved_reference = "076d5d83c30ae965c06e5f709c1668e803343a03"
+reference = "8900a55"
+resolved_reference = "8900a553508ac4c186222ed4fec3598e3c63c99c"
 
 [[package]]
 name = "et-xmlfile"
@@ -1597,14 +1597,14 @@ aiofiles = "23.2.1"
 bce-python-sdk = "0.9.5"
 boto3 = "1.26.106"
 html2excel = "0.0.6"
-paddleocr = "2.7.0.3"
+paddleocr = "2.7.3"
 paddlepaddle = "2.6.1"
 
 [package.source]
 type = "git"
 url = "https://github.com/the-deep-nlp/ocr-extractor.git"
-reference = "89163dd"
-resolved_reference = "89163dda00b5d138830eb6bfcd1f17eb450844e6"
+reference = "9c7e611"
+resolved_reference = "9c7e611aa7b3302ace3749922f45e8a68b5e305f"
 
 [[package]]
 name = "opencv-contrib-python"
@@ -1729,13 +1729,13 @@ files = [
 
 [[package]]
 name = "paddleocr"
-version = "2.7.0.3"
+version = "2.7.3"
 description = "Awesome OCR toolkits based on PaddlePaddle (8.6M ultra-lightweight pre-trained model, support training and deployment among server, mobile, embeded and IoT devices)"
 category = "main"
 optional = false
 python-versions = "*"
 files = [
-    {file = "paddleocr-2.7.0.3-py3-none-any.whl", hash = "sha256:d85cbf75e9aa652fd22f2077b56d1e0dd1a97d09bf317d99f4dbba5c4f1f29ad"},
+    {file = "paddleocr-2.7.3-py3-none-any.whl", hash = "sha256:3dd8cbc3c50bc4857a6ae2f38196ebd1e3e16f2030f4771e636ea8473da4f803"},
 ]
 
 [package.dependencies]
@@ -1755,7 +1755,6 @@ pdf2docx = "*"
 Pillow = ">=10.0.0"
 premailer = "*"
 pyclipper = "*"
-PyMuPDF = "<1.21.0"
 python-docx = "*"
 pyyaml = "*"
 rapidfuzz = "*"
@@ -3242,4 +3241,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<4.0"
-content-hash = "e4ad5851c0f46e1f39e87f4a52d16451ac518cc32ac033608ea475946f1e7b73"
+content-hash = "d9a22efd0b85f2b48900167ec287a7b1f9dcce66c3e7c219189ffbd17e7831fc"
