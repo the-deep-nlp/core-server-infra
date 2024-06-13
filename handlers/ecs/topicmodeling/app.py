@@ -12,7 +12,6 @@ import numpy as np
 from fastapi import FastAPI, BackgroundTasks
 from pydantic import BaseModel
 from botocore.exceptions import ClientError
-import mapply
 from topic_generator import TopicGenerator
 from topic_generator_llm import TopicGenerationLLM
 from group_tags import GroupTags
@@ -28,7 +27,6 @@ from nlp_modules_utils import (
 )
 
 logging.getLogger().setLevel(logging.INFO)
-mapply.init(chunk_size=1, progressbar=False)
 
 SENTRY_DSN = os.environ.get("SENTRY_DSN")
 ENVIRONMENT = os.environ.get("ENVIRONMENT")
@@ -250,7 +248,7 @@ class TopicModelGeneratorHandler:
         for v in data_json.values():
             v["Representation"] = " ".join(set(v["Representation"]))
         new_df = pd.DataFrame.from_dict(data_json, orient="index")
-        new_df["label"] = new_df.mapply(self.generate_llm_topic, axis=1)
+        new_df["label"] = new_df.apply(self.generate_llm_topic, axis=1)
         new_df.drop(columns=["Representation", "Document"], inplace=True)
         return new_df.to_dict(orient="index")
 
