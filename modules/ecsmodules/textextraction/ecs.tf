@@ -40,7 +40,7 @@ resource "aws_ecs_task_definition" "task-def" {
           }
       ],
       "command": [
-        "uvicorn", "app:ecs_app", "--host", "0.0.0.0", "--port", "${var.app_port}", "--workers", "2"
+        "uvicorn", "app:ecs_app", "--host", "0.0.0.0", "--port", "${var.app_port}", "--workers", "1"
       ],
       "name": "${var.ecs_container_name}-${var.environment}",
       "image": "${local.app_image_url}",
