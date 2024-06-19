@@ -7,6 +7,7 @@ import tarfile
 from datetime import date
 from PIL import Image
 import httpx
+import asyncio
 import aiofiles
 import numpy as np
 from wget import download
@@ -73,7 +74,7 @@ def download_file(s3_client, filename_s3, bucketname, filename_local):
         return False
     return True
 
-def invoke_conversion_lambda(
+async def invoke_conversion_lambda(
     lambda_client,
     docs_conversion_bucket_name,
     docs_convert_lambda_fn_name,
@@ -91,16 +92,17 @@ def invoke_conversion_lambda(
         "fromS3": 1
     })
     try:
-        docs_conversion_lambda_response = lambda_client.invoke(
+        docs_conversion_lambda_response = await asyncio.to_thread(
+            lambda_client.invoke,
             FunctionName=docs_convert_lambda_fn_name,
             InvocationType="RequestResponse",
             Payload=payload
         )
     except ClientError as cexc:
-        logging.error("Error occurred during lambda invocation. %s", str(cexc))
+        logging.error("Client error occurred during lambda invocation. %s", str(cexc))
         return {}
     except (ReadTimeoutError, ConnectTimeoutError) as texc:
-        logging.error("Error occurred during lambda invocation. %s", str(texc))
+        logging.error("Timeout occurred during lambda invocation. %s", str(texc))
         return {}
     docs_conversion_lambda_response_json = json.loads(
         docs_conversion_lambda_response["Payload"].read().decode("utf-8")
@@ -119,8 +121,8 @@ def append_text(f):
 
 def append_ocr_text(f):
     def inner(main_txt):
-        start_text = "********* [OCR CONTENT START] *********"
-        end_text = "********* [OCR CONTENT END]  *********"
+        start_text = "-" * 100
+        end_text = "-" * 100
         final_data = start_text + "\n" + main_txt + "\n" + end_text + "\n"
         return f(final_data)
     return inner
@@ -189,11 +191,11 @@ async def handle_scanned_doc_or_image(
     is_image: bool,
     s3_bucket_name: str,
     textextraction_id: str,
-    headers: str,
+    headers: dict,
+    model_filepath: dict,
     req_timeout: int=30
 ):
     """ Handles complete scanned document or image """
-    model_filepath = download_models()
     date_today = date.today().isoformat()
     tempf = await create_async_tempfile(url=url, headers=headers, timeout=req_timeout)
     try:

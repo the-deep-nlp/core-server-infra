@@ -119,22 +119,20 @@ async def fifo_worker():
             textextraction_id = sqs_response["Messages"][0]["MessageAttributes"]["textextraction_id"]["StringValue"]
             client_id = sqs_response["Messages"][0]["MessageAttributes"]["client_id"]["StringValue"]
 
+            await asyncio.ensure_future(text_extraction_handler(client_id, url, textextraction_id, callback_url))
             sqs_client.delete_message(
                 QueueUrl=SQS_QUEUE_URL,
                 ReceiptHandle=receipt_handle
             )
-
-            await asyncio.ensure_future(text_extraction_handler(client_id, url, textextraction_id, callback_url))
-            await asyncio.sleep(0.5)
         else:
-            await asyncio.sleep(60)
+            await asyncio.sleep(10)
 
 
 
 @ecs_app.on_event("startup")
 async def start_db():
     """ Creates task during startup """
-    asyncio.ensure_future(fifo_worker())
+    asyncio.create_task(fifo_worker())
 
 @ecs_app.get("/")
 def home():
@@ -230,6 +228,8 @@ class TextExtractionHandler:
         self.db_table_name = os.environ.get("DB_TABLE_NAME", None)
         self.db_table_callback_tracker = os.environ.get("DB_TABLE_CALLBACK_TRACKER", None)
 
+        self.model_filepath = download_models()
+
         if not self.db_table_name:
             logging.error("Database table name is not found.")
 
@@ -314,10 +314,10 @@ class TextExtractionHandler:
     
     def _common_doc_handler_2(
         self,
-        text_contents,
+        text_contents: str,
         structured_text,
         table_contents,
-        images_lst,
+        images_dict,
         client_id,
         textextraction_id,
         callback_url,
@@ -371,7 +371,7 @@ class TextExtractionHandler:
                 total_pages=total_pages,
                 total_words_count=total_words_count,
                 table_contents=table_contents if table_contents else None,
-                images_contents=images_lst
+                images_contents=images_dict
             )
         else:
             self.dispatch_results(
@@ -386,7 +386,7 @@ class TextExtractionHandler:
         date_today = date.today().isoformat()
 
         tempf = await create_async_tempfile(url=url, headers=self.headers, timeout=30)
-        model_filepath = download_models()
+
         try:
             ocr_table_engine = OCRProcessor(
                 extraction_type=2,
@@ -394,7 +394,7 @@ class TextExtractionHandler:
                 use_s3=True,
                 s3_bucket_name=self.bucket_name,
                 s3_bucket_key=f"textextraction/{date_today}/{textextraction_id}/tables",
-                **model_filepath
+                **self.model_filepath
             )
             ocr_table_engine.load_file(file_path=tempf.name, is_image=False)
             ocr_results = await ocr_table_engine.handler()
@@ -413,14 +413,14 @@ class TextExtractionHandler:
         flag = False
         structured_text = []
         structured_text_temp = []
+        images_dict = []
         images_lst = []
 
-        model_filepath = download_models()
         ocr_processor = OCRProcessor(
             extraction_type=1,
             show_log=False,
             use_s3=False,
-            **model_filepath
+            **self.model_filepath
         )
         # Sort blocks by 'page', y0 and then x0
         block_items = sorted(blocks, key=operator.itemgetter("page", "y0", "x0"))
@@ -454,6 +454,12 @@ class TextExtractionHandler:
             else:
                 flag = False
                 final_text_contents += beautify_extracted_text(temp_texts, page_num+1)
+                if images_lst:
+                    images_dict.append({
+                        "page_number": page_num + 1,
+                        "images": images_lst
+                    })
+                images_lst = []
                 structured_text.append(structured_text_temp)
                 structured_text_temp = []
                 temp_texts = ""
@@ -463,12 +469,18 @@ class TextExtractionHandler:
                 page_num += 1
         if flag:
             final_text_contents += beautify_extracted_text(temp_texts, page_num+1)
+            if images_lst:
+                images_dict.append({
+                    "page_number": page_num + 1,
+                    "images": images_lst
+                })
             structured_text.append(structured_text_temp)
-        return final_text_contents, structured_text, images_lst
+        return final_text_contents, structured_text, images_dict
 
 
     async def handle_pdf_text_from_url(self, url, client_id, textextraction_id, callback_url):
         """ Extract texts from url link which is a pdf document """
+        logging.info("The Text Extraction process is initiated.")
         try:
             document = TextFromFile(stream=None, ext="pdf", from_web=True, url=url)
             deepex_op = document.extract(consider_tables=False)
@@ -477,7 +489,7 @@ class TextExtractionHandler:
             deepex_op.save_pics(temp_img_dir)
             deepex_op = deepex_op.to_json()
             block_items = deepex_op["blocks"]
-            text_contents, structured_text, images_lst = await self.handle_block_elements(block_items, temp_img_dir, textextraction_id)
+            text_contents, structured_text, images_dict = await self.handle_block_elements(block_items, temp_img_dir, textextraction_id)
             table_contents = await self.handle_table_elements(url, textextraction_id)
         except ScannedDocumentError:
             logging.warning("Scanned document found. Applying OCR on this document")
@@ -486,9 +498,10 @@ class TextExtractionHandler:
                 is_image=False,
                 s3_bucket_name=self.bucket_name,
                 textextraction_id=textextraction_id,
-                headers=self.headers
+                headers=self.headers,
+                model_filepath=self.model_filepath
             )
-            images_lst = []  # TODO
+            images_dict = []  # TODO
         except Exception as exc:
             logging.error("Extraction failed: %s", str(exc), exc_info=True)
             self.dispatch_results(
@@ -498,7 +511,7 @@ class TextExtractionHandler:
                 status=StateHandler.FAILED.value
             )
             return
-        self._common_doc_handler_2(text_contents, structured_text, table_contents, images_lst, client_id, textextraction_id, callback_url)
+        self._common_doc_handler_2(text_contents, structured_text, table_contents, images_dict, client_id, textextraction_id, callback_url)
 
     def handle_html_text(self, url, file_name, client_id, textextraction_id, callback_url):
         """ Extract html texts """
@@ -543,7 +556,7 @@ class TextExtractionHandler:
             with open(tempf.name, "rb") as tmpf:
                 s3_uploader.upload(tmp_filename, tmpf)
                 # Converts docx, xlsx, doc, xls, ppt, pptx type files to pdf using lambda
-                docs_conversion_lambda_response_json = invoke_conversion_lambda(
+                docs_conversion_lambda_response_json = await invoke_conversion_lambda(
                     lambda_client,
                     self.docs_conversion_bucket_name,
                     self.docs_convert_lambda_fn_name,
@@ -587,7 +600,8 @@ class TextExtractionHandler:
                 is_image=True,
                 s3_bucket_name=self.bucket_name,
                 textextraction_id=textextraction_id,
-                headers=self.headers
+                headers=self.headers,
+                model_filepath=self.model_filepath
             )
             image_lst = []
             self._common_doc_handler_2(text_contents, structured_text, table_contents, image_lst, client_id, textextraction_id, callback_url)
@@ -620,7 +634,7 @@ class TextExtractionHandler:
             "client_id": client_id,
             "text_path": text_presigned_url,
             "structured_text_path": structured_text_presigned_url,
-            "images_path":  images_contents or [],
+            "images_path": images_contents if images_contents else [],
             "tables_path": table_contents if table_contents else [],
             "total_pages": total_pages,
             "total_words_count": total_words_count,
