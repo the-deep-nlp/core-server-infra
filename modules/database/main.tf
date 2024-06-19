@@ -28,4 +28,5 @@ resource "aws_rds_cluster_instance" "cluster_instances" {
   db_subnet_group_name = aws_db_subnet_group.rds.name
   apply_immediately    = true
   publicly_accessible  = true # change this to false
+  ca_cert_identifier   = "rds-ca-rsa4096-g1"
 }
