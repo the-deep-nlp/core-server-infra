@@ -38,6 +38,8 @@ geolocations_app_image_name = "geolocations_model_staging"
 textextraction_app_image_name = "deepex_text_extraction_staging"
 # ecs entry extraction
 entryextraction_app_image_name = "entry_extraction_staging"
+# ecs cloudflare proxy server
+cloudflare_proxy_srv_app_image_name = "flaresolver_staging"
 
 # s3
 s3_bucketname_task_results = "nlp-tasks-processed-results"
@@ -47,27 +49,30 @@ db_table_name             = "event_status_tracker"
 db_table_callback_tracker = "failed_callback_tracker"
 
 # ecs capacity
-text_extraction_fargate_cpu     = "1024"
-text_extraction_fargate_memory  = "6144"
-summarization_v2_fargate_cpu    = "2048"
-summarization_v2_fargate_memory = "8192"
-summarization_v3_fargate_cpu    = "512"
-summarization_v3_fargate_memory = "1024"
-entry_extraction_fargate_cpu    = "512"
-entry_extraction_fargate_memory = "2048"
-geolocations_fargate_cpu        = "512"
-geolocations_fargate_memory     = "2048"
-ngrams_fargate_cpu              = "512"
-ngrams_fargate_memory           = "1024"
-topicmodeling_fargate_cpu       = "1024"
-topicmodeling_fargate_memory    = "4096"
+text_extraction_fargate_cpu         = "1024"
+text_extraction_fargate_memory      = "6144"
+summarization_v2_fargate_cpu        = "2048"
+summarization_v2_fargate_memory     = "8192"
+summarization_v3_fargate_cpu        = "512"
+summarization_v3_fargate_memory     = "1024"
+entry_extraction_fargate_cpu        = "512"
+entry_extraction_fargate_memory     = "2048"
+geolocations_fargate_cpu            = "512"
+geolocations_fargate_memory         = "2048"
+ngrams_fargate_cpu                  = "512"
+ngrams_fargate_memory               = "1024"
+topicmodeling_fargate_cpu           = "1024"
+topicmodeling_fargate_memory        = "4096"
+cloudflare_proxy_srv_fargete_cpu    = "512"
+cloudflare_proxy_srv_fargate_memory = "1024"
 
 # ecs tasks count
-text_extraction_task_count  = 1
-entry_extraction_task_count = 1
-summarization_v3_task_count = 1
-geolocations_task_count     = 1
-topicmodeling_task_count    = 1
+text_extraction_task_count      = 1
+entry_extraction_task_count     = 1
+summarization_v3_task_count     = 1
+geolocations_task_count         = 1
+topicmodeling_task_count        = 1
+cloudflare_proxy_srv_task_count = 1
 
 # model info
 classification_model_id      = "classification_model"

@@ -107,3 +107,6 @@ variable "efs_volume_id" {}
 
 # sqs
 variable "queue_url" {}
+
+# cloudflare host
+variable "cloudflare_proxy_server_ecs_host" {}
