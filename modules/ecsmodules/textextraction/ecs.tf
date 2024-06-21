@@ -78,8 +78,8 @@ resource "aws_ecs_task_definition" "task-def" {
           "value": "${var.queue_url}"
         },
         {
-          "name": "CLOUDFLARE_PROXY_SERVER_ENDPOINT",
-          "value": "${var.cloudflare_proxy_server_ecs_endpoint}"
+          "name": "CLOUDFLARE_PROXY_SERVER_HOST",
+          "value": "${var.cloudflare_proxy_server_ecs_host}"
         }
       ],
       "secrets": [

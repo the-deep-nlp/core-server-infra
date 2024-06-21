@@ -532,7 +532,7 @@ module "deepex" {
   queue_url = module.sqs_queues.queue_url
 
   # cloudflare endpoint
-  cloudflare_proxy_server_ecs_endpoint = module.cloudflare_proxy_server.aws_service_discovery_service_endpoint
+  cloudflare_proxy_server_ecs_host = module.cloudflare_proxy_server.aws_service_discovery_service_host
 }
 
 # Entry Extraction and Classification
