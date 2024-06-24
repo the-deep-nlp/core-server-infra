@@ -56,6 +56,7 @@ SENTRY_DSN = os.environ.get("SENTRY_DSN")
 ENVIRONMENT = os.environ.get("ENVIRONMENT")
 AWS_REGION = os.environ.get("AWS_REGION", "us-east-1")
 SQS_QUEUE_URL = os.environ.get("SQS_QUEUE_URL")
+CLOUDFLARE_PROXY_SERVER_HOST = os.environ.get("CLOUDFLARE_PROXY_SERVER_HOST")
 
 sentry_sdk.init(SENTRY_DSN, environment=ENVIRONMENT, attach_stacktrace=True, traces_sample_rate=1.0)
 
@@ -182,6 +183,7 @@ async def extract_texts(item: RequestSchema, background_tasks: BackgroundTasks):
             MessageAttributes=sqs_message_attributes
         )
     else:
+        logging.info("Background task initiated.")
         background_tasks.add_task(
             text_extraction_handler,
             client_id,
@@ -255,7 +257,7 @@ class TextExtractionHandler:
         """
         Common doc handler for pdf and webpages
         """
-        entries_with_page_info = self._add_page_info(entries)
+        entries_with_page_info = self._add_page_info([entries])
         entries_list = [item for sublist in entries_with_page_info for item in sublist]
 
         extracted_text = "\n\n".join(entries_list)
@@ -478,12 +480,17 @@ class TextExtractionHandler:
         return final_text_contents, structured_text, images_dict
 
 
+    async def process_with_timeout(self, document):
+        """ Process doc """
+        return await asyncio.to_thread(document.extract)
+
     async def handle_pdf_text_from_url(self, url, client_id, textextraction_id, callback_url):
         """ Extract texts from url link which is a pdf document """
         logging.info("The Text Extraction process is initiated.")
         try:
             document = TextFromFile(stream=None, ext="pdf", from_web=True, url=url)
-            deepex_op = document.extract(consider_tables=False)
+            #deepex_op = document.extract(consider_tables=False)
+            deepex_op = await asyncio.wait_for(self.process_with_timeout(document), timeout=120)
             temp_img_dir = os.path.join("/tmp", uuid.uuid4().hex)
             os.makedirs(temp_img_dir, exist_ok=True)
             deepex_op.save_pics(temp_img_dir)
@@ -502,6 +509,15 @@ class TextExtractionHandler:
                 model_filepath=self.model_filepath
             )
             images_dict = []  # TODO
+        except (asyncio.exceptions.TimeoutError, asyncio.exceptions.CancelledError) as texc:
+            logging.warning("Asyncio timeout exception occurred. %s", str(texc))
+            self.dispatch_results(
+                client_id,
+                textextraction_id,
+                callback_url,
+                status=StateHandler.FAILED.value
+            )
+            return
         except Exception as exc:
             logging.error("Extraction failed: %s", str(exc), exc_info=True)
             self.dispatch_results(
@@ -516,7 +532,7 @@ class TextExtractionHandler:
     def handle_html_text(self, url, file_name, client_id, textextraction_id, callback_url):
         """ Extract html texts """
         try:
-            web_text = TextFromWeb(url=url)
+            web_text = TextFromWeb(url=url, selenium_ip=CLOUDFLARE_PROXY_SERVER_HOST)
             entries = web_text.extract_text(output_format="list", url=url)
         except Exception as exc:
             logging.error("Extraction from website failed. %s", str(exc), exc_info=True)
@@ -528,6 +544,7 @@ class TextExtractionHandler:
             )
             return
         #TODO: use extract all to use blocks
+        logging.info("Extracting web page contents")
         self._common_doc_handler(entries, client_id, textextraction_id, callback_url, webpage_extraction=True)
 
     async def __call__(self, client_id, url, textextraction_id, callback_url, file_name="extract_text.txt"):
