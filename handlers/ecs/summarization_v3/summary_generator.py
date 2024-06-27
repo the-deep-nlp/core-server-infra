@@ -1,4 +1,5 @@
 import os
+import json
 import logging
 from typing import Optional
 from datetime import date
@@ -81,11 +82,15 @@ class ReportsGeneratorHandler:
             logging.info("The request url is %s", entries_url)
             try:
                 response = requests.get(entries_url, timeout=req_timeout)
+                response_data = response.json()
                 if response.status_code == 200:
-                    return [x["excerpt"] for x in response.json()]
+                    return (
+                        [x["excerpt"] for x in response_data["data"]],
+                        response_data["tags"]
+                    )
             except Exception as exc:
                 logging.error("Error occurred: %s", str(exc))
-        return None
+        return [], []
 
     def dispatch_results(
         self,
@@ -98,7 +103,6 @@ class ReportsGeneratorHandler:
         """
         Dispatch results to callback url or write to database
         """
-
         response_data = {
             "client_id": client_id,
             "presigned_s3_url": presigned_url,
@@ -144,7 +148,7 @@ class ReportsGeneratorHandler:
         else:
             logging.error("Callback url / presigned s3 url / Database table name are not found.")
 
-    def __call__(self, client_id: str, entries: list, summarization_id: str, callback_url: str):
+    def __call__(self, client_id: str, entries: list, tags: list, summarization_id: str, callback_url: str):
         if not entries:
             self.dispatch_results(client_id, summarization_id, callback_url, status=StateHandler.INPUT_URL_PROCESS_FAILED.value)
             return
@@ -152,28 +156,42 @@ class ReportsGeneratorHandler:
         merged_entries = " ".join(entries)
         llm_summarizer = LLMSummarization(texts=merged_entries)
         if llm_summarizer:
-            summary, summary_info = llm_summarizer.summarizer()
+            summary, summary_meta = llm_summarizer.summarizer()
+            analytical_statement, analytical_statement_meta = llm_summarizer.generate_analytical_statement(summary=summary)
+            info_gaps, info_gaps_meta = llm_summarizer.generate_information_gaps(entries=entries, topics=tags)
             # Adding the metric values
-            for metric_name, metric_value in summary_info.items():
-                add_metric_data(
-                    cw_client=cloudwatch_client,
-                    metric_name=metric_name,
-                    metric_value=metric_value,
-                    dimension_name="Module",
-                    dimension_value="Summarization",
-                    environment=self.environment
-                )
+            for meta_information in [summary_meta, analytical_statement_meta, info_gaps_meta]:
+                if meta_information:
+                    for metric_name, metric_value in meta_information.items():
+                        add_metric_data(
+                            cw_client=cloudwatch_client,
+                            metric_name=metric_name,
+                            metric_value=metric_value,
+                            dimension_name="Module",
+                            dimension_value="Summarization",
+                            environment=self.environment
+                        )
 
             date_today = date.today().isoformat()
-            presigned_url = upload_to_s3(
-                contents=summary,
-                contents_type="text/plain; charset=utf-8",
-                bucket_name=self.bucket_name,
-                key=f"summarization/{date_today}/{summarization_id}/summary.txt",
-                aws_region=os.environ.get("AWS_REGION", "us-east-1"),
-                s3_client=s3_client,
-                signed_url_expiry_secs=self.signed_url_expiry_secs
-            )
+            data = {
+                "summary": summary,
+                "analytical_statement": analytical_statement,
+                "info_gaps": info_gaps
+            }
+
+            try:
+                presigned_url = upload_to_s3(
+                    contents=json.dumps(data),
+                    contents_type="application/json",
+                    bucket_name=self.bucket_name,
+                    key=f"summarization/{date_today}/{summarization_id}/summary.json",
+                    aws_region=os.environ.get("AWS_REGION", "us-east-1"),
+                    s3_client=s3_client,
+                    signed_url_expiry_secs=self.signed_url_expiry_secs
+                )
+            except Exception as exc:
+                logging.error("Cannot upload the file to s3. Presigned url generation failed. %s", str(exc))
+                presigned_url = None
 
             if presigned_url:
                 self.dispatch_results(client_id, summarization_id, callback_url, status=StateHandler.SUCCESS.value, presigned_url=presigned_url)
