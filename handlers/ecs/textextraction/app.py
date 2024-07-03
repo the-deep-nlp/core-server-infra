@@ -1,4 +1,5 @@
 import os
+import shutil
 import uuid
 import json
 import logging
@@ -40,8 +41,6 @@ from utils import (
     preprocess_extracted_texts,
     invoke_conversion_lambda,
     beautify_extracted_text,
-    beautify_ocr_text,
-    download_models,
     filter_file_by_size,
     handle_scanned_doc_or_image,
     uploadfile_s3
@@ -230,8 +229,6 @@ class TextExtractionHandler:
         self.db_table_name = os.environ.get("DB_TABLE_NAME", None)
         self.db_table_callback_tracker = os.environ.get("DB_TABLE_CALLBACK_TRACKER", None)
 
-        self.model_filepath = download_models()
-
         if not self.db_table_name:
             logging.error("Database table name is not found.")
 
@@ -395,8 +392,7 @@ class TextExtractionHandler:
                 show_log=False,
                 use_s3=True,
                 s3_bucket_name=self.bucket_name,
-                s3_bucket_key=f"textextraction/{date_today}/{textextraction_id}/tables",
-                **self.model_filepath
+                s3_bucket_key=f"textextraction/{date_today}/{textextraction_id}/tables"
             )
             ocr_table_engine.load_file(file_path=tempf.name, is_image=False)
             ocr_results = await ocr_table_engine.handler()
@@ -418,12 +414,11 @@ class TextExtractionHandler:
         images_dict = []
         images_lst = []
 
-        ocr_processor = OCRProcessor(
-            extraction_type=1,
-            show_log=False,
-            use_s3=False,
-            **self.model_filepath
-        )
+        # ocr_processor = OCRProcessor(
+        #     extraction_type=1,
+        #     show_log=False,
+        #     use_s3=False
+        # )
         # Sort blocks by 'page', y0 and then x0
         block_items = sorted(blocks, key=operator.itemgetter("page", "y0", "x0"))
         for block in block_items:
@@ -443,16 +438,16 @@ class TextExtractionHandler:
                         )
                         if presigned_url:
                             images_lst.append(presigned_url)
-                        ocr_processor.load_file(file_path=imgfile_path, is_image=True)
-                        ocr_results = await ocr_processor.handler()
-                        text_contents = ocr_results["text"]
-                        ocr_texts = ""
-                        for item in text_contents:
-                            ocr_texts += item["content"] + "\n\n"
-                        if ocr_texts:
-                            temp_texts += beautify_ocr_text(ocr_texts)
-                            structured_text_temp.append(ocr_texts)
-                        await asyncio.sleep(0)
+                        # ocr_processor.load_file(file_path=imgfile_path, is_image=True)
+                        # ocr_results = await ocr_processor.handler()
+                        # text_contents = ocr_results["text"]
+                        # ocr_texts = ""
+                        # for item in text_contents:
+                        #     ocr_texts += item["content"] + "\n\n"
+                        # if ocr_texts:
+                        #     temp_texts += beautify_ocr_text(ocr_texts)
+                        #     structured_text_temp.append(ocr_texts)
+                        # await asyncio.sleep(0)
             else:
                 flag = False
                 final_text_contents += beautify_extracted_text(temp_texts, page_num+1)
@@ -490,7 +485,7 @@ class TextExtractionHandler:
         try:
             document = TextFromFile(stream=None, ext="pdf", from_web=True, url=url)
             #deepex_op = document.extract(consider_tables=False)
-            deepex_op = await asyncio.wait_for(self.process_with_timeout(document), timeout=120)
+            deepex_op = await asyncio.wait_for(self.process_with_timeout(document), timeout=240)
             temp_img_dir = os.path.join("/tmp", uuid.uuid4().hex)
             os.makedirs(temp_img_dir, exist_ok=True)
             deepex_op.save_pics(temp_img_dir)
@@ -498,17 +493,21 @@ class TextExtractionHandler:
             block_items = deepex_op["blocks"]
             text_contents, structured_text, images_dict = await self.handle_block_elements(block_items, temp_img_dir, textextraction_id)
             table_contents = await self.handle_table_elements(url, textextraction_id)
+            # Delete the images temp directory
+            try:
+                shutil.rmtree(temp_img_dir)
+            except (OSError, Exception):
+                logging.warning("Could not delete the images temporary directory.")
+
         except ScannedDocumentError:
             logging.warning("Scanned document found. Applying OCR on this document")
-            text_contents, structured_text, table_contents = await handle_scanned_doc_or_image(
+            text_contents, structured_text, table_contents, images_dict = await handle_scanned_doc_or_image(
                 url=url,
                 is_image=False,
                 s3_bucket_name=self.bucket_name,
                 textextraction_id=textextraction_id,
-                headers=self.headers,
-                model_filepath=self.model_filepath
+                headers=self.headers
             )
-            images_dict = []  # TODO
         except (asyncio.exceptions.TimeoutError, asyncio.exceptions.CancelledError) as texc:
             logging.warning("Asyncio timeout exception occurred. %s", str(texc))
             self.dispatch_results(
@@ -612,16 +611,14 @@ class TextExtractionHandler:
                 )
         elif content_type == UrlTypes.IMG.value:
             logging.info("The input document is an image file. Applying OCR on this document.")
-            text_contents, structured_text, table_contents = await handle_scanned_doc_or_image(
+            text_contents, structured_text, table_contents, images_dict = await handle_scanned_doc_or_image(
                 url=url,
                 is_image=True,
                 s3_bucket_name=self.bucket_name,
                 textextraction_id=textextraction_id,
-                headers=self.headers,
-                model_filepath=self.model_filepath
+                headers=self.headers
             )
-            image_lst = []
-            self._common_doc_handler_2(text_contents, structured_text, table_contents, image_lst, client_id, textextraction_id, callback_url)
+            self._common_doc_handler_2(text_contents, structured_text, table_contents, images_dict, client_id, textextraction_id, callback_url)
         else:
             logging.error("Text extraction is not available for this content type - %s", content_type)
             self.dispatch_results(

@@ -9,7 +9,7 @@ python = ">=3.9,<4.0"
 sentry-sdk = "==1.5.8"
 fastapi = "^0.95.1"
 uvicorn = "^0.22.0"
-ocr_extractor = { git = "https://github.com/the-deep-nlp/ocr-extractor.git", rev = "9c7e611", branch = "ocr-module" }
+ocr_extractor = { git = "https://github.com/the-deep-nlp/ocr-extractor.git", rev = "6e4142a", branch = "fix/extract-components" }
 deep-parser = { git = "https://github.com/the-deep/deepex.git", rev="c73698c", branch = "newformat2" }
 nlp_modules_utils = { git = "https://github.com/the-deep-nlp/nlp-modules-utils.git", rev = "bc82d18", branch = "main" }
 aiofiles = "==23.2.1"
