@@ -2,13 +2,10 @@ def summary_generation_prompt():
     """ Define the prompt template """
 
     prompt = """
-    Act as a humanitarian evaluation analyst or journalist. Your main objective is to generate a concise summary,
-    capturing the main points, key facts, issues and main takeaways. Incorporate relevant details and maintaining coherence.
-    If possible provide the summary which includes context, needs and response. Do not include quotes.
-    Please generate the summary as in the input text. If the input language is English, provide the summary in English.
-    If the input language is Spanish, provide the summary in Spanish, and so on for French, Arabic etc.
+    Act as a humanitarian evaluation analyst or journalist. You are requested to adhere the following guidelines:
+    1. Generate a concise summary, capturing the main points, key facts, issues and main takeaways guided by the following tags {tags}. Incorporate relevant details and maintaining coherence. If possible provide the summary which includes context, needs and response. Do not include quotes.
+    2. Write that summary in the dominant language, which is the language that appears most frequently in the list of texts. For example, if the given texts are in French, use French. If they are in Spanish, use Spanish. If they are in English, use English respectively and etc.
     Try to maintain the length of that generated summary to be around {tokens_count} words.
-
     TEXT: {text}
 
     SUMMARY:

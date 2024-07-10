@@ -148,17 +148,17 @@ class ReportsGeneratorHandler:
         else:
             logging.error("Callback url / presigned s3 url / Database table name are not found.")
 
-    def __call__(self, client_id: str, entries: list, tags: list, summarization_id: str, callback_url: str):
+    def __call__(self, client_id: str, entries: list, tags: list, summarization_id: str, callback_url: str, max_entries_items: int=100):
         if not entries:
             self.dispatch_results(client_id, summarization_id, callback_url, status=StateHandler.INPUT_URL_PROCESS_FAILED.value)
             return
 
-        merged_entries = " ".join(entries)
+        merged_entries = " ".join(entries[:max_entries_items])
         llm_summarizer = LLMSummarization(texts=merged_entries)
         if llm_summarizer:
-            summary, summary_meta = llm_summarizer.summarizer()
+            summary, summary_meta = llm_summarizer.summarizer(tags=tags)
             analytical_statement, analytical_statement_meta = llm_summarizer.generate_analytical_statement(summary=summary)
-            info_gaps, info_gaps_meta = llm_summarizer.generate_information_gaps(entries=entries, topics=tags)
+            info_gaps, info_gaps_meta = llm_summarizer.generate_information_gaps(entries=entries[:max_entries_items], topics=tags)
             # Adding the metric values
             for meta_information in [summary_meta, analytical_statement_meta, info_gaps_meta]:
                 if meta_information:

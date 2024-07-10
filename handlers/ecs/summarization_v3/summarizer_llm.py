@@ -50,7 +50,7 @@ class LLMSummarization(SummarizerBase):
     ):
         super().__init__(texts, model_name, temperature, max_tokens, max_retries)
 
-    def summarizer(self, min_tokens: int=20):
+    def summarizer(self, tags: list,  min_tokens: int=20):
         """ Summarization using Chain of Density prompt """
         generated_summary = None
         tokens_count = max(int(self.get_tokens_size()/2), min_tokens)
@@ -67,6 +67,7 @@ class LLMSummarization(SummarizerBase):
         with get_openai_callback() as cb:
             generated_summary = summarize_chain.invoke({
                 "text": self.texts,
+                "tags": tags,
                 "tokens_count": tokens_count
             })
             summary_info = {
