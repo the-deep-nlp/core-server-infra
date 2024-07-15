@@ -49,7 +49,7 @@ db_table_name             = "event_status_tracker"
 db_table_callback_tracker = "failed_callback_tracker"
 
 # ecs capacity
-text_extraction_fargate_cpu         = "1024"
+text_extraction_fargate_cpu         = "2048"
 text_extraction_fargate_memory      = "6144"
 summarization_v2_fargate_cpu        = "2048"
 summarization_v2_fargate_memory     = "8192"
