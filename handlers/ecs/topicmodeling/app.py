@@ -25,6 +25,7 @@ from nlp_modules_utils import (
     send_request_on_callback,
     update_db_table_callback_retry
 )
+from utils import preprocess_text
 
 logging.getLogger().setLevel(logging.INFO)
 
@@ -121,6 +122,12 @@ class TopicModelGeneratorHandler:
     def initiation_tasks(self):
         """ Execute initial tasks """
         self.entries_df = self._download_prepare_entries()
+        # Preprocessing
+        self.entries_df["Document"] = self.entries_df.Document.apply(preprocess_text)
+        self.entries_df = self.entries_df[self.entries_df["Document"] != ""]
+        self.entries_df.reset_index(drop=True, inplace=True)
+        logging.info(f"Size of entries dataframe after preprocessing: {len(self.entries_df)}")
+
         if self.entries_df.empty:
             self.embeddings = np.array([])
         else:
@@ -129,12 +136,13 @@ class TopicModelGeneratorHandler:
     def _download_prepare_entries(self, req_timeout: int=30):
         """
         The json format (*.json) in the link file should be
-        [
-            {
+        {
+            data: [{
                 "entry_id": int,
                 "excerpt": str
-            }
-        ]
+            }],
+            tags: [str]
+        }
         """
         if self.entries_url:
             logging.info("The request url is %s", self.entries_url)
@@ -157,10 +165,10 @@ class TopicModelGeneratorHandler:
         excerpts: list,
         model_name: str = "main-model-cpu",
         pooling_type: str = "['cls']",
-        finetuned_task: str = "['first_level_tags']",
+        finetuned_task: str = "['subpillars']",
         return_type: str = "default_analyis",
         embeddings_return_type: str = "array",
-        batch_size: int = 25
+        batch_size: int = 100
     ):
         """
         Calculates the embeddings of the entries
@@ -209,7 +217,7 @@ class TopicModelGeneratorHandler:
         self.group_tags_handler.set_excerpts(self.topic_tags)
         return self.group_tags_handler.generate_tag_groups()
 
-    def generate_topics(self, entries, entries_embeddings, n_topics=15, umap_n_compontens=25):
+    def generate_topics(self, entries, entries_embeddings, n_topics=10, umap_n_components=3):
         """
         Generates the topic predicted by the Bertopic library
         """
@@ -217,7 +225,7 @@ class TopicModelGeneratorHandler:
         topic_list = self.get_topic_list()
         topic_model.get_total_topics(
             n_topics=n_topics,
-            umap_n_compontens=umap_n_compontens,
+            umap_n_components=umap_n_components,
             topic_list=topic_list
         )
         return topic_model.general_topics_df
@@ -233,7 +241,9 @@ class TopicModelGeneratorHandler:
         """
         Excludes the topic from the dataframe.
         """
-        return dataframe[dataframe["Topic"] != topic_value]
+        outlier_df = dataframe[dataframe["Topic"] != topic_value]
+        logging.info(f"Outliers dataframe shape: {outlier_df.shape}")
+        return outlier_df
 
     def select_most_relevant_excerpts(self, df):
         """
@@ -323,7 +333,7 @@ class TopicModelGeneratorHandler:
                     entries,
                     self.embeddings,
                     n_topics=self.max_cluster_num,
-                    umap_n_compontens=self.umap_components
+                    umap_n_components=self.umap_components
                 )
             except Exception as exc:
                 logging.error("Error occurred during processing of topics. %s", str(exc))
