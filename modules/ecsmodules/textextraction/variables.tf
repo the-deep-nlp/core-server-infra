@@ -75,19 +75,19 @@ variable "textextraction_scaling_min_capacity" {
 }
 
 variable "textextraction_max_cpu_target_value" {
-  default = 70
+  default = 60
 }
 
 variable "textextraction_min_cpu_target_value" {
-  default = 60
+  default = 50
 }
 
 variable "textextraction_max_mem_target_value" {
-  default = 60
+  default = 50
 }
 
 variable "textextraction_min_mem_target_value" {
-  default = 50
+  default = 40
 }
 
 variable "monitoring_period" {
