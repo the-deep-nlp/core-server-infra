@@ -593,10 +593,10 @@ develop = false
 [package.dependencies]
 anytree = "*"
 beautifulsoup4 = "*"
-lxml = "5.0.0"
+lxml = "*"
 numpy = "*"
-pandas = "*"
-pymupdf = "<=1.24.1"
+pandas = ">=2.0.0"
+pymupdf = "*"
 pyyaml = "*"
 readable-content = "*"
 requests = "*"
@@ -606,8 +606,8 @@ trafilatura = "*"
 [package.source]
 type = "git"
 url = "https://github.com/the-deep/deepex.git"
-reference = "c73698c"
-resolved_reference = "c73698cd6fab41ec4de8691b007575ca7a2416d4"
+reference = "fd0842f"
+resolved_reference = "fd0842f8ba713d525d726e64bf23083483651619"
 
 [[package]]
 name = "et-xmlfile"
@@ -3249,4 +3249,4 @@ test = ["big-O", "importlib-resources", "jaraco.functools", "jaraco.itertools", 
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<4.0"
-content-hash = "a977c26cc3af6ccf48e9c3d54695db855100113063b2244c8e48851b36bad6ea"
+content-hash = "fe93edde6b5fd17d57d8eda1eb9fb085265d1c7b4d1fc24569033e4e3065ce70"

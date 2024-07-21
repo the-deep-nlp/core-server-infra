@@ -68,6 +68,9 @@ class ExtractContentType:
         except httpx.HTTPError as httperr:
             logging.warning("Error occurred while requesting information from the url. %s", str(httperr))
             return None
+        except Exception as exc:
+            logging.warning("Error occurred while requesting information from the url. %s", str(exc))
+            return None
 
         logging.info("The content type of %s is %s", url, content_type)
 

@@ -484,7 +484,6 @@ class TextExtractionHandler:
         logging.info("The Text Extraction process is initiated.")
         try:
             document = TextFromFile(stream=None, ext="pdf", from_web=True, url=url)
-            #deepex_op = document.extract(consider_tables=False)
             deepex_op = await asyncio.wait_for(self.process_with_timeout(document), timeout=240)
             temp_img_dir = os.path.join("/tmp", uuid.uuid4().hex)
             os.makedirs(temp_img_dir, exist_ok=True)
