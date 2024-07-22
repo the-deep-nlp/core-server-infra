@@ -12,9 +12,9 @@ import numpy as np
 from fastapi import FastAPI, BackgroundTasks
 from pydantic import BaseModel
 from botocore.exceptions import ClientError
-import mapply
 from topic_generator import TopicGenerator
 from topic_generator_llm import TopicGenerationLLM
+from group_tags import GroupTags
 from nlp_modules_utils import (
     Database,
     StateHandler,
@@ -25,9 +25,9 @@ from nlp_modules_utils import (
     send_request_on_callback,
     update_db_table_callback_retry
 )
+from utils import preprocess_text
 
 logging.getLogger().setLevel(logging.INFO)
-mapply.init(chunk_size=1, progressbar=False)
 
 SENTRY_DSN = os.environ.get("SENTRY_DSN")
 ENVIRONMENT = os.environ.get("ENVIRONMENT")
@@ -113,12 +113,21 @@ class TopicModelGeneratorHandler:
         self.db_table_name = os.environ.get("DB_TABLE_NAME", None)
         self.db_table_callback_tracker = os.environ.get("DB_TABLE_CALLBACK_TRACKER", None)
 
+        self.topic_tags = []
+        self.group_tags_handler = GroupTags()
+
         if not self.db_table_name:
             logging.error("Database table name is not found.")
 
     def initiation_tasks(self):
         """ Execute initial tasks """
         self.entries_df = self._download_prepare_entries()
+        # Preprocessing
+        self.entries_df["Document"] = self.entries_df.Document.apply(preprocess_text)
+        self.entries_df = self.entries_df[self.entries_df["Document"] != ""]
+        self.entries_df.reset_index(drop=True, inplace=True)
+        logging.info(f"Size of entries dataframe after preprocessing: {len(self.entries_df)}")
+
         if self.entries_df.empty:
             self.embeddings = np.array([])
         else:
@@ -127,20 +136,22 @@ class TopicModelGeneratorHandler:
     def _download_prepare_entries(self, req_timeout: int=30):
         """
         The json format (*.json) in the link file should be
-        [
-            {
+        {
+            data: [{
                 "entry_id": int,
                 "excerpt": str
-            }
-        ]
+            }],
+            tags: [str]
+        }
         """
         if self.entries_url:
             logging.info("The request url is %s", self.entries_url)
             try:
                 response = requests.get(self.entries_url, timeout=req_timeout)
-
+                response_data = response.json()
                 if response.status_code == 200:
-                    df = pd.DataFrame(response.json())
+                    df = pd.DataFrame(response_data["data"])
+                    self.topic_tags = response_data["tags"]
                     self.rename_columns(df)
                     return df
             except requests.exceptions.Timeout as texc:
@@ -154,10 +165,10 @@ class TopicModelGeneratorHandler:
         excerpts: list,
         model_name: str = "main-model-cpu",
         pooling_type: str = "['cls']",
-        finetuned_task: str = "['first_level_tags']",
+        finetuned_task: str = "['subpillars']",
         return_type: str = "default_analyis",
         embeddings_return_type: str = "array",
-        batch_size: int = 25
+        batch_size: int = 100
     ):
         """
         Calculates the embeddings of the entries
@@ -195,18 +206,28 @@ class TopicModelGeneratorHandler:
 
         return np.vstack([x for b in total for x in  b])
 
-    def rename_columns(self, df):
+    def rename_columns(self, df: pd.DataFrame):
         """
         Renames the column names
         """
         df.rename(columns={"excerpt":"Document"}, inplace=True)
 
-    def generate_topics(self, entries, entries_embeddings, n_topics=15, umap_n_compontens=25):
+    def get_topic_list(self):
+        """ Get the grouped topic list """
+        self.group_tags_handler.set_excerpts(self.topic_tags)
+        return self.group_tags_handler.generate_tag_groups()
+
+    def generate_topics(self, entries, entries_embeddings, n_topics=10, umap_n_components=3):
         """
         Generates the topic predicted by the Bertopic library
         """
-        topic_model = TopicGenerator(entries, entries_embeddings)
-        topic_model.get_total_topics(n_topics=n_topics, umap_n_compontens=umap_n_compontens)
+        topic_model = TopicGenerator(excerpts=entries, embeddings=entries_embeddings)
+        topic_list = self.get_topic_list()
+        topic_model.get_total_topics(
+            n_topics=n_topics,
+            umap_n_components=umap_n_components,
+            topic_list=topic_list
+        )
         return topic_model.general_topics_df
 
     def create_complete_df(self, main_df, topic_model_df):
@@ -220,7 +241,9 @@ class TopicModelGeneratorHandler:
         """
         Excludes the topic from the dataframe.
         """
-        return dataframe[dataframe["Topic"] != topic_value]
+        outlier_df = dataframe[dataframe["Topic"] != topic_value]
+        logging.info(f"Outliers dataframe shape: {outlier_df.shape}")
+        return outlier_df
 
     def select_most_relevant_excerpts(self, df):
         """
@@ -235,7 +258,7 @@ class TopicModelGeneratorHandler:
         for v in data_json.values():
             v["Representation"] = " ".join(set(v["Representation"]))
         new_df = pd.DataFrame.from_dict(data_json, orient="index")
-        new_df["label"] = new_df.mapply(self.generate_llm_topic, axis=1)
+        new_df["label"] = new_df.apply(self.generate_llm_topic, axis=1)
         new_df.drop(columns=["Representation", "Document"], inplace=True)
         return new_df.to_dict(orient="index")
 
@@ -310,7 +333,7 @@ class TopicModelGeneratorHandler:
                     entries,
                     self.embeddings,
                     n_topics=self.max_cluster_num,
-                    umap_n_compontens=self.umap_components
+                    umap_n_components=self.umap_components
                 )
             except Exception as exc:
                 logging.error("Error occurred during processing of topics. %s", str(exc))

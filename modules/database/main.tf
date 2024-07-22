@@ -6,7 +6,7 @@ resource "aws_db_subnet_group" "rds" {
 resource "aws_rds_cluster" "nlp_db" {
   cluster_identifier     = "${var.unique_name}-${var.environment}"
   engine                 = "aurora-postgresql"
-  engine_version         = "14.5"
+  engine_version         = "14.9"
   port                   = var.db_port
   db_subnet_group_name   = aws_db_subnet_group.rds.name
   vpc_security_group_ids = [aws_security_group.rds.id]
@@ -28,4 +28,5 @@ resource "aws_rds_cluster_instance" "cluster_instances" {
   db_subnet_group_name = aws_db_subnet_group.rds.name
   apply_immediately    = true
   publicly_accessible  = true # change this to false
+  ca_cert_identifier   = "rds-ca-rsa4096-g1"
 }

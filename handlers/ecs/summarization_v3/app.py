@@ -47,12 +47,13 @@ async def generate_summary(item: RequestSchema, background_tasks: BackgroundTask
     callback_url = item.callback_url
     summarization_id = item.summarization_id
 
-    entries = reports_generator_handler.download_prepare_entries(entries_url=entries_url)
+    entries, tags = reports_generator_handler.download_prepare_entries(entries_url=entries_url)
 
     background_tasks.add_task(
         reports_generator_handler,
         client_id,
         entries,
+        tags,
         summarization_id,
         callback_url
     )

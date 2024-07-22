@@ -524,6 +524,15 @@ module "deepex" {
 
   # ecs task count
   app_count = var.text_extraction_task_count
+
+  # efs
+  efs_volume_id = module.efilesystem.efs_volume_id
+
+  # sqs
+  queue_url = module.sqs_queues.queue_url
+
+  # cloudflare endpoint
+  cloudflare_proxy_server_ecs_host = module.cloudflare_proxy_server.aws_service_discovery_service_host
 }
 
 # Entry Extraction and Classification
@@ -587,4 +596,47 @@ module "reliability" {
 
   # ecr
   ecr_image_name = var.ecr_image_reliability_name
+}
+
+module "sqs_queues" {
+  source = "./modules/sqs"
+
+  environment = var.environment
+  aws_region  = var.aws_region
+}
+
+# cloudflare proxy server
+module "cloudflare_proxy_server" {
+  source = "./modules/ecsmodules/cloudflare_proxy"
+
+  environment = var.environment
+  aws_region  = var.aws_region
+
+  # vpc
+  vpc_id          = module.nlp_vpc.aws_vpc_id
+  private_subnets = module.nlp_vpc.private_subnets
+  public_subnets  = module.nlp_vpc.public_subnets
+
+  iam_task_execution_role_arn       = module.nlp_server.iam_task_execution_role_arn
+  iam_ecs_task_arn                  = module.nlp_server.iam_ecs_task_arn
+  iam_ecs_task_execution_policy_arn = module.nlp_server.iam_ecs_task_execution_policy_arn
+
+  # ecs
+  ecs_cluster_id   = module.nlp_server.ecs_cluster_id
+  ecs_cluster_name = module.nlp_server.ecs_cluster_name_shared
+
+  app_image_name = var.cloudflare_proxy_srv_app_image_name
+
+  # security grp
+  ecs_security_group_id = module.nlp_server.ecs_security_group_id
+
+  private_dns_namespace_id           = module.cloudmap.private_dns_namespace_id
+  private_dns_namespace_local_domain = module.cloudmap.private_dns_namespace_local_domain
+
+  # ecs capacity
+  fargate_cpu    = var.cloudflare_proxy_srv_fargete_cpu
+  fargate_memory = var.cloudflare_proxy_srv_fargate_memory
+
+  # task count
+  app_count = var.cloudflare_proxy_srv_task_count
 }

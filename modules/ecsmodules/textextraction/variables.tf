@@ -75,19 +75,19 @@ variable "textextraction_scaling_min_capacity" {
 }
 
 variable "textextraction_max_cpu_target_value" {
-  default = 70
+  default = 60
 }
 
 variable "textextraction_min_cpu_target_value" {
-  default = 60
+  default = 50
 }
 
 variable "textextraction_max_mem_target_value" {
-  default = 60
+  default = 50
 }
 
 variable "textextraction_min_mem_target_value" {
-  default = 50
+  default = 40
 }
 
 variable "monitoring_period" {
@@ -101,3 +101,12 @@ variable "evaluation_period_max" {
 variable "evaluation_period_min" {
   default = 8
 }
+
+# efs
+variable "efs_volume_id" {}
+
+# sqs
+variable "queue_url" {}
+
+# cloudflare host
+variable "cloudflare_proxy_server_ecs_host" {}

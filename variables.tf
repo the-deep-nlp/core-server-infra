@@ -53,6 +53,9 @@ variable "textextraction_app_image_name" {}
 # entry extraction ecs
 variable "entryextraction_app_image_name" {}
 
+# cloudflare proxy server
+variable "cloudflare_proxy_srv_app_image_name" {}
+
 # db table
 variable "db_table_name" {}
 variable "db_table_callback_tracker" {}
@@ -86,6 +89,8 @@ variable "ngrams_fargate_cpu" {}
 variable "ngrams_fargate_memory" {}
 variable "topicmodeling_fargate_cpu" {}
 variable "topicmodeling_fargate_memory" {}
+variable "cloudflare_proxy_srv_fargete_cpu" {}
+variable "cloudflare_proxy_srv_fargate_memory" {}
 
 # ecs task count
 variable "text_extraction_task_count" {}
@@ -93,3 +98,4 @@ variable "entry_extraction_task_count" {}
 variable "summarization_v3_task_count" {}
 variable "geolocations_task_count" {}
 variable "topicmodeling_task_count" {}
+variable "cloudflare_proxy_srv_task_count" {}

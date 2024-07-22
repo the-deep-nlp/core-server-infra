@@ -33,6 +33,12 @@ resource "aws_ecs_task_definition" "task-def" {
         }
       ],
       "essential": true,
+      "mountPoints": [
+          {
+              "containerPath": "/ocr",
+              "sourceVolume": "efs-models-vol"
+          }
+      ],
       "command": [
         "uvicorn", "app:ecs_app", "--host", "0.0.0.0", "--port", "${var.app_port}"
       ],
@@ -66,6 +72,14 @@ resource "aws_ecs_task_definition" "task-def" {
         {
           "name": "DOCS_CONVERT_LAMBDA_FN_NAME",
           "value": "${var.lambda_docs_conversion_fn}"
+        },
+        {
+          "name": "SQS_QUEUE_URL",
+          "value": "${var.queue_url}"
+        },
+        {
+          "name": "CLOUDFLARE_PROXY_SERVER_HOST",
+          "value": "${var.cloudflare_proxy_server_ecs_host}"
         }
       ],
       "secrets": [
@@ -93,6 +107,13 @@ resource "aws_ecs_task_definition" "task-def" {
   }
 ]
 DEFINITION
+  volume {
+    name = "efs-models-vol"
+    efs_volume_configuration {
+      file_system_id = var.efs_volume_id
+      root_directory = "/"
+    }
+  }
 }
 
 resource "aws_ecs_service" "service" {
