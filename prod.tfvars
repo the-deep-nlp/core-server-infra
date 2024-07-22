@@ -49,8 +49,8 @@ db_table_name             = "event_status_tracker"
 db_table_callback_tracker = "failed_callback_tracker"
 
 # ecs capacity
-text_extraction_fargate_cpu         = "1024"
-text_extraction_fargate_memory      = "3072"
+text_extraction_fargate_cpu         = "2048"
+text_extraction_fargate_memory      = "6144"
 summarization_v2_fargate_cpu        = "2048"
 summarization_v2_fargate_memory     = "8192"
 summarization_v3_fargate_cpu        = "512"
@@ -61,7 +61,7 @@ geolocations_fargate_cpu            = "512"
 geolocations_fargate_memory         = "2048"
 ngrams_fargate_cpu                  = "512"
 ngrams_fargate_memory               = "1024"
-topicmodeling_fargate_cpu           = "1024"
+topicmodeling_fargate_cpu           = "2048"
 topicmodeling_fargate_memory        = "4096"
 cloudflare_proxy_srv_fargete_cpu    = "512"
 cloudflare_proxy_srv_fargate_memory = "1024"
@@ -71,7 +71,7 @@ text_extraction_task_count      = 2
 entry_extraction_task_count     = 2
 summarization_v3_task_count     = 2
 geolocations_task_count         = 1
-topicmodeling_task_count        = 1
+topicmodeling_task_count        = 2
 cloudflare_proxy_srv_task_count = 1
 
 # model info
