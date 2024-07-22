@@ -209,6 +209,10 @@ module "topicmodel" {
 
   # ecs task count
   app_count = var.topicmodeling_task_count
+
+  # ecs tasks max and min
+  topicmodel_scaling_max_capacity = var.topicmodel_scaling_max_capacity
+  topicmodel_scaling_min_capacity = var.topicmodel_scaling_min_capacity
 }
 
 module "ngrams" {
@@ -467,6 +471,10 @@ module "summarization_v3" {
 
   # ecs task count
   app_count = var.summarization_v3_task_count
+
+  # ecs tasks max and min
+  summarization_v3_scaling_max_capacity = var.summarization_v3_scaling_max_capacity
+  summarization_v3_scaling_min_capacity = var.summarization_v3_scaling_min_capacity
 }
 
 module "cloudmap" {
@@ -524,6 +532,10 @@ module "deepex" {
 
   # ecs task count
   app_count = var.text_extraction_task_count
+
+  # ecs tasks max and min
+  textextraction_scaling_max_capacity = var.textextraction_scaling_max_capacity
+  textextraction_scaling_min_capacity = var.textextraction_scaling_min_capacity
 
   # efs
   efs_volume_id = module.efilesystem.efs_volume_id
@@ -586,6 +598,10 @@ module "entryextraction" {
 
   # ecs task count
   app_count = var.entry_extraction_task_count
+
+  # ecs tasks max and min
+  entryextraction_scaling_max_capacity = var.entryextraction_scaling_max_capacity
+  entryextraction_scaling_min_capacity = var.entryextraction_scaling_min_capacity
 }
 
 module "reliability" {

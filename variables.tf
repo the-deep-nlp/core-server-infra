@@ -99,3 +99,13 @@ variable "summarization_v3_task_count" {}
 variable "geolocations_task_count" {}
 variable "topicmodeling_task_count" {}
 variable "cloudflare_proxy_srv_task_count" {}
+
+# ecs task max and min
+variable "textextraction_scaling_max_capacity" {}
+variable "textextraction_scaling_min_capacity" {}
+variable "topicmodel_scaling_max_capacity" {}
+variable "topicmodel_scaling_min_capacity" {}
+variable "entryextraction_scaling_max_capacity" {}
+variable "entryextraction_scaling_min_capacity" {}
+variable "summarization_v3_scaling_max_capacity" {}
+variable "summarization_v3_scaling_min_capacity" {}
