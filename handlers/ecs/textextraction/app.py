@@ -256,7 +256,7 @@ class TextExtractionHandler:
         """
         entries_with_page_info = self._add_page_info([entries])
         entries_list = [item for sublist in entries_with_page_info for item in sublist]
-
+        entries_list = filter(lambda item: item is not None, entries_list) # remove None items
         extracted_text = "\n\n".join(entries_list)
         extracted_text = preprocess_extracted_texts(extracted_text)
         total_words_count = get_words_count(extracted_text)
