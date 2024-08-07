@@ -6,7 +6,7 @@ The NLP Infrastructure deployed in AWS Cloud environment hosts modules such as N
 The infrastructure components and resources are built using Terraform which is an Infrastructure as Code (IaC) tool for rapid deployment.
 
 ## Architecture
-To begin with the architecture design, Elastic Container Service(ECS) is chosen which is a container orchestration service that runs and manages Docker containers. The ECS cluster comprises different services such as NLP Server, Topic Modeling, Summarization, NGrams, Geolocations, Text Extraction etc. These services further break down to a lower level to run the tasks. These tasks run the containers whose images are stored in the Elastic Container Registry(ECR). These containers are standalone units which execute the code and the results are returned.
+To begin with the architecture design, Elastic Container Service(ECS) is chosen which is a container orchestration service that runs and manages Docker containers. The ECS cluster comprises different services such as NLP Server, Topic Modeling, Summarization, NGrams, Geolocations, Text Extraction, Entry Extraction etc. These services further break down to a lower level to run the tasks. These tasks run the containers whose images are stored in the Elastic Container Registry(ECR). These containers are standalone units which execute the code and the results are returned.
 
 There are many other AWS services being used which are the integral part of the NLP architecture such as VPC for private network, S3 for cloud storage, Route53 for domain management, ALB for sharing the load, Sagemaker for running the classification model etc.
 
@@ -48,9 +48,20 @@ Please find below the NLP Infrastructure and Sequence Diagrams of the deployed s
 In order to deploy in AWS, we simply run the following commands for staging and production env. deployments. In our case, the production env. deployment is automated using the github actions workflow.
 
 ## Staging
-$ terraform apply -var-file=staging.tfvars
+In order to run it in staging, you need to create a aws profile and set it here in these lines:
+1. https://github.com/the-deep-nlp/core-server-infra/blob/2765e669ee6fb84fdded5aa5404a9f9e0d198ea2/main.tf#L15
+2. https://github.com/the-deep-nlp/core-server-infra/blob/2765e669ee6fb84fdded5aa5404a9f9e0d198ea2/main.tf#L21
+
+The aws profile should have all the needed permissions to access various resources in AWS.
+
+For the staging, the images of all the modules should be loaded to the ECR manually and the respected names should be mentioned in the staging.tfvars file.
+Then, if you run the below command, it will deploy all the required components in the AWS Infrastructure.
+
+```$ terraform apply -var-file=staging.tfvars```
 
 ## Production
-$ terraform apply -var-file=prod.tfvars
+In Production environment, all the required access are setup in github actions as Secrets. Whenever new updates are pushed to the **release** branch, an approval is required from the administrator and once approved, the CI/CD in **Github Actions** run the sequence to create the docker images and uploads those images to the respective image repositories in ECR. Then, the terraform apply command deploys all the components to the AWS Infrastructure automatically, so, no need to run anything manually. Just for your reference, the main command that gets executed when deploying components is shown below.
+
+```$ terraform apply -var-file=prod.tfvars```
 
 
