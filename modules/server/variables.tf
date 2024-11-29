@@ -123,6 +123,11 @@ variable "entryextraction_ecs_task_defn_arn" {}
 variable "entryextraction_ecs_container_name" {}
 variable "entryextraction_ecs_endpoint" {}
 
+# Entry Extraction LLM
+variable "entryextraction_llm_ecs_task_defn_arn" {}
+variable "entryextraction_llm_ecs_container_name" {}
+variable "entryextraction_llm_ecs_endpoint" {}
+
 # Model info
 variable "classification_model_id" {}
 variable "classification_model_version" {}

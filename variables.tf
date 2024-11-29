@@ -53,6 +53,9 @@ variable "textextraction_app_image_name" {}
 # entry extraction ecs
 variable "entryextraction_app_image_name" {}
 
+# entry extraction llm ecs
+variable "entryextraction_llm_app_image_name" {}
+
 # cloudflare proxy server
 variable "cloudflare_proxy_srv_app_image_name" {}
 

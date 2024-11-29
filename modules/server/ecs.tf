@@ -94,6 +94,12 @@ data "template_file" "config" {
     entryextraction_ecs_container_name = var.entryextraction_ecs_container_name
     entryextraction_vpc_private_subnet = var.private_subnets[0]
     entryextraction_ecs_endpoint       = var.entryextraction_ecs_endpoint
+    # Entry Extraction LLM
+    entryextraction_llm_ecs_cluster_id     = aws_ecs_cluster.cluster.id
+    entryextraction_llm_ecs_task_defn_arn  = var.entryextraction_llm_ecs_task_defn_arn
+    entryextraction_llm_ecs_container_name = var.entryextraction_llm_ecs_container_name
+    entryextraction_llm_vpc_private_subnet = var.private_subnets[0]
+    entryextraction_llm_ecs_endpoint       = var.entryextraction_llm_ecs_endpoint
     # Sentry
     sentry_dsn_url = var.ssm_sentry_dsn_url_arn
     # s3
