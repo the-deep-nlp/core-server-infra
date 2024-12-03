@@ -249,6 +249,8 @@ class EntryExtractionModel:
     def predict(self, document):
 
         if isinstance(document, list):
+            # it's an error for the documents extracted from webpages. 
+            # because in that case we don't have a list of lists but just a list with title and content.
             document = reformat_old_output(document)
         indexes, text = zip(*[(i, c[self.TEXT])
             for i, c in enumerate(document[self.BLOCKS])

@@ -16,6 +16,7 @@ from utils import (process_primary_tags,
                    combine_properties, 
                    connect_db,
                    af_widget_by_id)
+
 #from utils.db import connect_db
 #from core_server.env import env
 #from core.tasks.queries import af_widget_by_id
@@ -130,7 +131,7 @@ class WidgetSchema:
         if self.model_family == "bedrock":
             
             model_id_main = os.environ.get("BEDROCK_MAIN_MODEL")
-            model_id_small = os.environ.get("BEDROCK_SMALL_MODEL") # haiku model overclassify a lot for some reason
+            model_id_small = os.environ.get("BEDROCK_SMALL_MODEL") 
             
             return model_id_main if length<=ln_threshold else model_id_main
             
@@ -159,6 +160,7 @@ class WidgetSchema:
                                        default=False)) 
                     for k, v in properties.items()}
                 )
+        
         self.__update(key, self.Schema(
             type=self.mappings_instance.WidgetTypes.matrix1dWidget,
             prompt=MAIN_PROMT.format(class_name)+INPUT_PASSAGE,
@@ -315,7 +317,7 @@ class LLMTagsPrediction:
     
     def predict(self, excerpts: list):
         
-        excerpts = [text.get("entry") for text in excerpts]
+        #excerpts = [text.get("entry") for text in excerpts]
         with ThreadPoolExecutor() as executor:
             results = list(executor.map(self.__predict_entry, excerpts))
 

@@ -10,3 +10,10 @@ DESCRIPTION_MATRIX = """Those are the {} labels that you will use to classify te
 MULTI_DESCRIPTION = """Column category: {}. Row category: {}."""
 
 INPUT_PASSAGE = "\nPassage:\n{input}"
+
+EXTRACTION_PROMPT = f"""
+Act as an expert humanitarian analyst. Please extract the most relevant pieces of text from the following document, without changing or paraphrasing the original text. Focus on information that would be most important for humanitarian analysis.
+The extracted fragments should be comprehensive and can range from a single sentence to a whole paragraph, but no fragment should exceed the length of a single paragraph but can be a subset of them. Choose pieces of text that provide a complete and coherent thought or idea.
+The ideal length is whatever is necessary to capture the full context and significance of the information, while staying within the one-paragraph limit. Remember to extract the text verbatim, without altering any words.
+Please provide only the extracted text fragments, without any additional commentary. Just select what is actually informative from an humanitarian point of view. It's a extractive summarization task, that must contain all important information.
+"""

@@ -131,8 +131,8 @@ module "nlp_server" {
   entryextraction_ecs_endpoint       = module.entryextraction.application_endpoint
 
   # Entry Extraction LLM
-  entryextraction_llm_ecs_task_defn_arn  = module.entryextraction_llm.entryextraction_ecs_task_defn_arn
-  entryextraction_llm_ecs_container_name = module.entryextraction_llm.entryextraction_container_name
+  entryextraction_llm_ecs_task_defn_arn  = module.entryextraction_llm.entryextraction_llm_ecs_task_defn_arn
+  entryextraction_llm_ecs_container_name = module.entryextraction_llm.entryextraction_llm_ecs_container_name
   entryextraction_llm_ecs_endpoint       = module.entryextraction_llm.application_endpoint
 
   # Model info
@@ -658,7 +658,7 @@ module "entryextraction_llm" {
   openai_small_model = var.openai_small_model
   bedrock_main_model = var.bedrock_main_model
   bedrock_small_model = var.bedrock_small_model
-  
+
   # db table
   db_table_name             = var.db_table_name
   db_table_callback_tracker = var.db_table_callback_tracker

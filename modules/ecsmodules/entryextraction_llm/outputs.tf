@@ -1,8 +1,8 @@
-output "entryextraction_ecs_task_defn_arn" {
+output "entryextraction_llm_ecs_task_defn_arn" {
   value = aws_ecs_task_definition.task-def.arn
 }
 
-output "entryextraction_container_name" {
+output "entryextraction_llm_container_name" {
   value = var.ecs_container_name
 }
 

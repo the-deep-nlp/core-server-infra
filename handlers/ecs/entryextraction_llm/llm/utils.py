@@ -4,7 +4,6 @@ import psycopg2
 
 from prompt_utils import  *
 
-
 af_widget_by_id = "SELECT * from analysis_framework_widget ll WHERE ll.analysis_framework_id={}"
 
 def manage_description(name, description):
@@ -183,3 +182,41 @@ def connect_db():
     # fetch sizes
     cursor: psycopg2.cursor = connection.cursor(name="deepl_cursor")
     return CursorWrapper(cursor, connection)
+
+
+def get_words_count(text):
+    """
+    Counts the words in the text
+    """
+    if text:
+        w = re.sub(r'[^\w\s]', '', text)
+        w = re.sub(r'_', '', w)
+        return len(w.split())
+    return 0
+
+
+def reformat_old_output(output: list):
+
+    # in order to avoid the problem i noticed on the webpages extractions. 
+    # TODO: re-shape the text extraction component to be more useful and in line with the extraction
+    if isinstance(output[0], str):
+        output = [output]
+
+    reformat = {
+        "metadata": {
+            "total_pages": len(output),
+            "total_words_count": get_words_count(" ".join([s for page in output for s in page]))
+        },
+        "blocks": []}
+
+    for i, page in enumerate(output):
+        for j, sentence in enumerate(page):
+            reformat["blocks"].append(
+                {
+                    "type": "text",
+                    "page": i,
+                    "text": sentence,
+                    "textOrder": j
+                }
+            )
+    return reformat
