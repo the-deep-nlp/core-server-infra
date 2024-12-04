@@ -19,6 +19,7 @@ def manage_description(name, description):
 def _sanitize_keys_with_uniqueness(key, max_length: int = 64):
 
     sanitized = re.sub(r'[^a-zA-Z0-9_-]', '_', key)
+    sanitized = re.sub(r'^_+', '', sanitized) # pydantic model keys can't start with _
     sanitized = sanitized[:max_length]
     
     return sanitized

@@ -6,7 +6,7 @@ from box import Box
 from dataclasses import make_dataclass, field, dataclass
 from pydantic import BaseModel, Field, create_model
 from concurrent.futures import ThreadPoolExecutor
-from langchain_aws import ChatBedrock
+from langchain_aws import ChatBedrockConverse
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnableParallel
 from langchain_openai import ChatOpenAI
@@ -288,7 +288,7 @@ class LLMTagsPrediction:
 
         def select_model_instance(model_name: str):
             
-            if self.model_family == "bedrock": model = ChatBedrock(model_id=model_name, temperature=0)
+            if self.model_family == "bedrock": model = ChatBedrockConverse(model_id=model_name, temperature=0)
             elif self.model_family == "openai": model = ChatOpenAI(model=model_name, temperature=0)
             
             return model
