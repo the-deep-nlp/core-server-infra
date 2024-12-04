@@ -96,4 +96,4 @@ class LLMExtractionPrediction:
         entry_extraction = self.__entry_extraction(structured_text)
         entry_classification = self.classification_model.predict(excerpts=[c["text"] for c in entry_extraction])
 
-        return self.__build_output(entry_extraction, entry_classification)
+        return self.__build_output(entry_extraction, entry_classification, structured_text)

@@ -98,6 +98,6 @@ ecr_image_reliability_name = "reliability"
 
 # llm model selection
 openai_main_model = "gpt-4o"
-openai_small_model = "gpt-4o-min"
+openai_small_model = "gpt-4o-mini"
 bedrock_main_model = "anthropic.claude-3-opus-20240229-v1:0"
 bedrock_small_model = "anthropic.claude-3-haiku-20240307-v1:0"
