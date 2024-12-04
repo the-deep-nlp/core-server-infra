@@ -112,3 +112,9 @@ variable "entryextraction_scaling_max_capacity" {}
 variable "entryextraction_scaling_min_capacity" {}
 variable "summarization_v3_scaling_max_capacity" {}
 variable "summarization_v3_scaling_min_capacity" {}
+
+# llm models
+variable "openai_main_model" {}
+variable "openai_small_model" {}
+variable "bedrock_main_model" {}
+variable "bedrock_small_model" {}

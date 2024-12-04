@@ -6,7 +6,7 @@ resource "aws_alb" "alb" {
 }
 
 resource "aws_alb_target_group" "tg" {
-  name        = "ent-ext-llm-alb-target-grp-${var.environment}"
+  name        = "ent-ext-llm-alb-tgt-grp-${var.environment}"
   port        = var.app_port
   protocol    = "HTTP"
   target_type = "ip"
