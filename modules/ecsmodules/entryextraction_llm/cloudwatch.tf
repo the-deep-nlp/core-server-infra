@@ -1,9 +1,9 @@
 resource "aws_cloudwatch_log_group" "log_group" {
-  name              = "/ecs/entryextraction-task-${var.environment}"
+  name              = "/ecs/entryextraction-task-llm-${var.environment}"
   retention_in_days = 30
 
   tags = {
-    Name = "cw-log-group-entryextraction-${var.environment}"
+    Name = "cw-log-group-entryextraction-llm-${var.environment}"
   }
 }
 
