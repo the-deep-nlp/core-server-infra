@@ -179,7 +179,7 @@ class EntryExtractionHandler:
 
         try:
             if structured_text:
-                entry_extraction = entry_extraction_model.predict(document=structured_text)
+                entry_extraction = entry_extraction_model.predict(structured_text=structured_text)
                 excerpts = [
                     block["text"] if block["relevant"] else ""
                     for block in entry_extraction["blocks"]
