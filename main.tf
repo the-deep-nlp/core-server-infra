@@ -142,6 +142,8 @@ module "nlp_server" {
   geolocation_model_version    = var.geolocation_model_version
   reliability_model_id         = var.reliability_model_id
   reliability_model_version    = var.reliability_model_version
+
+  ssm_openai_api_key_arn = var.environment == "staging" ? module.secrets.ssm_openai_api_key_staging_arn : module.secrets.ssm_openai_api_key_prod_arn
 }
 
 module "redis" {

@@ -135,3 +135,6 @@ variable "geolocation_model_id" {}
 variable "geolocation_model_version" {}
 variable "reliability_model_id" {}
 variable "reliability_model_version" {}
+
+# openai key
+variable "ssm_openai_api_key_arn" {}

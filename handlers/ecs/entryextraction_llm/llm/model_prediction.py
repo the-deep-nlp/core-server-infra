@@ -272,7 +272,7 @@ class LLMTagsPrediction:
                 raise ValueError(f"Not possible to retrieve framework widgets: {self.af_id}")
             else:
                 afw = [Box(dict(zip([c.name for c in self.cursor.description], row))) for row in fetch]
-                afw = [element for element in afw if afw.widget_id in self.AVAILABLE_WIDGETS]
+                afw = [element for element in afw if element.widget_id in self.AVAILABLE_WIDGETS]
                 self.redis.set(
                     name=f"af_id:{self.af_id}", 
                     ex=expire_time, 

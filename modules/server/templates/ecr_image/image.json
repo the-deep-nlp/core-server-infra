@@ -332,6 +332,10 @@
         {
           "name": "SENTRY_DSN",
           "valueFrom": "${sentry_dsn_url}"
+        },
+        {
+          "name": "OPENAI_API_KEY",
+          "valueFrom": "${ssm_openai_api_key_arn}"
         }
       ]
     }
