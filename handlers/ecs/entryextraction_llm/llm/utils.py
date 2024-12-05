@@ -2,7 +2,7 @@ import os
 import re
 import psycopg2
 
-from prompt_utils import  *
+from llm.prompt_utils import  *
 
 af_widget_by_id = "SELECT * from analysis_framework_widget ll WHERE ll.analysis_framework_id={}"
 

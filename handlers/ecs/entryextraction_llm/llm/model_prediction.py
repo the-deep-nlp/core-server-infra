@@ -11,9 +11,9 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnableParallel
 from langchain_openai import ChatOpenAI
 
-from prompt_utils import *
-from utils import (process_primary_tags, 
-                   combine_properties, 
+from llm.prompt_utils import *
+from llm.utils import (process_primary_tags,
+                   combine_properties,
                    connect_db,
                    af_widget_by_id)
 

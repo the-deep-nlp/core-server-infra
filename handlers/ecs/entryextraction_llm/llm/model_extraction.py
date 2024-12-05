@@ -6,9 +6,9 @@ from polyfuzz import PolyFuzz
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 #from langchain_aws import ChatBedrockConverse
-from utils import reformat_old_output
-from prompt_utils import EXTRACTION_PROMPT, INPUT_PASSAGE
-from model_prediction import LLMTagsPrediction
+from llm.utils import reformat_old_output
+from llm.prompt_utils import EXTRACTION_PROMPT, INPUT_PASSAGE
+from llm.model_prediction import LLMTagsPrediction
 
 
 class LLMExtractionPrediction:
