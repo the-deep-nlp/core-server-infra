@@ -5,7 +5,7 @@ from polyfuzz.models import TFIDF
 from polyfuzz import PolyFuzz
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
-from langchain_aws import ChatBedrock
+#from langchain_aws import ChatBedrockConverse
 from utils import reformat_old_output
 from prompt_utils import EXTRACTION_PROMPT, INPUT_PASSAGE
 from model_prediction import LLMTagsPrediction
@@ -44,7 +44,9 @@ class LLMExtractionPrediction:
         tag_ex = EXTRACTION_PROMPT+INPUT_PASSAGE
         tagging_prompt_ex = ChatPromptTemplate.from_template(tag_ex)
         if self.model_family == "openai": llm_ex = ChatOpenAI(model=os.environ.get("OPENAI_SMALL_MODEL"), temperature=0).with_structured_output(Extraction)
-        elif self.model_family == "bedrock": llm_ex = ChatBedrock(model=os.environ.get("BEDROCK_SMALL_MODEL"), temperature=0).with_structured_output(Extraction)
+        elif self.model_family == "bedrock":
+            raise NotImplementedError
+            # llm_ex = ChatBedrockConverse(model=os.environ.get("BEDROCK_SMALL_MODEL"), temperature=0).with_structured_output(Extraction)
         tagging_chain_ex = tagging_prompt_ex | llm_ex
         
         extracted_excerpts = tagging_chain_ex.invoke({"input": joined_plain_text})
