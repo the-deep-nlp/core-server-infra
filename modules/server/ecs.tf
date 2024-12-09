@@ -112,7 +112,7 @@ data "template_file" "config" {
     reliability_model_id         = var.reliability_model_id
     reliability_model_version    = var.reliability_model_version
     # OpenAI API key
-    ssm_openai_api_key_arn       = var.ssm_openai_api_key_arn
+    ssm_openai_api_key_arn = var.ssm_openai_api_key_arn
   }
 }
 

@@ -642,23 +642,23 @@ module "entryextraction_llm" {
   redis_host     = module.redis.redis_host
 
   # secrets
-  rds_instance_endpoint  = module.nlp_database.rds_instance_endpoint
-  ssm_db_name_arn        = module.secrets.ssm_db_name_arn
-  ssm_db_username_arn    = module.secrets.ssm_db_username_arn
-  ssm_db_password_arn    = module.secrets.ssm_db_password_arn
-  ssm_db_port_arn        = module.secrets.ssm_db_port_arn
-  ssm_deep_db_name_arn      = module.secrets.ssm_deep_db_name_arn
-  ssm_deep_db_username_arn  = module.secrets.ssm_deep_db_username_arn
-  ssm_deep_db_password_arn  = module.secrets.ssm_deep_db_password_arn
-  ssm_deep_db_port_arn      = module.secrets.ssm_deep_db_port_arn
-  ssm_deep_db_host_arn      = module.secrets.ssm_deep_db_host_arn
-  ssm_sentry_dsn_url_arn = module.secrets.ssm_sentry_dsn_url_arn
-  ssm_openai_api_key_arn = var.environment == "staging" ? module.secrets.ssm_openai_api_key_staging_arn : module.secrets.ssm_openai_api_key_prod_arn
-  
+  rds_instance_endpoint    = module.nlp_database.rds_instance_endpoint
+  ssm_db_name_arn          = module.secrets.ssm_db_name_arn
+  ssm_db_username_arn      = module.secrets.ssm_db_username_arn
+  ssm_db_password_arn      = module.secrets.ssm_db_password_arn
+  ssm_db_port_arn          = module.secrets.ssm_db_port_arn
+  ssm_deep_db_name_arn     = module.secrets.ssm_deep_db_name_arn
+  ssm_deep_db_username_arn = module.secrets.ssm_deep_db_username_arn
+  ssm_deep_db_password_arn = module.secrets.ssm_deep_db_password_arn
+  ssm_deep_db_port_arn     = module.secrets.ssm_deep_db_port_arn
+  ssm_deep_db_host_arn     = module.secrets.ssm_deep_db_host_arn
+  ssm_sentry_dsn_url_arn   = module.secrets.ssm_sentry_dsn_url_arn
+  ssm_openai_api_key_arn   = var.environment == "staging" ? module.secrets.ssm_openai_api_key_staging_arn : module.secrets.ssm_openai_api_key_prod_arn
+
   # llm model selection
-  openai_main_model = var.openai_main_model
-  openai_small_model = var.openai_small_model
-  bedrock_main_model = var.bedrock_main_model
+  openai_main_model   = var.openai_main_model
+  openai_small_model  = var.openai_small_model
+  bedrock_main_model  = var.bedrock_main_model
   bedrock_small_model = var.bedrock_small_model
 
   # db table
