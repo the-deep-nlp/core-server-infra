@@ -32,6 +32,8 @@ jobs:
         include:
           - image: ./handlers/ecs/entryextraction/
             ecr_repo: ENTRYEXTRACTION_REPO_NAME
+          - image: ./handlers/ecs/entryextraction_llm/
+            ecr_repo: ENTRYEXTRACTION_LLM_REPO_NAME
           - image: ./handlers/ecs/geolocations/
             ecr_repo: GEOLOCATIONS_REPO_NAME
           - image: ./handlers/ecs/ngrams/
