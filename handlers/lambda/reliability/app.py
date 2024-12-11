@@ -1,8 +1,10 @@
 from collections import Counter
 from enum import Enum
 
+
 class Reliability(Enum):
-    """ List of Reliability Scores """
+    """List of Reliability Scores"""
+
     UNRELIABLE = 0
     USUALLY_RELIABLE = 1
     FAIRLY_RELIABLE = 2
@@ -10,14 +12,15 @@ class Reliability(Enum):
 
     @classmethod
     def id_to_scoretype(cls, score_type: Enum) -> str:
-        """ Mapping function """
+        """Mapping function"""
         id_to_score_mapping = {
             Reliability.UNRELIABLE: "unreliable",
             Reliability.USUALLY_RELIABLE: "Usually reliable",
             Reliability.FAIRLY_RELIABLE: "Fairly Reliable",
-            Reliability.COMPLETELY_RELIABLE: "Completely reliable"
+            Reliability.COMPLETELY_RELIABLE: "Completely reliable",
         }
         return id_to_score_mapping.get(score_type, "unreliable")
+
 
 organisation_reliabilities = {
     "Authoring Organizations": {
@@ -63,7 +66,8 @@ organisation_reliabilities = {
         "Common Market for Eastern and Southern Africa": Reliability.USUALLY_RELIABLE,
         "reliefweb": Reliability.USUALLY_RELIABLE,
         "British Medical Journal": Reliability.USUALLY_RELIABLE,
-        "Telemundo": Reliability.USUALLY_RELIABLE, "Eurodad": Reliability.USUALLY_RELIABLE,
+        "Telemundo": Reliability.USUALLY_RELIABLE,
+        "Eurodad": Reliability.USUALLY_RELIABLE,
         "nkafu": Reliability.FAIRLY_RELIABLE,
         "Canal 1": Reliability.USUALLY_RELIABLE,
         "courrierinternational": Reliability.USUALLY_RELIABLE,
@@ -77,7 +81,7 @@ organisation_reliabilities = {
         "Panorama.com.ve": Reliability.USUALLY_RELIABLE,
         "canal1": Reliability.USUALLY_RELIABLE,
         "APO Group - Africa Newsroom": Reliability.USUALLY_RELIABLE,
-        "Migration Data Portal": Reliability.USUALLY_RELIABLE
+        "Migration Data Portal": Reliability.USUALLY_RELIABLE,
     },
     "Publishing Organizations": {
         "dhakatribune": Reliability.USUALLY_RELIABLE,
@@ -112,7 +116,7 @@ organisation_reliabilities = {
         "Instituto Nacional de Salud": Reliability.USUALLY_RELIABLE,
         "Displacement Tracking Matrix": Reliability.USUALLY_RELIABLE,
         "Human Rights Watch": Reliability.USUALLY_RELIABLE,
-        "enabbaladi":Reliability.USUALLY_RELIABLE,
+        "enabbaladi": Reliability.USUALLY_RELIABLE,
         "Aljazeera": Reliability.USUALLY_RELIABLE,
         "World Vision": Reliability.USUALLY_RELIABLE,
         "UN Children's Fund": Reliability.USUALLY_RELIABLE,
@@ -165,7 +169,7 @@ organisation_reliabilities = {
         "Integrated Food Security Phase Classification": Reliability.USUALLY_RELIABLE,
         "Syria TV": Reliability.USUALLY_RELIABLE,
         "Response For Venezuleans": Reliability.USUALLY_RELIABLE,
-        "Respuesta A Venezolanos. Plataforma de Coordinación para Refugiados y Migrantes de Venezuela": Reliability.USUALLY_RELIABLE,
+        "Respuesta A Venezolanos. Plataforma de Coordinación para Refugiados y Migrantes de Venezuela": Reliability.USUALLY_RELIABLE,  # noqa
         "Sidwaya": Reliability.USUALLY_RELIABLE,
         "vanguardngr": Reliability.USUALLY_RELIABLE,
         "International Rescue Committee": Reliability.USUALLY_RELIABLE,
@@ -518,7 +522,7 @@ organisation_reliabilities = {
         "Dirección del Trabajo, Chile": Reliability.USUALLY_RELIABLE,
         "Caritas Germany": Reliability.USUALLY_RELIABLE,
         "Aleteia": Reliability.USUALLY_RELIABLE,
-        "slobodnaevropa":Reliability.USUALLY_RELIABLE,
+        "slobodnaevropa": Reliability.USUALLY_RELIABLE,
         "vivafrik": Reliability.USUALLY_RELIABLE,
         "Sistema Económico Latinoamericano y del Caribe": Reliability.USUALLY_RELIABLE,
         "The Independent": Reliability.USUALLY_RELIABLE,
@@ -626,46 +630,55 @@ organisation_reliabilities = {
         "ecupunto": Reliability.USUALLY_RELIABLE,
         "UNHCR Innovation": Reliability.USUALLY_RELIABLE,
         "la-croix": Reliability.USUALLY_RELIABLE,
-        "Tu Barco": Reliability.USUALLY_RELIABLE
-    }
+        "Tu Barco": Reliability.USUALLY_RELIABLE,
+    },
 }
 
-authoring_organisations = list(organisation_reliabilities['Authoring Organizations'].keys())
-publishing_organisations = list(organisation_reliabilities['Publishing Organizations'].keys())
+authoring_organisations = list(
+    organisation_reliabilities["Authoring Organizations"].keys()
+)
+publishing_organisations = list(
+    organisation_reliabilities["Publishing Organizations"].keys()
+)
 
 
 def return_org_reliability(publishing_org, authoring_org=None):
-    """ Returns the reliability score of the organizations """
+    """Returns the reliability score of the organizations"""
     lst = []
     if authoring_org is None or not authoring_org:
         if publishing_org not in publishing_organisations:
-            lst.append('')
+            lst.append("")
         else:
-            lst.append(organisation_reliabilities['Publishing Organizations'][publishing_org])
+            lst.append(
+                organisation_reliabilities["Publishing Organizations"][publishing_org]
+            )
     else:
         for author_org in authoring_org:
             if author_org in authoring_organisations:
-                lst.append(organisation_reliabilities['Authoring Organizations'][author_org])
+                lst.append(
+                    organisation_reliabilities["Authoring Organizations"][author_org]
+                )
     cnt_items = Counter(lst)
     return (
         Reliability.id_to_scoretype(cnt_items.most_common(1)[0][0])
-        if cnt_items else Reliability.id_to_scoretype(Reliability.UNRELIABLE)
+        if cnt_items
+        else Reliability.id_to_scoretype(Reliability.UNRELIABLE)
     )
 
 
 def lambda_handler(event, context):
-    """ Main entry point for lambda handler """
+    """Main entry point for lambda handler"""
     if "publishing_organization" not in event:
         return {
             "statusCode": 200,
-            "prediction": Reliability.id_to_scoretype(Reliability.UNRELIABLE)
+            "prediction": Reliability.id_to_scoretype(Reliability.UNRELIABLE),
         }
     publishing_org = event["publishing_organization"]
-    authoring_org = event["authoring_organization"] if "authoring_organization" in event else None
+    authoring_org = (
+        event["authoring_organization"] if "authoring_organization" in event else None
+    )
 
     return {
         "statusCode": 200,
-        "prediction": return_org_reliability(
-            publishing_org, authoring_org
-        )
+        "prediction": return_org_reliability(publishing_org, authoring_org),
     }

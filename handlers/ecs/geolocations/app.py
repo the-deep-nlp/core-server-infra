@@ -1,29 +1,25 @@
-import os
 import json
 import logging
+import os
+import warnings
+from datetime import date
+from pathlib import Path
+from typing import Optional
+
 # import tarfile
 # import gzip
 # import shutil
 import requests
 import sentry_sdk
-import warnings
-from datetime import date
-from typing import Optional
-from pathlib import Path
 from cloudpathlib import CloudPath
-from fastapi import FastAPI, BackgroundTasks
-from pydantic import BaseModel
+from fastapi import BackgroundTasks, FastAPI
 from geolocation_generator import GeolocationGenerator
-from nlp_modules_utils import (
-    Database,
-    StateHandler,
-    prepare_sql_statement_success,
-    prepare_sql_statement_failure,
-    status_update_db,
-    upload_to_s3,
-    send_request_on_callback,
-    update_db_table_callback_retry
-)
+from nlp_modules_utils import (Database, StateHandler,
+                               prepare_sql_statement_failure,
+                               prepare_sql_statement_success,
+                               send_request_on_callback, status_update_db,
+                               update_db_table_callback_retry, upload_to_s3)
+from pydantic import BaseModel
 
 warnings.filterwarnings("ignore")
 
@@ -31,34 +27,39 @@ logging.getLogger().setLevel(logging.INFO)
 
 SENTRY_DSN = os.environ.get("SENTRY_DSN")
 ENVIRONMENT = os.environ.get("ENVIRONMENT")
-sentry_sdk.init(SENTRY_DSN, environment=ENVIRONMENT, attach_stacktrace=True, traces_sample_rate=1.0)
+sentry_sdk.init(
+    SENTRY_DSN, environment=ENVIRONMENT, attach_stacktrace=True, traces_sample_rate=1.0
+)
+
 
 class RequestSchema(BaseModel):
-    """ Request Schema """
-    client_id: Optional[str]=None
-    entries_url: Optional[str]=None
-    geolocation_id: Optional[str]=None
-    callback_url: Optional[str]=None
-    entries_list: Optional[list]=None
+    """Request Schema"""
+
+    client_id: Optional[str] = None
+    entries_url: Optional[str] = None
+    geolocation_id: Optional[str] = None
+    callback_url: Optional[str] = None
+    entries_list: Optional[list] = None
+
 
 ecs_app = FastAPI()
 
+
 @ecs_app.get("/")
 def home():
-    """ Returns index page message """
+    """Returns index page message"""
     return "This is Geolocation ECS Task page."
+
 
 @ecs_app.get("/healthcheck")
 async def healthcheckup():
-    """ Health checkup endpoint """
+    """Health checkup endpoint"""
     return "The instance is ok and running."
 
+
 @ecs_app.post("/get_geolocations")
-async def extract_geolocations(
-    item: RequestSchema,
-    background_tasks: BackgroundTasks
-):
-    """ Request handler """
+async def extract_geolocations(item: RequestSchema, background_tasks: BackgroundTasks):
+    """Request handler"""
     client_id = item.client_id
     url = item.entries_url
     geolocation_id = item.geolocation_id
@@ -70,7 +71,9 @@ async def extract_geolocations(
         return "Cannot process the request", 422
 
     if url:
-        geolocation_handler.entries = geolocation_handler.download_prepare_entries(url=url)
+        geolocation_handler.entries = geolocation_handler.download_prepare_entries(
+            url=url
+        )
     else:
         geolocation_handler.entries = entries_list
 
@@ -83,19 +86,15 @@ async def extract_geolocations(
         logging.info("Sending the response data: %s", json.dumps(response_data))
         return response_data
 
-    background_tasks.add_task(
-        geolocation_handler,
-        resources_info_dict
-    )
-    return {
-        "message": "Task received and running in background."
-    }
+    background_tasks.add_task(geolocation_handler, resources_info_dict)
+    return {"message": "Task received and running in background."}
 
 
 class GeoLocationGeneratorHandler:
     """
     Geolocation class to extract geolocations from the excerpts
     """
+
     def __init__(self):
         self.entries = None
         self.client_id = None
@@ -103,14 +102,14 @@ class GeoLocationGeneratorHandler:
         self.geolocation_id = None
 
         self.aws_region = os.environ.get("AWS_REGION", "us-east-1")
-        self.signed_url_expiry_secs = os.environ.get("SIGNED_URL_EXPIRY_SECS", 86400) # 1 day
+        self.signed_url_expiry_secs = os.environ.get(
+            "SIGNED_URL_EXPIRY_SECS", 86400
+        )  # 1 day
         self.bucket_name = os.environ.get("S3_BUCKET_NAME", None)
         self.geonames_api_user = os.environ.get("GEONAMES_API_USER", None)
         self.geonames_api_token = os.environ.get("GEONAMES_API_TOKEN", None)
 
-        self.headers = {
-            "Content-Type": "application/json"
-        }
+        self.headers = {"Content-Type": "application/json"}
 
         # db
         self.db_config = {
@@ -118,16 +117,18 @@ class GeoLocationGeneratorHandler:
             "database": os.environ.get("DB_NAME"),
             "username": os.environ.get("DB_USER"),
             "password": os.environ.get("DB_PWD"),
-            "port": os.environ.get("DB_PORT")
+            "port": os.environ.get("DB_PORT"),
         }
 
         self.db_table_name = os.environ.get("DB_TABLE_NAME", None)
-        self.db_table_callback_tracker = os.environ.get("DB_TABLE_CALLBACK_TRACKER", None)
+        self.db_table_callback_tracker = os.environ.get(
+            "DB_TABLE_CALLBACK_TRACKER", None
+        )
 
         if not self.db_table_name:
             logging.error("Database table name is not found.")
 
-    def download_prepare_entries(self, url: str, req_timeout: int=30):
+    def download_prepare_entries(self, url: str, req_timeout: int = 30):
         """
         The json format (*.json) in the link file should be
         [
@@ -151,7 +152,7 @@ class GeoLocationGeneratorHandler:
 
     def download_spacy_model(
         self,
-        s3_spacy_path: str="s3://deep-geolocation-extraction/models/spacy_finetuned_100doc_5epochs/spacy_finetuned_100doc_5epochs",
+        s3_spacy_path: str = "s3://deep-geolocation-extraction/models/spacy_finetuned_100doc_5epochs/spacy_finetuned_100doc_5epochs",  # noqa
     ):
         """
         Downloads the spacy model and stores it in the EFS
@@ -169,25 +170,24 @@ class GeoLocationGeneratorHandler:
             cloudpath_spacy = CloudPath(s3_spacy_path)
             cloudpath_spacy.download_to(efs_spacy_path)
 
-            resources_info = {
-                "spacy_path": str(efs_spacy_path)
-            }
+            resources_info = {"spacy_path": str(efs_spacy_path)}
             with open(resources_info_path, "w", encoding="utf-8") as resources_info_f:
                 json.dump(resources_info, resources_info_f)
         else:
             if os.path.exists(resources_info_path):
                 logging.info("Resources already exist in the EFS.")
-                with open(resources_info_path, "r", encoding="utf-8") as resources_info_f:
+                with open(
+                    resources_info_path, "r", encoding="utf-8"
+                ) as resources_info_f:
                     resources_info = json.load(resources_info_f)
                     logging.info(resources_info)
             else:
                 return {}
         return resources_info
 
-
     # def download_resources(
     #     self,
-    #     s3_spacy_path: str="s3://deep-geolocation-extraction/models/spacy_finetuned_100doc_5epochs/spacy_finetuned_100doc_5epochs",
+    #     s3_spacy_path: str="s3://deep-geolocation-extraction/models/spacy_finetuned_100doc_5epochs/spacy_finetuned_100doc_5epochs",  # noqa
     #     s3_locationdata_path: str="s3://deep-geolocation-extraction/geonames/locationdata.tsv.gz",
     #     s3_locdictionary_path: str="s3://deep-geolocation-extraction/geonames/locdictionary_unicode.json.gz",
     #     s3_indexdir_path: str="s3://deep-geolocation-extraction/geonames/indexdir.tar.gz"
@@ -244,23 +244,18 @@ class GeoLocationGeneratorHandler:
     #             return {}
     #     return resources_info
 
-    def dispatch_results(self,
-        status: int,
-        presigned_url: str=None
-    ):
+    def dispatch_results(self, status: int, presigned_url: str = None):
         """
         Dispatch results to callback url or write to database
         """
         response_data = {
             "client_id": self.client_id,
             "presigned_s3_url": presigned_url,
-            "status": status
+            "status": status,
         }
         if self.callback_url:
             callback_response = send_request_on_callback(
-                self.callback_url,
-                response_data=response_data,
-                headers=self.headers
+                self.callback_url, response_data=response_data, headers=self.headers
             )
             if not callback_response:
                 db_client = Database(**self.db_config)
@@ -269,36 +264,33 @@ class GeoLocationGeneratorHandler:
                     db_conn,
                     db_cursor,
                     self.geolocation_id,
-                    self.db_table_callback_tracker
+                    self.db_table_callback_tracker,
                 )
-        
+
         # Setup database connections
         db_client = Database(**self.db_config)
         db_conn, db_cursor = db_client.db_connection()
 
-        if presigned_url and self.db_table_name: # update for presigned url
+        if presigned_url and self.db_table_name:  # update for presigned url
             sql_statement = prepare_sql_statement_success(
-                self.geolocation_id,
-                self.db_table_name,
-                status,
-                response_data
+                self.geolocation_id, self.db_table_name, status, response_data
             )
             status_update_db(db_conn, db_cursor, sql_statement)
             logging.info("Updated the db table with event status %s", str(status))
         elif self.db_table_name:
             # Presigned url generation failed
             sql_statement = prepare_sql_statement_failure(
-                self.geolocation_id,
-                self.db_table_name,
-                status
+                self.geolocation_id, self.db_table_name, status
             )
             status_update_db(db_conn, db_cursor, sql_statement)
             logging.info("Updated the db table with event status %s", str(status))
         else:
-            logging.error("Callback url / presigned s3 url / Database table name are not found.")
+            logging.error(
+                "Callback url / presigned s3 url / Database table name are not found."
+            )
 
     def postprocess_data(self, data):
-        """ Restructure the results """
+        """Restructure the results"""
         _final = []
         for d in data:
             _final_obj = {}
@@ -313,24 +305,29 @@ class GeoLocationGeneratorHandler:
                     "offset_start": entity["offset_start"],
                     "offset_end": entity["offset_end"],
                     "latitude": None,
-                    "longitude": None
+                    "longitude": None,
                 }
                 for geoid in entity["geoids"]:
                     if entity["ent"] == geoid["match"]:
-                        meta_info.update({
-                            "latitude": geoid["latitude"],
-                            "longitude": geoid["longitude"],
-                        })
+                        meta_info.update(
+                            {
+                                "latitude": geoid["latitude"],
+                                "longitude": geoid["longitude"],
+                            }
+                        )
                         break
-                _final_obj["locations"].append({
-                    "entity": entity["ent"],
-                    "meta": meta_info
-                })
+                _final_obj["locations"].append(
+                    {"entity": entity["ent"], "meta": meta_info}
+                )
             _final.append(_final_obj)
         return _final
 
-
-    def __call__(self, resources_info: dict, use_search_engine: bool=True, premium_service: bool=True):
+    def __call__(
+        self,
+        resources_info: dict,
+        use_search_engine: bool = True,
+        premium_service: bool = True,
+    ):
         processed_results = []
 
         if not self.entries:
@@ -355,7 +352,7 @@ class GeoLocationGeneratorHandler:
                 ],
                 geonames_username=self.geonames_api_user,
                 geonames_token=self.geonames_api_token,
-                premium_service=premium_service
+                premium_service=premium_service,
             )
         except Exception as exc:
             logging.error("Geolocation processing failed. %s", str(exc))
@@ -363,10 +360,16 @@ class GeoLocationGeneratorHandler:
 
         if geolocation_results:
             # Note: self.entries is either a dict or a list
-            processed_results = [{
-                **({"entry_id": x["entry_id"]} if "entry_id" in x else {"excerpt": x}),
-                "entities": y["entities"]
-                } for x, y in zip(self.entries, geolocation_results)
+            processed_results = [
+                {
+                    **(
+                        {"entry_id": x["entry_id"]}
+                        if "entry_id" in x
+                        else {"excerpt": x}
+                    ),
+                    "entities": y["entities"],
+                }
+                for x, y in zip(self.entries, geolocation_results)
             ]
             postprocessed_results = self.postprocess_data(processed_results)
         # If callback_url is not available, directly return the response data in ack response.
@@ -381,7 +384,7 @@ class GeoLocationGeneratorHandler:
                 bucket_name=self.bucket_name,
                 key=f"geolocations/{date_today}/{self.geolocation_id}/geolocation.json",
                 aws_region=self.aws_region,
-                signed_url_expiry_secs=self.signed_url_expiry_secs
+                signed_url_expiry_secs=self.signed_url_expiry_secs,
             )
         except Exception as exc:
             logging.error("Could not upload to s3 due to following error: %s", str(exc))
@@ -389,10 +392,13 @@ class GeoLocationGeneratorHandler:
             presigned_url = None
 
         if presigned_url:
-            self.dispatch_results(status=StateHandler.SUCCESS.value, presigned_url=presigned_url)
+            self.dispatch_results(
+                status=StateHandler.SUCCESS.value, presigned_url=presigned_url
+            )
         else:
             self.dispatch_results(status=StateHandler.FAILED.value)
 
+
 geolocation_handler = GeoLocationGeneratorHandler()
 resources_info_dict = geolocation_handler.download_spacy_model()
-#geolocation_handler(resources_info=resources_info_dict)
+# geolocation_handler(resources_info=resources_info_dict)
