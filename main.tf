@@ -80,11 +80,11 @@ module "nlp_server" {
   ssm_db_username_arn       = module.secrets.ssm_db_username_arn
   ssm_db_password_arn       = module.secrets.ssm_db_password_arn
   ssm_db_port_arn           = module.secrets.ssm_db_port_arn
-  ssm_deep_db_name_arn      = module.secrets.ssm_deep_db_name_arn
-  ssm_deep_db_username_arn  = module.secrets.ssm_deep_db_username_arn
-  ssm_deep_db_password_arn  = module.secrets.ssm_deep_db_password_arn
-  ssm_deep_db_port_arn      = module.secrets.ssm_deep_db_port_arn
-  ssm_deep_db_host_arn      = module.secrets.ssm_deep_db_host_arn
+  ssm_deep_db_name_arn      = var.environment == "staging" ? module.secrets.ssm_deep_db_name_arn_staging : module.secrets.ssm_deep_db_name_arn_prod
+  ssm_deep_db_username_arn  = var.environment == "staging" ? module.secrets.ssm_deep_db_username_arn_staging : module.secrets.ssm_deep_db_username_arn_prod
+  ssm_deep_db_password_arn  = var.environment == "staging" ? module.secrets.ssm_deep_db_password_arn_staging : module.secrets.ssm_deep_db_password_arn_prod
+  ssm_deep_db_port_arn      = var.environment == "staging" ? module.secrets.ssm_deep_db_port_arn_staging : module.secrets.ssm_deep_db_port_arn_prod
+  ssm_deep_db_host_arn      = var.environment == "staging" ? module.secrets.ssm_deep_db_host_arn_staging : module.secrets.ssm_deep_db_host_arn_prod
   ssm_sentry_dsn_url_arn    = module.secrets.ssm_sentry_dsn_url_arn
 
   # Topic Modeling
@@ -647,11 +647,11 @@ module "entryextraction_llm" {
   ssm_db_username_arn      = module.secrets.ssm_db_username_arn
   ssm_db_password_arn      = module.secrets.ssm_db_password_arn
   ssm_db_port_arn          = module.secrets.ssm_db_port_arn
-  ssm_deep_db_name_arn     = module.secrets.ssm_deep_db_name_arn
-  ssm_deep_db_username_arn = module.secrets.ssm_deep_db_username_arn
-  ssm_deep_db_password_arn = module.secrets.ssm_deep_db_password_arn
-  ssm_deep_db_port_arn     = module.secrets.ssm_deep_db_port_arn
-  ssm_deep_db_host_arn     = module.secrets.ssm_deep_db_host_arn
+  ssm_deep_db_name_arn     = var.environment == "staging" ? module.secrets.ssm_deep_db_name_arn_staging : module.secrets.ssm_deep_db_name_arn_prod
+  ssm_deep_db_username_arn = var.environment == "staging" ? module.secrets.ssm_deep_db_username_arn_staging : module.secrets.ssm_deep_db_username_arn_prod
+  ssm_deep_db_password_arn = var.environment == "staging" ? module.secrets.ssm_deep_db_password_arn_staging : module.secrets.ssm_deep_db_password_arn_prod
+  ssm_deep_db_port_arn     = var.environment == "staging" ? module.secrets.ssm_deep_db_port_arn_staging : module.secrets.ssm_deep_db_port_arn_prod
+  ssm_deep_db_host_arn     = var.environment == "staging" ? module.secrets.ssm_deep_db_host_arn_staging : module.secrets.ssm_deep_db_host_arn_prod
   ssm_sentry_dsn_url_arn   = module.secrets.ssm_sentry_dsn_url_arn
   ssm_openai_api_key_arn   = var.environment == "staging" ? module.secrets.ssm_openai_api_key_staging_arn : module.secrets.ssm_openai_api_key_prod_arn
 

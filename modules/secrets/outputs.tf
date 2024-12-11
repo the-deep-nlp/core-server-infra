@@ -38,20 +38,60 @@ output "ssm_deep_db_name_arn" {
   value = data.aws_ssm_parameter.deep_db_name.arn
 }
 
+output "ssm_deep_db_name_arn_staging" {
+  value = data.aws_ssm_parameter.deep_db_name_staging.arn
+}
+
+output "ssm_deep_db_name_arn_prod" {
+  value = data.aws_ssm_parameter.deep_db_name_prod.arn
+}
+
 output "ssm_deep_db_username_arn" {
   value = data.aws_ssm_parameter.deep_db_username.arn
+}
+
+output "ssm_deep_db_username_arn_staging" {
+  value = data.aws_ssm_parameter.deep_db_username_staging.arn
+}
+
+output "ssm_deep_db_username_arn_prod" {
+  value = data.aws_ssm_parameter.deep_db_username_prod.arn
 }
 
 output "ssm_deep_db_password_arn" {
   value = data.aws_ssm_parameter.deep_db_password.arn
 }
 
+output "ssm_deep_db_password_arn_staging" {
+  value = data.aws_ssm_parameter.deep_db_password_staging.arn
+}
+
+output "ssm_deep_db_password_arn_prod" {
+  value = data.aws_ssm_parameter.deep_db_password_prod.arn
+}
+
 output "ssm_deep_db_port_arn" {
   value = data.aws_ssm_parameter.deep_db_port.arn
 }
 
+output "ssm_deep_db_port_arn_staging" {
+  value = data.aws_ssm_parameter.deep_db_port_staging.arn
+}
+
+output "ssm_deep_db_port_arn_prod" {
+  value = data.aws_ssm_parameter.deep_db_port_prod.arn
+}
+
 output "ssm_deep_db_host_arn" {
   value = data.aws_ssm_parameter.deep_db_host.arn
+}
+
+output "ssm_deep_db_host_arn_staging" {
+  value = data.aws_ssm_parameter.deep_db_host_staging.arn
+}
+
+output "ssm_deep_db_host_arn_prod" {
+  value = data.aws_ssm_parameter.deep_db_host_prod.arn
 }
 
 output "ssm_sentry_dsn_url_arn" {
