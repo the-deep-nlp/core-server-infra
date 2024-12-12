@@ -8,8 +8,8 @@ import boto3
 import requests
 import sentry_sdk
 from botocore.client import Config
-from extraction import entry_extraction_model
 from fastapi import BackgroundTasks, FastAPI
+from llm.model_extraction import LLMExtractionPrediction
 from models import InputStructure
 from nlp_modules_utils import (Database, StateHandler,
                                prepare_sql_statement_failure,
@@ -23,6 +23,7 @@ SENTRY_DSN = os.environ.get("SENTRY_DSN")
 ENVIRONMENT = os.environ.get("ENVIRONMENT")
 AWS_REGION = os.environ.get("AWS_REGION", "us-east-1")
 GEOLOCATION_ECS_ENDPOINT = os.environ.get("GEOLOCATION_ECS_ENDPOINT", None)
+MODEL_FAMILY = os.environ.get("MODEL_FAMILY", "openai")
 
 sentry_sdk.init(
     SENTRY_DSN, environment=ENVIRONMENT, attach_stacktrace=True, traces_sample_rate=1.0
@@ -50,11 +51,13 @@ async def healthcheckup():
     return "The instance is ok and running."
 
 
-@ecs_app.post("/extract_entries")
+@ecs_app.post("/extract_entries_llm")
 async def extract_texts(item: InputStructure, background_tasks: BackgroundTasks):
     """Generate reports"""
     client_id = item.client_id
     url = item.url
+    af_id = item.af_id
+    project_id = item.project_id
     text_extraction_id = item.text_extraction_id
     entry_extraction_id = item.entryextraction_id
     callback_url = item.callback_url
@@ -66,6 +69,8 @@ async def extract_texts(item: InputStructure, background_tasks: BackgroundTasks)
         callback_url,
         url,
         text_extraction_id,
+        af_id,
+        project_id,
     )
 
     return {"message": "Task received and running in background."}
@@ -91,7 +96,7 @@ class EntryExtractionHandler:
             "Content-Type": "application/json",
             "user-agent": (
                 "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.1 (KHTML, like Gecko) Chrome/14.0.835.163 Safari/535.1"
-            ),  # noqa
+            ),
         }
 
         self.db_table_name = os.environ.get("DB_TABLE_NAME", None)
@@ -131,9 +136,15 @@ class EntryExtractionHandler:
         callback_url,
         url=None,
         text_extraction_id=None,
+        analysis_framework_id=None,
+        project_id=None,
         filename="extracted_text.json",
     ):
         structured_text = None
+        entry_extraction_model = LLMExtractionPrediction(
+            analysis_framework_id=analysis_framework_id, model_family=MODEL_FAMILY
+        )
+
         try:
             if url:
                 structured_text = json.loads(requests.get(url, timeout=30).content)
@@ -166,7 +177,7 @@ class EntryExtractionHandler:
         try:
             if structured_text:
                 entry_extraction = entry_extraction_model.predict(
-                    document=structured_text
+                    structured_text=structured_text
                 )
                 excerpts = [
                     block["text"] if block["relevant"] else ""

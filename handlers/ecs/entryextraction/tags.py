@@ -70,6 +70,7 @@ SecondLevelCategories = namedtuple(
 )
 version = "1.0"
 
+
 class SecondLevel(Enum):
     EducationTag = SecondLevelCategories(
         id="101",
@@ -369,11 +370,11 @@ class SecondLevel(Enum):
         ]
 
 
-
 ThirdLevelCategories = namedtuple(
     "ThirdLevelCategories", ["id", "key", "version", "has_parent", "parent_id", "alias"]
 )
 version = "1.0"
+
 
 class ThirdLevel(Enum):
     # Education - 101
@@ -1886,7 +1887,8 @@ class ThirdLevel(Enum):
                 ThirdLevel.GBVSurvivorsTag,
             ]
         ]
-    
+
+
 total_tags = [
     FirstLevel.first_level_lst(),
     SecondLevel.second_level_lst(),

@@ -244,6 +244,26 @@
           "value": "${entryextraction_ecs_endpoint}"
         },
         {
+          "name": "ENTRYEXTRACTION_LLM_ECS_CLUSTER_ID",
+          "value": "${entryextraction_llm_ecs_cluster_id}"
+        },
+        {
+          "name": "ENTRYEXTRACTION_LLM_ECS_TASK_DEFN_ARN",
+          "value": "${entryextraction_llm_ecs_task_defn_arn}"
+        },
+        {
+          "name": "ENTRYEXTRACTION_LLM_ECS_CONTAINER_NAME",
+          "value": "${entryextraction_llm_ecs_container_name}"
+        },
+        {
+          "name": "ENTRYEXTRACTION_LLM_VPC_PRIVATE_SUBNET",
+          "value": "${entryextraction_llm_vpc_private_subnet}"
+        },
+        {
+          "name": "ENTRYEXTRACTION_LLM_ECS_ENDPOINT",
+          "value": "${entryextraction_llm_ecs_endpoint}"
+        },
+        {
           "name": "CLASSIFICATION_MODEL_ID",
           "value": "${classification_model_id}"
         },
@@ -312,6 +332,10 @@
         {
           "name": "SENTRY_DSN",
           "valueFrom": "${sentry_dsn_url}"
+        },
+        {
+          "name": "OPENAI_API_KEY",
+          "valueFrom": "${ssm_openai_api_key_arn}"
         }
       ]
     }

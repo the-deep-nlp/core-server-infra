@@ -1,0 +1,29 @@
+[tool.poetry]
+name = "entry_extraction"
+version = "0.1.0"
+description = ""
+authors = ["dev <nlp@thedeep.io>"]
+
+[tool.poetry.dependencies]
+python = ">=3.10,<4.0"
+sentry-sdk = "==1.5.8"
+fastapi = ">=0.95.1"
+uvicorn = "^0.22.0"
+numpy = "*"
+pandas = "*"
+nlp_modules_utils = { git = "https://github.com/the-deep-nlp/nlp-modules-utils.git", rev = "bc82d18", branch = "main" }
+redis = "^4.3.4"
+psycopg2-binary = "^2.9.5"
+pydantic = "^2.9.2"
+langchain-community = "^0.3.3"
+langchain-core = "^0.3.19"
+langchain-openai = "^0.2.3"
+pyyaml = "5.3.1"
+polyfuzz = "^0.4.2"
+python-box = { version = "^7.2.0", extras = ["all"] }
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

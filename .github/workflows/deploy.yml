@@ -11,10 +11,12 @@ jobs:
   flake8_checker:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
       - name: Setup Python
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v4
         with:
-          python-version: 3.8
+          python-version: "3.10"
       - name: Install flake8
         run: pip install flake8
       - name: Run flake8
@@ -32,6 +34,8 @@ jobs:
         include:
           - image: ./handlers/ecs/entryextraction/
             ecr_repo: ENTRYEXTRACTION_REPO_NAME
+          - image: ./handlers/ecs/entryextraction_llm/
+            ecr_repo: ENTRYEXTRACTION_LLM_REPO_NAME
           - image: ./handlers/ecs/geolocations/
             ecr_repo: GEOLOCATIONS_REPO_NAME
           - image: ./handlers/ecs/ngrams/

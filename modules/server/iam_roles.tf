@@ -61,7 +61,8 @@ resource "aws_iam_role_policy" "ecs-role-policy" {
                     "cloudwatch:GetMetricData",
                     "cloudwatch:ListMetrics",
                     "cloudwatch:PutMetricData",
-                    "sqs:*"
+                    "sqs:*",
+                    "bedrock:*"
                 ],
                 "Resource": [
                   "${var.s3_bucketname_task_results_arn}",

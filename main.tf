@@ -80,11 +80,11 @@ module "nlp_server" {
   ssm_db_username_arn       = module.secrets.ssm_db_username_arn
   ssm_db_password_arn       = module.secrets.ssm_db_password_arn
   ssm_db_port_arn           = module.secrets.ssm_db_port_arn
-  ssm_deep_db_name_arn      = module.secrets.ssm_deep_db_name_arn
-  ssm_deep_db_username_arn  = module.secrets.ssm_deep_db_username_arn
-  ssm_deep_db_password_arn  = module.secrets.ssm_deep_db_password_arn
-  ssm_deep_db_port_arn      = module.secrets.ssm_deep_db_port_arn
-  ssm_deep_db_host_arn      = module.secrets.ssm_deep_db_host_arn
+  ssm_deep_db_name_arn      = var.environment == "staging" ? module.secrets.ssm_deep_db_name_arn_staging : module.secrets.ssm_deep_db_name_arn_prod
+  ssm_deep_db_username_arn  = var.environment == "staging" ? module.secrets.ssm_deep_db_username_arn_staging : module.secrets.ssm_deep_db_username_arn_prod
+  ssm_deep_db_password_arn  = var.environment == "staging" ? module.secrets.ssm_deep_db_password_arn_staging : module.secrets.ssm_deep_db_password_arn_prod
+  ssm_deep_db_port_arn      = var.environment == "staging" ? module.secrets.ssm_deep_db_port_arn_staging : module.secrets.ssm_deep_db_port_arn_prod
+  ssm_deep_db_host_arn      = var.environment == "staging" ? module.secrets.ssm_deep_db_host_arn_staging : module.secrets.ssm_deep_db_host_arn_prod
   ssm_sentry_dsn_url_arn    = module.secrets.ssm_sentry_dsn_url_arn
 
   # Topic Modeling
@@ -130,6 +130,11 @@ module "nlp_server" {
   entryextraction_ecs_container_name = module.entryextraction.entryextraction_container_name
   entryextraction_ecs_endpoint       = module.entryextraction.application_endpoint
 
+  # Entry Extraction LLM
+  entryextraction_llm_ecs_task_defn_arn  = module.entryextraction_llm.entryextraction_llm_ecs_task_defn_arn
+  entryextraction_llm_ecs_container_name = module.entryextraction_llm.entryextraction_llm_ecs_container_name
+  entryextraction_llm_ecs_endpoint       = module.entryextraction_llm.application_endpoint
+
   # Model info
   classification_model_id      = var.classification_model_id
   classification_model_version = var.classification_model_version
@@ -137,6 +142,8 @@ module "nlp_server" {
   geolocation_model_version    = var.geolocation_model_version
   reliability_model_id         = var.reliability_model_id
   reliability_model_version    = var.reliability_model_version
+
+  ssm_openai_api_key_arn = var.environment == "staging" ? module.secrets.ssm_openai_api_key_staging_arn : module.secrets.ssm_openai_api_key_prod_arn
 }
 
 module "redis" {
@@ -580,6 +587,79 @@ module "entryextraction" {
   ssm_db_password_arn    = module.secrets.ssm_db_password_arn
   ssm_db_port_arn        = module.secrets.ssm_db_port_arn
   ssm_sentry_dsn_url_arn = module.secrets.ssm_sentry_dsn_url_arn
+
+  # db table
+  db_table_name             = var.db_table_name
+  db_table_callback_tracker = var.db_table_callback_tracker
+
+  # s3
+  s3_bucketname_task_results      = module.s3.task_results_bucket_name
+  nlp_docs_conversion_bucket_name = module.s3.nlp_docs_conversion_bucket_name
+
+  # endpoints
+  geo_ecs_endpoint = module.geolocations.application_endpoint
+
+  # ecs capacity
+  fargate_cpu    = var.entry_extraction_fargate_cpu
+  fargate_memory = var.entry_extraction_fargate_memory
+
+  # ecs task count
+  app_count = var.entry_extraction_task_count
+
+  # ecs tasks max and min
+  entryextraction_scaling_max_capacity = var.entryextraction_scaling_max_capacity
+  entryextraction_scaling_min_capacity = var.entryextraction_scaling_min_capacity
+}
+
+# Entry Extraction and Classification LLM
+module "entryextraction_llm" {
+  source = "./modules/ecsmodules/entryextraction_llm"
+
+  environment = var.environment
+  aws_region  = var.aws_region
+
+  # ecs
+  ecs_cluster_id   = module.nlp_server.ecs_cluster_id
+  ecs_cluster_name = module.nlp_server.ecs_cluster_name_shared
+
+  # security grp
+  ecs_security_group_id = module.nlp_server.ecs_security_group_id
+
+  # vpc
+  vpc_id          = module.nlp_vpc.aws_vpc_id
+  private_subnets = module.nlp_vpc.private_subnets
+  public_subnets  = module.nlp_vpc.public_subnets
+
+  iam_task_execution_role_arn       = module.nlp_server.iam_task_execution_role_arn
+  iam_ecs_task_arn                  = module.nlp_server.iam_ecs_task_arn
+  iam_ecs_task_execution_policy_arn = module.nlp_server.iam_ecs_task_execution_policy_arn
+
+  # ecr
+  app_image_name = var.entryextraction_llm_app_image_name
+
+  # redis endpoint
+  redis_endpoint = module.redis.redis_endpoint
+  redis_host     = module.redis.redis_host
+
+  # secrets
+  rds_instance_endpoint    = module.nlp_database.rds_instance_endpoint
+  ssm_db_name_arn          = module.secrets.ssm_db_name_arn
+  ssm_db_username_arn      = module.secrets.ssm_db_username_arn
+  ssm_db_password_arn      = module.secrets.ssm_db_password_arn
+  ssm_db_port_arn          = module.secrets.ssm_db_port_arn
+  ssm_deep_db_name_arn     = var.environment == "staging" ? module.secrets.ssm_deep_db_name_arn_staging : module.secrets.ssm_deep_db_name_arn_prod
+  ssm_deep_db_username_arn = var.environment == "staging" ? module.secrets.ssm_deep_db_username_arn_staging : module.secrets.ssm_deep_db_username_arn_prod
+  ssm_deep_db_password_arn = var.environment == "staging" ? module.secrets.ssm_deep_db_password_arn_staging : module.secrets.ssm_deep_db_password_arn_prod
+  ssm_deep_db_port_arn     = var.environment == "staging" ? module.secrets.ssm_deep_db_port_arn_staging : module.secrets.ssm_deep_db_port_arn_prod
+  ssm_deep_db_host_arn     = var.environment == "staging" ? module.secrets.ssm_deep_db_host_arn_staging : module.secrets.ssm_deep_db_host_arn_prod
+  ssm_sentry_dsn_url_arn   = module.secrets.ssm_sentry_dsn_url_arn
+  ssm_openai_api_key_arn   = var.environment == "staging" ? module.secrets.ssm_openai_api_key_staging_arn : module.secrets.ssm_openai_api_key_prod_arn
+
+  # llm model selection
+  openai_main_model   = var.openai_main_model
+  openai_small_model  = var.openai_small_model
+  bedrock_main_model  = var.bedrock_main_model
+  bedrock_small_model = var.bedrock_small_model
 
   # db table
   db_table_name             = var.db_table_name

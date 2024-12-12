@@ -38,6 +38,8 @@ geolocations_app_image_name = "geolocations_model_staging"
 textextraction_app_image_name = "deepex_text_extraction_staging"
 # ecs entry extraction
 entryextraction_app_image_name = "entry_extraction_staging"
+# ecs entry extraction llm
+entryextraction_llm_app_image_name = "entry_extraction_llm_staging"
 # ecs cloudflare proxy server
 cloudflare_proxy_srv_app_image_name = "flaresolver_staging"
 
@@ -93,3 +95,9 @@ reliability_model_id         = "reliability_model"
 reliability_model_version    = "1.0.0"
 
 ecr_image_reliability_name = "reliability"
+
+# llm model selection
+openai_main_model   = "gpt-4o"
+openai_small_model  = "gpt-4o-mini"
+bedrock_main_model  = "anthropic.claude-3-5-sonnet-20240620-v1:0"
+bedrock_small_model = "us.amazon.nova-micro-v1:0"
