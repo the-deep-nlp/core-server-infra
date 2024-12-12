@@ -1,11 +1,13 @@
-from pydantic import BaseModel, AnyUrl
 from typing import Optional
+
+from pydantic import AnyUrl, BaseModel
 
 
 class DocumentWithUrl(BaseModel):
-    
+
     url: AnyUrl
     client_id: str
+
 
 class DocumentWithId(BaseModel):
 

@@ -1,38 +1,40 @@
-import os
 import json
 import logging
+import os
+from datetime import date
+
 import requests
 import sentry_sdk
-from datetime import date
 from ngrams_generator import NGramsGenerator
-from nlp_modules_utils import (
-    Database,
-    StateHandler,
-    prepare_sql_statement_success,
-    prepare_sql_statement_failure,
-    status_update_db,
-    upload_to_s3,
-    send_request_on_callback,
-    update_db_table_callback_retry
-)
+from nlp_modules_utils import (Database, StateHandler,
+                               prepare_sql_statement_failure,
+                               prepare_sql_statement_success,
+                               send_request_on_callback, status_update_db,
+                               update_db_table_callback_retry, upload_to_s3)
 
 logging.getLogger().setLevel(logging.INFO)
 
 SENTRY_DSN = os.environ.get("SENTRY_DSN")
 ENVIRONMENT = os.environ.get("ENVIRONMENT")
-sentry_sdk.init(SENTRY_DSN, environment=ENVIRONMENT, attach_stacktrace=True, traces_sample_rate=1.0)
+sentry_sdk.init(
+    SENTRY_DSN, environment=ENVIRONMENT, attach_stacktrace=True, traces_sample_rate=1.0
+)
+
 
 class NGramsGeneratorHandler:
     """
     NGrams class to generate n-grams of the excerpts
     """
+
     def __init__(self):
         self.entries_url = os.environ.get("ENTRIES_URL", None)
         self.client_id = os.environ.get("CLIENT_ID", None)
         self.callback_url = os.environ.get("CALLBACK_URL", None)
         self.ngrams_id = os.environ.get("NGRAMS_ID", None)
         self.aws_region = os.environ.get("AWS_REGION", "us-east-1")
-        self.signed_url_expiry_secs = os.environ.get("SIGNED_URL_EXPIRY_SECS", 86400) # 1 day
+        self.signed_url_expiry_secs = os.environ.get(
+            "SIGNED_URL_EXPIRY_SECS", 86400
+        )  # 1 day
         self.bucket_name = os.environ.get("S3_BUCKET_NAME", None)
         self.mock = os.environ.get("NGRAMS_MOCK", False)
 
@@ -51,20 +53,24 @@ class NGramsGeneratorHandler:
         self.generate_trigrams = True if self.generate_trigrams == "True" else False
         self.enable_stopwords = True if self.enable_stopwords == "True" else False
         self.enable_stemming = True if self.enable_stemming == "True" else False
-        self.enable_case_sensitive = True if self.enable_case_sensitive == "True" else False
-        self.enable_end_of_sentence = True if self.enable_end_of_sentence == "True" else False
+        self.enable_case_sensitive = (
+            True if self.enable_case_sensitive == "True" else False
+        )
+        self.enable_end_of_sentence = (
+            True if self.enable_end_of_sentence == "True" else False
+        )
         self.max_ngrams_tokens = int(self.max_ngrams_tokens)
         self.mock = True if self.mock == "True" else False
 
         # db table
         self.db_table_name = os.environ.get("DB_TABLE_NAME", None)
-        self.db_table_callback_tracker = os.environ.get("DB_TABLE_CALLBACK_TRACKER", None)
+        self.db_table_callback_tracker = os.environ.get(
+            "DB_TABLE_CALLBACK_TRACKER", None
+        )
 
         self.entries = self._download_prepare_entries()
 
-        self.headers = {
-            "Content-Type": "application/json"
-        }
+        self.headers = {"Content-Type": "application/json"}
 
         # db
         self.db_config = {
@@ -72,7 +78,7 @@ class NGramsGeneratorHandler:
             "database": os.environ.get("DB_NAME"),
             "username": os.environ.get("DB_USER"),
             "password": os.environ.get("DB_PWD"),
-            "port": os.environ.get("DB_PORT")
+            "port": os.environ.get("DB_PORT"),
         }
 
         if not self.db_table_name:
@@ -115,49 +121,41 @@ class NGramsGeneratorHandler:
         response_data = {
             "client_id": self.client_id,
             "presigned_s3_url": presigned_url,
-            "status": status
+            "status": status,
         }
 
         if self.callback_url:
             callback_response = send_request_on_callback(
-                self.callback_url,
-                response_data=response_data,
-                headers=self.headers
+                self.callback_url, response_data=response_data, headers=self.headers
             )
             if not callback_response:
                 db_client = Database(**self.db_config)
                 db_conn, db_cursor = db_client.db_connection()
                 update_db_table_callback_retry(
-                    db_conn,
-                    db_cursor,
-                    self.ngrams_id,
-                    self.db_table_callback_tracker
+                    db_conn, db_cursor, self.ngrams_id, self.db_table_callback_tracker
                 )
 
         # Setup database connections
         db_client = Database(**self.db_config)
         db_conn, db_cursor = db_client.db_connection()
 
-        if presigned_url and self.db_table_name: # update for presigned url
+        if presigned_url and self.db_table_name:  # update for presigned url
             sql_statement = prepare_sql_statement_success(
-                self.ngrams_id,
-                self.db_table_name,
-                status,
-                response_data
+                self.ngrams_id, self.db_table_name, status, response_data
             )
             status_update_db(db_conn, db_cursor, sql_statement)
             logging.info("Updated the db table with event status %s", str(status))
         elif self.db_table_name:
             # Presigned url generation failed
             sql_statement = prepare_sql_statement_failure(
-                self.ngrams_id,
-                self.db_table_name,
-                status
+                self.ngrams_id, self.db_table_name, status
             )
             status_update_db(db_conn, db_cursor, sql_statement)
             logging.info("Updated the db table with event status %s", str(status))
         else:
-            logging.error("Callback url / presigned s3 url / Database table name are not found.")
+            logging.error(
+                "Callback url / presigned s3 url / Database table name are not found."
+            )
 
     def __call__(self):
         if not self.entries:
@@ -173,7 +171,7 @@ class NGramsGeneratorHandler:
             enable_stopwords=self.enable_stopwords,
             enable_stemming=self.enable_stemming,
             enable_case_sensitive=self.enable_case_sensitive,
-            enable_end_of_sentence=self.enable_end_of_sentence
+            enable_end_of_sentence=self.enable_end_of_sentence,
         )
 
         ng_output = ngrams_gen(self.entries)
@@ -186,16 +184,19 @@ class NGramsGeneratorHandler:
                 bucket_name=self.bucket_name,
                 key=f"ngrams/{date_today}/{self.ngrams_id}/ngrams.json",
                 aws_region=self.aws_region,
-                signed_url_expiry_secs=self.signed_url_expiry_secs
+                signed_url_expiry_secs=self.signed_url_expiry_secs,
             )
         else:
             presigned_url = self.ngrams_summary_store_local(
                 ngrams_summary=json.dumps(ng_output)
             )
         if presigned_url:
-            self.dispatch_results(status=StateHandler.SUCCESS.value, presigned_url=presigned_url)
+            self.dispatch_results(
+                status=StateHandler.SUCCESS.value, presigned_url=presigned_url
+            )
         else:
             self.dispatch_results(status=StateHandler.FAILED.value)
+
 
 if __name__ == "__main__":
     ngrams_generator_handler = NGramsGeneratorHandler()

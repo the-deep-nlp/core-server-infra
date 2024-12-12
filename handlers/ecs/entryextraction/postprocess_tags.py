@@ -1,5 +1,5 @@
-from typing import List, Dict
 from collections import defaultdict
+from typing import Dict, List
 
 pillars_1d_tags = [
     "Covid-19",
@@ -29,8 +29,8 @@ secondary_tags = [
     "affected_groups",
     "specific_needs_groups",
     "severity",
-    "Displaced", ##
-    "Non displaced"
+    "Displaced",
+    "Non displaced",
 ]
 
 
@@ -102,8 +102,8 @@ def get_predictions_all(
             "Gender",
             "affected_groups",
             "specific_needs_groups",
-            "Displaced", ##
-            "Non displaced"
+            "Displaced",
+            "Non displaced",
         ]:
             preds_one_sec_tag = get_preds_entry(
                 returns_sec_tags[secondary_tag], False, ratio_nb
@@ -141,23 +141,26 @@ def convert_current_dict_to_previous_one(
         "affected_groups": {},
         "specific_needs_groups": {},
         "severity": {},
-        "Displaced": {}, 
-        "Non displaced": {}
+        "Displaced": {},
+        "Non displaced": {},
     }
 
-    # these assertions can't work because there are some differences between 
+    # these assertions can't work because there are some differences between
     # the tags fo the models. For now, I cast everything at lower (as in the tags_to_ids.py method)
     # in order to avoid the assertion error
 
     _pillars_1d_tags = [x.lower() for x in pillars_1d_tags]
     _pillars_2d_tags = [x.lower() for x in pillars_2d_tags]
     _secondary_tags = [x.lower() for x in secondary_tags]
-    
+
     for tag, number in ratios_one_entry.items():
         tag_levels = tag.split("->")
-        if tag_levels[0].startswith("subpillars"): #"subpillars" == tag_levels[0]:
-            
-            assert tag_levels[1].lower() in _pillars_1d_tags or tag_levels[1].lower() in _pillars_2d_tags
+        if tag_levels[0].startswith("subpillars"):  # "subpillars" == tag_levels[0]:
+
+            assert (
+                tag_levels[1].lower() in _pillars_1d_tags or
+                tag_levels[1].lower() in _pillars_2d_tags
+            )
 
             if tag_levels[1].lower() in _pillars_1d_tags:
                 subpillar_name = "subpillars_1d"
@@ -169,7 +172,7 @@ def convert_current_dict_to_previous_one(
         elif "secondary_tags" == tag_levels[0]:
 
             assert tag_levels[1].lower() in _secondary_tags
-            
+
             secondary_tags_results[tag_levels[1]][tag_levels[2]] = number
 
         else:
