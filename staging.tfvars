@@ -59,6 +59,8 @@ summarization_v3_fargate_cpu        = "512"
 summarization_v3_fargate_memory     = "1024"
 entry_extraction_fargate_cpu        = "512"
 entry_extraction_fargate_memory     = "2048"
+entry_extraction_llm_fargate_cpu    = "512"
+entry_extraction_llm_fargate_memory = "1024"
 geolocations_fargate_cpu            = "512"
 geolocations_fargate_memory         = "2048"
 ngrams_fargate_cpu                  = "512"
@@ -71,20 +73,23 @@ cloudflare_proxy_srv_fargate_memory = "1024"
 # ecs tasks count
 text_extraction_task_count      = 1
 entry_extraction_task_count     = 1
+entry_extraction_llm_task_count = 1
 summarization_v3_task_count     = 1
 geolocations_task_count         = 1
 topicmodeling_task_count        = 1
 cloudflare_proxy_srv_task_count = 1
 
 # ecs tasks max and min
-textextraction_scaling_max_capacity   = 5
-textextraction_scaling_min_capacity   = 1
-topicmodel_scaling_max_capacity       = 5
-topicmodel_scaling_min_capacity       = 1
-entryextraction_scaling_max_capacity  = 5
-entryextraction_scaling_min_capacity  = 1
-summarization_v3_scaling_max_capacity = 5
-summarization_v3_scaling_min_capacity = 1
+textextraction_scaling_max_capacity      = 5
+textextraction_scaling_min_capacity      = 1
+topicmodel_scaling_max_capacity          = 5
+topicmodel_scaling_min_capacity          = 1
+entryextraction_scaling_max_capacity     = 5
+entryextraction_scaling_min_capacity     = 1
+entryextraction_llm_scaling_max_capacity = 5
+entryextraction_llm_scaling_min_capacity = 1
+summarization_v3_scaling_max_capacity    = 5
+summarization_v3_scaling_min_capacity    = 1
 
 # model info
 classification_model_id      = "classification_model"

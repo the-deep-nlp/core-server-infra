@@ -673,15 +673,15 @@ module "entryextraction_llm" {
   geo_ecs_endpoint = module.geolocations.application_endpoint
 
   # ecs capacity
-  fargate_cpu    = var.entry_extraction_fargate_cpu
-  fargate_memory = var.entry_extraction_fargate_memory
+  fargate_cpu    = var.entry_extraction_llm_fargate_cpu
+  fargate_memory = var.entry_extraction_llm_fargate_memory
 
   # ecs task count
-  app_count = var.entry_extraction_task_count
+  app_count = var.entry_extraction_llm_task_count
 
   # ecs tasks max and min
-  entryextraction_scaling_max_capacity = var.entryextraction_scaling_max_capacity
-  entryextraction_scaling_min_capacity = var.entryextraction_scaling_min_capacity
+  entryextraction_scaling_max_capacity = var.entryextraction_llm_scaling_max_capacity
+  entryextraction_scaling_min_capacity = var.entryextraction_llm_scaling_min_capacity
 }
 
 module "reliability" {

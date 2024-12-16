@@ -86,6 +86,8 @@ variable "summarization_v3_fargate_cpu" {}
 variable "summarization_v3_fargate_memory" {}
 variable "entry_extraction_fargate_cpu" {}
 variable "entry_extraction_fargate_memory" {}
+variable "entry_extraction_llm_fargate_cpu" {}
+variable "entry_extraction_llm_fargate_memory" {}
 variable "geolocations_fargate_cpu" {}
 variable "geolocations_fargate_memory" {}
 variable "ngrams_fargate_cpu" {}
@@ -98,6 +100,7 @@ variable "cloudflare_proxy_srv_fargate_memory" {}
 # ecs task count
 variable "text_extraction_task_count" {}
 variable "entry_extraction_task_count" {}
+variable "entry_extraction_llm_task_count" {}
 variable "summarization_v3_task_count" {}
 variable "geolocations_task_count" {}
 variable "topicmodeling_task_count" {}
@@ -110,6 +113,8 @@ variable "topicmodel_scaling_max_capacity" {}
 variable "topicmodel_scaling_min_capacity" {}
 variable "entryextraction_scaling_max_capacity" {}
 variable "entryextraction_scaling_min_capacity" {}
+variable "entryextraction_llm_scaling_max_capacity" {}
+variable "entryextraction_llm_scaling_min_capacity" {}
 variable "summarization_v3_scaling_max_capacity" {}
 variable "summarization_v3_scaling_min_capacity" {}
 
