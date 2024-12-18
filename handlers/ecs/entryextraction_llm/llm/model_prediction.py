@@ -5,18 +5,26 @@ from dataclasses import dataclass, field, make_dataclass
 
 import redis
 from box import Box
+
 # from langchain_aws import ChatBedrockConverse
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnableParallel
 from langchain_openai import ChatOpenAI
 from llm.prompt_utils import (
     DESCRIPTION_PILLARS,
+    DESCRIPTION_ORGANIGRAM,
     MAIN_PROMT,
     INPUT_PASSAGE,
-    DESCRIPTION_MATRIX
+    DESCRIPTION_MATRIX,
 )
-from llm.utils import (af_widget_by_id, combine_properties, connect_db,
-                       process_primary_tags)
+from llm.utils import (
+    af_widget_by_id,
+    combine_properties,
+    connect_db,
+    process_primary_tags,
+    process_multiselect_tags,
+    process_organigram_tags,
+)
 from pydantic import BaseModel, Field, create_model
 
 # from utils.db import connect_db
@@ -72,10 +80,24 @@ class WidgetsMappings:
         )
 
     def __process_widget_multiselect(self, key: str, properties: dict, version: int):
-        raise NotImplementedError
+
+        _, rows = process_multiselect_tags(properties)
+        self.__update(
+            key=key,
+            value=rows,
+            version=version,
+            widget_type=self.WidgetTypes.multiselectWidget,
+        )
 
     def __process_widget_organigram(self, key: str, properties: dict, version: int):
-        raise NotImplementedError
+
+        _, rows = process_organigram_tags(properties)
+        self.__update(
+            key=key,
+            value=rows,
+            version=version,
+            widget_type=self.WidgetTypes.organigramWidget,
+        )
 
     def __process_widget_daterange(self, key: str, properties: dict, version: int):
         raise NotImplementedError
@@ -213,10 +235,50 @@ class WidgetSchema:
         )
 
     def __process_widget_multiselect(self, key: str, properties: dict, class_name: str):
-        raise NotImplementedError
+
+        properties, _ = process_multiselect_tags(properties)
+        multiselect = create_model(
+            class_name,
+            __base__=BaseModel,
+            __doc__=DESCRIPTION_PILLARS.format(class_name.lower()),
+            **{
+                k: (bool, Field(title=k, description=v["description"], default=False))
+                for k, v in properties.items()
+            },
+        )
+        self.__update(
+            key,
+            self.Schema(
+                type=self.mappings_instance.WidgetTypes.multiselectWidget,
+                prompt=MAIN_PROMT.format(class_name.lower()) + INPUT_PASSAGE,
+                model=self.__foundation_model_id_selection(schema=multiselect),
+                properties=properties,
+                pyd_class=multiselect,
+            ),
+        )
 
     def __process_widget_organigram(self, key: str, properties: dict, class_name: str):
-        raise NotImplementedError
+
+        properties, _ = process_organigram_tags(properties)
+        organigram = create_model(
+            class_name,
+            __base__=BaseModel,
+            __doc__=DESCRIPTION_ORGANIGRAM.format(class_name.lower()),
+            **{
+                k: (bool, Field(title=k, description=v["description"], default=False))
+                for k, v in properties.items()
+            },
+        )
+        self.__update(
+            key,
+            self.Schema(
+                type=self.mappings_instance.WidgetTypes.organigramWidget,
+                prompt=MAIN_PROMT.format(class_name.lower()) + INPUT_PASSAGE,
+                model=self.__foundation_model_id_selection(schema=organigram),
+                properties=properties,
+                pyd_class=organigram,
+            ),
+        )
 
     def __process_widget_daterange(self, key: str, properties: dict, class_name: str):
         raise NotImplementedError
@@ -252,6 +314,8 @@ class LLMTagsPrediction:
     AVAILABLE_WIDGETS: list = [
         "matrix2dWidget",
         "matrix1dWidget",
+        "multiselectWidget",
+        "organigramWidget",
     ]  # it'll be extended to all widget types
     AVAILABLE_FOUNDATION_MODELS: list = ["bedrock", "openai"]
 
@@ -406,10 +470,18 @@ class LLMTagsPrediction:
                         results[k][pillar][subpillar][sector].append(subsector)
 
             elif type_ == self.widgets.mappings_instance.WidgetTypes.multiselectWidget:
-                raise NotImplementedError
+
+                if k not in results.keys():
+                    results.update({k: []})
+                for c in v:
+                    results[k].append(schema[c]["alias"])
 
             elif type_ == self.widgets.mappings_instance.WidgetTypes.organigramWidget:
-                raise NotImplementedError
+
+                if k not in results.keys():
+                    results.update({k: []})
+                for c in v:
+                    results[k].append(schema[c]["alias"])
 
             elif type_ == self.widgets.mappings_instance.WidgetTypes.dateRangeWidget:
                 raise NotImplementedError

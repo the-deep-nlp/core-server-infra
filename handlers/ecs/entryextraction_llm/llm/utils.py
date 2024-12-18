@@ -2,9 +2,7 @@ import os
 import re
 
 import psycopg2
-from llm.prompt_utils import (
-    MULTI_DESCRIPTION
-)
+from llm.prompt_utils import MULTI_DESCRIPTION
 
 af_widget_by_id = (
     "SELECT * from analysis_framework_widget ll WHERE ll.analysis_framework_id={}"
@@ -67,19 +65,20 @@ def add_element(name, description, alias, main_class=None):
             _sanitize_keys_with_uniqueness(name.replace(" ", "_").lower())
             if isinstance(name, str)
             else _sanitize_keys_with_uniqueness(
-                [el.replace(" ", "_").lower() for el in name][1]
+                [el.replace(" ", "_").lower() for el in name][-1]
             )
         ): element
     }
 
 
-def process_primary_tags(ex: list, order="columns", type_="2d", max_length: int = 50):
+def get_tooltip(el):
+    if el.get("tooltip"):
+        return el.get("tooltip")
+    else:
+        return ""
 
-    def get_tooltip(el):
-        if el.get("tooltip"):
-            return el.get("tooltip")
-        else:
-            return ""
+
+def process_primary_tags(ex: list, order="columns", type_="2d", max_length: int = 50):
 
     properties = {}
     id_to_info = {}
@@ -106,9 +105,7 @@ def process_primary_tags(ex: list, order="columns", type_="2d", max_length: int 
                 properties.update(prop)
 
         elif (
-            type_ == "2d" and
-            f"sub{order.title()}" in c.keys() and
-            c.get(f"sub{order.title()}")
+            type_ == "2d" and f"sub{order.title()}" in c.keys() and c.get(f"sub{order.title()}")
         ):
             for cc in c[f"sub{order.title()}"]:
 
@@ -134,6 +131,50 @@ def process_primary_tags(ex: list, order="columns", type_="2d", max_length: int 
         for k, v in properties.items():
             # change description to the short one in case of a big framework
             properties[k]["description"] = properties[k]["plain_description"]
+
+    return properties, id_to_info
+
+
+def process_organigram_tags(ex: dict, properties={}, id_to_info={}, parents=None, i=0):
+
+    if i == 0:
+        properties = {}
+        id_to_info = {}
+        ex = ex["options"]["children"]
+        i = 1
+
+    for el in ex:
+        if parents:
+            parents = [parents] if isinstance(parents, str) else parents
+            name = parents + [el["label"].strip()]
+        else:
+            name = el["label"].strip()
+
+        description = get_tooltip(el)
+        alias = el["key"]
+        id_to_info.update({alias: {"label": el["label"], "order": el["order"]}})
+
+        properties.update(add_element(name=name, description=description, alias=alias))
+
+        if not el.get("children", []):
+            continue
+        else:
+            process_organigram_tags(el["children"], properties, id_to_info, name, i)
+
+    return properties, id_to_info
+
+
+def process_multiselect_tags(ex: dict):
+
+    properties = {}
+    id_to_info = {}
+    for c in ex["options"]:
+
+        name = c["label"].strip()
+        description = get_tooltip(c)
+        alias = c["key"]
+        id_to_info.update({c["key"]: {"label": c["label"], "order": c["order"]}})
+        properties.update(add_element(name=name, description=description, alias=alias))
 
     return properties, id_to_info
 
