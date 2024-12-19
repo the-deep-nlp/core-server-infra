@@ -8,10 +8,8 @@ locals {
   app_image_url = "${data.aws_caller_identity.current_user.account_id}.dkr.ecr.${var.aws_region}.amazonaws.com/${var.app_image}:latest"
 }
 
-data "template_file" "config" {
-  template = file("./modules/server/templates/ecr_image/image.json")
-
-  vars = {
+locals {
+  rendered_config = templatefile("./modules/server/templates/ecr_image/image.json", {
     app_image      = local.app_image_url
     app_port       = var.app_port
     fargate_cpu    = var.fargate_cpu
@@ -113,7 +111,7 @@ data "template_file" "config" {
     reliability_model_version    = var.reliability_model_version
     # OpenAI API key
     ssm_openai_api_key_arn = var.ssm_openai_api_key_arn
-  }
+  })
 }
 
 resource "aws_ecs_task_definition" "task-def" {
@@ -124,7 +122,7 @@ resource "aws_ecs_task_definition" "task-def" {
   requires_compatibilities = ["FARGATE"]
   cpu                      = var.fargate_cpu
   memory                   = var.fargate_memory
-  container_definitions    = data.template_file.config.rendered
+  container_definitions    = local.rendered_config
 }
 
 resource "aws_ecs_service" "service" {
